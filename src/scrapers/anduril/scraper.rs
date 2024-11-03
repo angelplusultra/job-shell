@@ -19,7 +19,7 @@ pub async fn scrape_anduril(snapshots: &mut Snapshots) -> Result<JobsPayload, Bo
     let js = strinfify_js(file_path)?;
 
     let launch_options = LaunchOptions {
-        headless: false,
+        headless: true,
         ..LaunchOptions::default()
     };
 
@@ -27,7 +27,7 @@ pub async fn scrape_anduril(snapshots: &mut Snapshots) -> Result<JobsPayload, Bo
 
     let tab = browser.new_tab()?;
 
-    tab.navigate_to("https://www.anduril.com/open-roles")?;
+    tab.navigate_to("https://www.anduril.com/open-roles?location=&department=Software&search=&gh_src=")?;
 
     tab.wait_until_navigated()?;
 
