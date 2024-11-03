@@ -50,26 +50,13 @@ mod scrapers {
         pub mod scraper;
     }
 }
+
+mod handlers;
 /*
 *
 *
 */
 
-struct Data {
-    weedmaps: Company,
-}
-
-struct Company {
-    connections: Vec<Conenction>,
-    jobs: Vec<String>,
-}
-
-struct Conenction {
-    first_name: String,
-    last_name: String,
-    email: Option<String>,
-    linkedin: Option<String>,
-}
 
 fn clear_console() {
     print!("\x1B[2J\x1B[1;1H");
@@ -135,9 +122,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
             "Meta",
             "Wynn",
             "Cloudflare",
-        ];
+        ]
+        .to_vec();
 
         companies.sort();
+
+        companies.push("Exit");
 
         // Get company Selection
         let selection = FuzzySelect::new()
@@ -148,132 +138,168 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let company = companies[selection];
 
-        // Scrape jobs from selection
-        let JobsPayload {
-            all_jobs,
-            new_jobs,
-            are_new_jobs,
-        } = match company {
-            "Anduril" => scrape_anduril(&mut snapshots).await?,
-            "Cloudflare" => todo!(),
-            "Indeed" => todo!(),
-            "1Password" => scrape_1password(&mut snapshots).await?,
-            "Square" => scrape_square(&mut snapshots).await?,
-            "Tarro" => scrape_tarro(&mut snapshots).await?,
-            "Weedmaps" => scrape_weedmaps(&mut snapshots).await?,
-            _ => panic!(),
-        };
-
-        struct FormattedJob<'a> {
-            display_string: String,
-            original_job: &'a Job,
+        if company == "Exit" {
+            break;
         }
 
-        // INFO: Format jobs for presentation
-        let mut formatted_options = all_jobs
-            .iter()
-            .map(|j| {
-                let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
+        let options = ["Scrape Jobs", "Add a Connection"];
+        let selection = Select::with_theme(&ColorfulTheme::default())
+            .with_prompt("Select an option")
+            .items(&options)
+            .interact()
+            .unwrap();
 
-                let mut display_string = format!("{} {}", j.title, j.location);
-                if new_job.is_some() {
-                    display_string += " NEW!!!";
+        match options[selection] {
+            "Scrape Jobs" => {
+                //TODO: ScrapeJobs Handler
+                let JobsPayload {
+                    all_jobs,
+                    new_jobs,
+                    are_new_jobs,
+                } = match company {
+                    "Anduril" => scrape_anduril(&mut snapshots).await?,
+                    "Cloudflare" => todo!(),
+                    "Indeed" => todo!(),
+                    "1Password" => scrape_1password(&mut snapshots).await?,
+                    "Square" => scrape_square(&mut snapshots).await?,
+                    "Tarro" => scrape_tarro(&mut snapshots).await?,
+                    "Weedmaps" => scrape_weedmaps(&mut snapshots).await?,
+                    _ => panic!(),
+                };
+
+                struct FormattedJob<'a> {
+                    display_string: String,
+                    original_job: &'a Job,
                 }
 
-                FormattedJob {
-                    display_string,
-                    original_job: j,
-                }
-            })
-            .collect::<Vec<FormattedJob>>();
+                // INFO: Format jobs for presentation
+                let mut formatted_options = all_jobs
+                    .iter()
+                    .map(|j| {
+                        let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
 
-        // INFO: Filter jobs down by locations if data set too large
-        if all_jobs.len() > 99 {
-            let locations = all_jobs
-                .iter()
-                .fold(HashSet::new(), |mut hash, job| {
-                    hash.insert(&job.location);
-
-                    return hash;
-                })
-                .into_iter()
-                .collect::<Vec<&String>>();
-
-            let selection = Select::new()
-                .with_prompt("Select location")
-                .items(&locations)
-                .interact()
-                .unwrap();
-
-            let selected_location = locations[selection];
-
-            formatted_options.retain(|j| &j.original_job.location == selected_location);
-        }
-
-        let mut selected_job_loop = true;
-        while selected_job_loop {
-            let display_options = formatted_options
-                .iter()
-                .map(|j| &j.display_string)
-                .collect::<Vec<&String>>();
-            let selected_job = FuzzySelect::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select a job")
-                .items(&display_options)
-                .interact()
-                .unwrap();
-
-            let job = formatted_options[selected_job].original_job;
-
-            // INFO: Get Job Details from AI
-            let job_details = match company {
-                "Weedmaps" => get_weedmaps_jod_details(&job).await?,
-                "1Password" => default_get_job_details(&job, true, "body").await?,
-                "Tarro" => default_get_job_details(&job, true, "._content_ud4nd_71").await?,
-                "Anduril" => default_get_job_details(&job, true, "main").await?,
-
-                _ => panic!(),
-            };
-
-            // Print details
-            clear_console();
-            job_details.print_job();
-
-            // Confirm to apply
-            let apply = Confirm::new()
-                .with_prompt("Want to apply?")
-                .interact()
-                .unwrap();
-
-            match apply {
-                // The user wants to apply
-                true => {
-                    clear_console();
-                    webbrowser::open(&job.link)?;
-
-                    Confirm::new()
-                        .with_prompt("Did you apply?")
-                        .interact()
-                        .unwrap();
-                }
-                // The user doesnt want to apply
-                _ => {
-                    clear_console();
-                    // Ask the user if they'd like details on another job;
-                    let get_another_job_details = Confirm::new()
-                        .with_prompt("Would you like to get the details of another job?")
-                        .interact()
-                        .unwrap();
-
-                    match get_another_job_details {
-                        // if they do, repeat the loop
-                        true => {}
-                        // break the inner loop, starting the app over
-                        _ => {
-                            selected_job_loop = false;
+                        let mut display_string = format!("{} {}", j.title, j.location);
+                        if new_job.is_some() {
+                            display_string += " NEW!!!";
                         }
+
+                        FormattedJob {
+                            display_string,
+                            original_job: j,
+                        }
+                    })
+                    .collect::<Vec<FormattedJob>>();
+
+                // INFO: Filter jobs down by locations if data set too large
+                if all_jobs.len() > 99 {
+                    let locations = all_jobs
+                        .iter()
+                        .fold(HashSet::new(), |mut hash, job| {
+                            hash.insert(&job.location);
+
+                            return hash;
+                        })
+                        .into_iter()
+                        .collect::<Vec<&String>>();
+
+                    let selection = Select::new()
+                        .with_prompt("Select location")
+                        .items(&locations)
+                        .interact()
+                        .unwrap();
+
+                    let selected_location = locations[selection];
+
+                    formatted_options.retain(|j| &j.original_job.location == selected_location);
+                }
+
+                let mut selected_job_loop = true;
+                while selected_job_loop {
+                    let display_options = formatted_options
+                        .iter()
+                        .map(|j| &j.display_string)
+                        .collect::<Vec<&String>>();
+                    let selected_job = FuzzySelect::with_theme(&ColorfulTheme::default())
+                        .with_prompt("Select a job")
+                        .items(&display_options)
+                        .interact()
+                        .unwrap();
+
+                    let job = formatted_options[selected_job].original_job;
+
+                    // INFO: Get Job Details from AI
+                    let job_details = match company {
+                        "Weedmaps" => get_weedmaps_jod_details(&job).await?,
+                        "1Password" => default_get_job_details(&job, true, "body").await?,
+                        "Tarro" => {
+                            default_get_job_details(&job, true, "._content_ud4nd_71").await?
+                        }
+                        "Anduril" => default_get_job_details(&job, true, "main").await?,
+                        _ => panic!(),
+                    };
+
+                    // Print details
+                    clear_console();
+                    job_details.print_job();
+
+                    // Confirm to apply
+                    // let apply = Confirm::new()
+                    //     .with_prompt("Want to apply?")
+                    //     .interact()
+                    //     .unwrap();
+
+                    let options = ["Apply", "Reach out to a connection", "Back"];
+                    let selection = Select::with_theme(&ColorfulTheme::default())
+                        .with_prompt("Select an option")
+                        .items(&options)
+                        .interact()
+                        .unwrap();
+
+                    match options[selection] {
+                        // The user wants to apply
+                        "Apply" => {
+                            clear_console();
+                            webbrowser::open(&job.link)?;
+
+                            let apply = Confirm::new()
+                                .with_prompt("Did you apply?")
+                                .interact()
+                                .unwrap();
+
+                            if apply {
+                                //TODO: Mark job as applied
+                            }
+
+                            clear_console();
+                            // Ask the user if they'd like details on another job;
+                            let get_another_job_details = Confirm::new()
+                                .with_prompt("Would you like to get the details of another job?")
+                                .interact()
+                                .unwrap();
+
+                            match get_another_job_details {
+                                // if they do, repeat the loop
+                                true => {
+                                    continue;
+                                }
+                                // break the inner loop, starting the app over
+                                _ => {
+                                    // selected_job_loop = false;
+                                    break;
+                                }
+                            }
+                        }
+                        "Reach out to a connection" => {
+                            todo!();
+                        }
+                        _ => {}
                     }
                 }
             }
+            "Add a Connection" => {
+                // TODO: Add a connections handler
+            }
+            _ => {}
         }
     }
 
