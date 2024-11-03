@@ -12,6 +12,7 @@ use scrapers::square::scraper::scrape_square;
 use scrapers::tarro::scraper::scrape_tarro;
 use scrapers::weedmaps::job_details::get_weedmaps_jod_details;
 use scrapers::weedmaps::scraper::scrape_weedmaps;
+use std::collections::HashSet;
 use std::env;
 use std::error::Error;
 use std::io::Write;
@@ -53,6 +54,22 @@ mod scrapers {
 *
 *
 */
+
+struct Data {
+    weedmaps: Company,
+}
+
+struct Company {
+    connections: Vec<Conenction>,
+    jobs: Vec<String>,
+}
+
+struct Conenction {
+    first_name: String,
+    last_name: String,
+    email: Option<String>,
+    linkedin: Option<String>,
+}
 
 fn clear_console() {
     print!("\x1B[2J\x1B[1;1H");
@@ -106,7 +123,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let mut snapshots = Snapshots::get_snapshots();
 
-        let mut companies = ["Anduril", "Weedmaps", "1Password", "Tarro", "Toast"];
+        let mut companies = [
+            "Anduril",
+            "Weedmaps",
+            "1Password",
+            "Tarro",
+            "Toast",
+            "GitHub",
+            "GitLab",
+            "Palantir",
+            "Meta",
+            "Wynn",
+            "Cloudflare",
+        ];
 
         companies.sort();
 
@@ -135,42 +164,72 @@ async fn main() -> Result<(), Box<dyn Error>> {
             _ => panic!(),
         };
 
-        if all_jobs.len() > 100{
-            //TODO: Prompt for category or location?
-            todo!()
+        struct FormattedJob<'a> {
+            display_string: String,
+            original_job: &'a Job,
         }
 
-        // Format jobs for presentation
-        let formatted_options = all_jobs
+        // INFO: Format jobs for presentation
+        let mut formatted_options = all_jobs
             .iter()
             .map(|j| {
                 let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
 
-                let mut formatted_option = format!("{} {}", j.title, j.location);
+                let mut display_string = format!("{} {}", j.title, j.location);
                 if new_job.is_some() {
-                    formatted_option += " NEW!!!";
+                    display_string += " NEW!!!";
                 }
 
-                formatted_option
+                FormattedJob {
+                    display_string,
+                    original_job: j,
+                }
             })
-            .collect::<Vec<String>>();
+            .collect::<Vec<FormattedJob>>();
 
-        // Get specific job
-        let mut selected_job_loop = true;
-        while selected_job_loop {
-            let selected_job = FuzzySelect::with_theme(&ColorfulTheme::default())
-                .with_prompt("Select a job")
-                .items(&formatted_options)
+        // INFO: Filter jobs down by locations if data set too large
+        if all_jobs.len() > 99 {
+            let locations = all_jobs
+                .iter()
+                .fold(HashSet::new(), |mut hash, job| {
+                    hash.insert(&job.location);
+
+                    return hash;
+                })
+                .into_iter()
+                .collect::<Vec<&String>>();
+
+            let selection = Select::new()
+                .with_prompt("Select location")
+                .items(&locations)
                 .interact()
                 .unwrap();
 
-            let job = &all_jobs[selected_job];
+            let selected_location = locations[selection];
+
+            formatted_options.retain(|j| &j.original_job.location == selected_location);
+        }
+
+        let mut selected_job_loop = true;
+        while selected_job_loop {
+            let display_options = formatted_options
+                .iter()
+                .map(|j| &j.display_string)
+                .collect::<Vec<&String>>();
+            let selected_job = FuzzySelect::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select a job")
+                .items(&display_options)
+                .interact()
+                .unwrap();
+
+            let job = formatted_options[selected_job].original_job;
 
             // INFO: Get Job Details from AI
             let job_details = match company {
                 "Weedmaps" => get_weedmaps_jod_details(&job).await?,
                 "1Password" => default_get_job_details(&job, true, "body").await?,
                 "Tarro" => default_get_job_details(&job, true, "._content_ud4nd_71").await?,
+                "Anduril" => default_get_job_details(&job, true, "main").await?,
 
                 _ => panic!(),
             };
