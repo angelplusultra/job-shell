@@ -5,6 +5,22 @@ use serde_json::json;
 
 use super::scraper::Job;
 
+//TODO: Refactor snapshots to be more robust
+// struct Data {
+//     weedmaps: Company,
+// }
+// struct Company {
+//     connections: Vec<Conenction>,
+//     jobs: Vec<String>,
+// }
+// struct Conenction {
+//     first_name: String,
+//     last_name: String,
+//     email: Option<String>,
+//     linkedin: Option<String>,
+// }
+
+
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Snapshots {
     pub weedmaps: Vec<Job>,
