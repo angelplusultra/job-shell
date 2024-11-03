@@ -1,0 +1,34 @@
+## Companies to Do
+- Brilliant Labs
+- Meta
+- NBA
+- Only Fans
+- Cost Plus Drugs
+- Walmart
+- Profluent
+- Groq
+- Glu (Slack Killer)
+- Discord
+- Renaisance Technolgies
+- BlackRock
+- BlackStone
+- Palantir
+- Tesla
+- Starlink
+- Blue Origin
+- Wynn Las Vegas
+- Agricultural Bank of China
+- Open AI
+- Aramco
+- Bell Labs
+- Microsoft Research
+- GitHub
+- GitLab
+- Microsoft Azure
+- Blackberry
+- Waymo
+- Uber
+- Anthropic
+- Skims
+- LVMH
+- 
