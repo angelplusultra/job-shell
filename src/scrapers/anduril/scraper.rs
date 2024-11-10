@@ -4,13 +4,13 @@ use headless_chrome::{Browser, LaunchOptions};
 
 use crate::{
     models::{
+        data::Data,
         scraper::{Job, JobsPayload},
-        snapshots::Snapshots,
     },
     utils::stringify_js::strinfify_js,
 };
 
-pub async fn scrape_anduril(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_anduril(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
     let mut file_path = PathBuf::from(file!());
     file_path.pop();
 
@@ -27,7 +27,9 @@ pub async fn scrape_anduril(snapshots: &mut Snapshots) -> Result<JobsPayload, Bo
 
     let tab = browser.new_tab()?;
 
-    tab.navigate_to("https://www.anduril.com/open-roles?location=&department=Software&search=&gh_src=")?;
+    tab.navigate_to(
+        "https://www.anduril.com/open-roles?location=&department=Software&search=&gh_src=",
+    )?;
 
     tab.wait_until_navigated()?;
 
@@ -37,10 +39,10 @@ pub async fn scrape_anduril(snapshots: &mut Snapshots) -> Result<JobsPayload, Bo
 
     let jobs: Vec<Job> = serde_json::from_str(json_jobs.as_str().unwrap()).unwrap();
 
-    let jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.anduril);
+    let jobs_payload = JobsPayload::from_jobs(&jobs, &data.anduril.jobs);
 
-    snapshots.anduril = jobs;
-    snapshots.save();
+    data.anduril.jobs = jobs;
+    data.save();
 
     Ok(jobs_payload)
 }

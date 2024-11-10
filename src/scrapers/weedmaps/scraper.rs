@@ -1,15 +1,15 @@
 use std::path::PathBuf;
 use std::{collections::HashSet, error::Error, fs};
 
+use crate::models::data::Data;
 use crate::utils::stringify_js;
-use crate::Snapshots;
 use crate::{
     models::scraper::{Job, JobsPayload},
-    utils::{snapshots::write_to_snapshots, stringify_js::strinfify_js},
+    utils::stringify_js::strinfify_js,
 };
 use headless_chrome::{Browser, LaunchOptions};
 
-pub async fn scrape_weedmaps(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_weedmaps(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
     let mut file_path = PathBuf::from(file!());
 
     file_path.pop();
@@ -41,10 +41,10 @@ pub async fn scrape_weedmaps(snapshots: &mut Snapshots) -> Result<JobsPayload, B
 
     let scraped_jobs: Vec<Job> = serde_json::from_str(links.value.unwrap().as_str().unwrap())?;
 
-    let weedmaps_jobs_payload = JobsPayload::from_jobs(&scraped_jobs, &snapshots.weedmaps);
+    let weedmaps_jobs_payload = JobsPayload::from_jobs(&scraped_jobs, &data.weedmaps.jobs);
 
-    snapshots.weedmaps = scraped_jobs;
-    snapshots.save();
+    data.weedmaps.jobs = scraped_jobs;
+    data.save();
 
     Ok(weedmaps_jobs_payload)
 }

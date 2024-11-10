@@ -3,15 +3,17 @@ use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Select};
 use dotenv::dotenv;
 use headless_chrome::{Browser, LaunchOptions};
+use models::data::{self, Data, DataV2};
 use models::gemini::{GeminiClient, GeminiJob};
 use models::scraper::{Job, JobsPayload};
-use models::snapshots::{self, Snapshots};
 use scrapers::anduril::scraper::scrape_anduril;
 use scrapers::onepassword::scraper::scrape_1password;
 use scrapers::square::scraper::scrape_square;
 use scrapers::tarro::scraper::scrape_tarro;
 use scrapers::weedmaps::job_details::get_weedmaps_jod_details;
 use scrapers::weedmaps::scraper::scrape_weedmaps;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::collections::HashSet;
 use std::env;
 use std::error::Error;
@@ -20,16 +22,17 @@ use std::thread::sleep;
 use std::time::Duration;
 use webbrowser;
 
+const COMPANYKEYS: [&str; 3] = ["Weedmaps", "Anduril", "1Password"];
+
 // mod links
 mod utils {
-    pub mod snapshots;
     pub mod stringify_js;
 }
 mod models {
     pub mod custom_error;
+    pub mod data;
     pub mod gemini;
     pub mod scraper;
-    pub mod snapshots;
 }
 mod scrapers {
     pub mod weedmaps {
@@ -56,7 +59,6 @@ mod handlers;
 *
 *
 */
-
 
 fn clear_console() {
     print!("\x1B[2J\x1B[1;1H");
@@ -105,32 +107,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
     sleep(Duration::from_secs(3));
     let mut app_active = true;
 
-    'main: while app_active {
+    loop {
         clear_console();
 
-        let mut snapshots = Snapshots::get_snapshots();
+        let mut datav2 = DataV2::get_data();
+        let mut data = Data::get_data();
 
-        let mut companies = [
-            "Anduril",
-            "Weedmaps",
-            "1Password",
-            "Tarro",
-            "Toast",
-            "GitHub",
-            "GitLab",
-            "Palantir",
-            "Meta",
-            "Wynn",
-            "Cloudflare",
-        ]
-        .to_vec();
+        let mut companies = COMPANYKEYS.to_vec();
 
         companies.sort();
 
         companies.push("Exit");
 
         // Get company Selection
-        let selection = FuzzySelect::new()
+        let selection = FuzzySelect::with_theme(&ColorfulTheme::default())
             .with_prompt("What do you choose?")
             .items(&companies)
             .interact()
@@ -157,13 +147,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     new_jobs,
                     are_new_jobs,
                 } = match company {
-                    "Anduril" => scrape_anduril(&mut snapshots).await?,
-                    "Cloudflare" => todo!(),
-                    "Indeed" => todo!(),
-                    "1Password" => scrape_1password(&mut snapshots).await?,
-                    "Square" => scrape_square(&mut snapshots).await?,
-                    "Tarro" => scrape_tarro(&mut snapshots).await?,
-                    "Weedmaps" => scrape_weedmaps(&mut snapshots).await?,
+                    // "Anduril" => scrape_anduril(&mut data).await?,
+                    "1Password" => scrape_1password(&mut datav2).await?,
+                    // "Square" => scrape_square(&mut data).await?,
+                    // "Tarro" => scrape_tarro(&mut data).await?,
+                    // "Weedmaps" => scrape_weedmaps(&mut data).await?,
                     _ => panic!(),
                 };
 
@@ -267,7 +255,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 .unwrap();
 
                             if apply {
-                                //TODO: Mark job as applied
+                                if let Some(company) = datav2.data.get_mut(company) {
+                                    //TODO: search by ID field when added to struct
+                                    let selected_job = company
+                                        .jobs
+                                        .iter_mut()
+                                        .find(|j| j.title == job.title)
+                                        .unwrap();
+                                    selected_job.applied = true;
+
+                                    data.save();
+                                }
                             }
 
                             clear_console();
@@ -289,6 +287,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                             }
                         }
+                        // TODO: Reach out to connection
                         "Reach out to a connection" => {
                             todo!();
                         }

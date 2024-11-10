@@ -5,12 +5,12 @@ use reqwest::Client;
 use serde_json::{json, Value};
 
 use crate::models::{
+    data::Data,
     gemini::Root,
     scraper::{Job, JobsPayload},
-    snapshots::Snapshots,
 };
 
-pub async fn scrape_square(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_square(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
     let options = LaunchOptions {
         headless: false,
         window_size: Some((1920, 1080)),
@@ -75,7 +75,6 @@ loadAllJobsAndExtract()
     // BUG: What the actual fuck why is it scraping the website so slowly.
     while let Ok(load_more_sec) = tab.find_element(".load-more") {
         if let Ok(button) = load_more_sec.find_element("button") {
-            
             button.click()?;
             println!("Button clicked, loading more jobs");
         } else {
@@ -143,7 +142,7 @@ loadAllJobsAndExtract()
 
     println!("{:#?}", &jobs);
 
-    let square_jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.square);
+    let square_jobs_payload = JobsPayload::from_jobs(&jobs, &data.square.jobs);
 
     Ok(square_jobs_payload)
 }

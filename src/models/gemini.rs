@@ -6,11 +6,7 @@ use serde_json::{json, Value};
 
 use crate::models::scraper::Job;
 
-use super::{
-    custom_error::CustomError,
-    scraper::JobsPayload,
-    snapshots::{self, Snapshots},
-};
+use super::{custom_error::CustomError, data::Data, scraper::JobsPayload};
 
 #[derive(Debug, Deserialize)]
 pub struct Root {
@@ -160,7 +156,7 @@ impl GeminiClient {
     pub async fn get_jobs_payload_from_html(
         &self,
         html: &String,
-        snapshots: &mut Snapshots,
+        snapshots: &mut Data,
     ) -> Result<JobsPayload, Box<dyn Error>> {
         let prompt = format!(
             r#"
@@ -199,13 +195,11 @@ impl GeminiClient {
             .json::<Root>()
             .await?;
 
-        let json_string = &response.candidates[0].content.parts[0].text;
-
         let job_data: Value = serde_json::from_str(&response.candidates[0].content.parts[0].text)?;
 
         let jobs: Vec<Job> = serde_json::from_value(job_data["jobs"].clone())?;
 
-        let jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.tarro);
+        let jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.tarro.jobs);
 
         Ok(jobs_payload)
     }

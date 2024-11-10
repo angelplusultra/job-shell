@@ -3,12 +3,14 @@ use std::{error::Error, path::PathBuf};
 use headless_chrome::{Browser, LaunchOptions};
 
 use crate::{
-    models::scraper::{Job, JobsPayload},
+    models::{
+        data::{Company, Data, DataV2},
+        scraper::{Job, JobsPayload, ScrapedJob},
+    },
     utils::stringify_js::strinfify_js,
-    Snapshots,
 };
 
-pub async fn scrape_1password(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_1password(data: &mut DataV2) -> Result<JobsPayload, Box<dyn Error>> {
     let mut file_path = PathBuf::from(file!());
 
     file_path.pop();
@@ -34,14 +36,15 @@ pub async fn scrape_1password(snapshots: &mut Snapshots) -> Result<JobsPayload, 
 
     let engineering_jobs = tab.evaluate(&js, false)?;
 
-    let jobs: Vec<Job> =
+    let scraped_jobs: Vec<ScrapedJob> =
         serde_json::from_str(engineering_jobs.value.unwrap().as_str().unwrap()).unwrap();
 
-    let onepassword_jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.onepassword);
+    let onepassword_jobs_payload =
+        JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["1Password"]);
 
-    snapshots.onepassword = jobs;
+    data.data.get_mut("1Password").unwrap().jobs = onepassword_jobs_payload.all_jobs.clone();
 
-    snapshots.save();
+    data.save();
 
     Ok(onepassword_jobs_payload)
 }

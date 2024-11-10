@@ -9,14 +9,14 @@ use serde_json::{json, Value};
 
 use crate::{
     models::{
+        data::Data,
         gemini::{GeminiClient, Root},
         scraper::{Job, JobsPayload},
-        snapshots::Snapshots,
     },
     utils::stringify_js::strinfify_js,
 };
 
-pub async fn scrape_tarro(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_tarro(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
     let mut file_path = PathBuf::from(file!());
 
     file_path.pop();
@@ -47,14 +47,12 @@ pub async fn scrape_tarro(snapshots: &mut Snapshots) -> Result<JobsPayload, Box<
     sleep(Duration::from_secs(2));
     let json_jobs = tab.evaluate(&js, false)?;
 
-
-
     let jobs: Vec<Job> = serde_json::from_str(json_jobs.value.unwrap().as_str().unwrap()).unwrap();
 
-    let jobs_payload = JobsPayload::from_jobs(&jobs, &snapshots.tarro);
+    let jobs_payload = JobsPayload::from_jobs(&jobs, &data.tarro.jobs);
 
-    snapshots.tarro = jobs;
-    snapshots.save();
+    data.tarro.jobs = jobs;
+    data.save();
 
     Ok(jobs_payload)
 }
