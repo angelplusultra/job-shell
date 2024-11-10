@@ -1,4 +1,4 @@
 /target
 .env
 *.env
-snapshots.json
+data.json
