@@ -2,27 +2,27 @@ use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Select};
 use dotenv::dotenv;
+use handlers::handlers::default_scrape_jobs_handler;
+use handlers::scrape_options::{
+    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS,
+    WEEDMAPS_SCRAPE_OPTIONS,
+};
 use headless_chrome::{Browser, LaunchOptions};
-use models::data::{self, Data, DataV2};
-use models::gemini::{GeminiClient, GeminiJob};
+use models::data::Data;
+use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
-use scrapers::anduril::scraper::scrape_anduril;
-use scrapers::onepassword::scraper::scrape_1password;
-use scrapers::square::scraper::scrape_square;
-use scrapers::tarro::scraper::scrape_tarro;
-use scrapers::weedmaps::job_details::get_weedmaps_jod_details;
-use scrapers::weedmaps::scraper::scrape_weedmaps;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
+use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::HashSet;
-use std::env;
 use std::error::Error;
 use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
 use webbrowser;
 
-const COMPANYKEYS: [&str; 3] = ["Weedmaps", "Anduril", "1Password"];
+// TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
+const COMPANYKEYS: [&str; 5] = ["Anduril", "1Password", "Weedmaps", "Discord", "Reddit"];
+mod handlers;
+mod scrapers;
 
 // mod links
 mod utils {
@@ -34,31 +34,6 @@ mod models {
     pub mod gemini;
     pub mod scraper;
 }
-mod scrapers {
-    pub mod weedmaps {
-        pub mod job_details;
-        pub mod scraper;
-    }
-    pub mod onepassword {
-        pub mod scraper;
-    }
-
-    pub mod square {
-        pub mod scraper;
-    }
-    pub mod tarro {
-        pub mod scraper;
-    }
-    pub mod anduril {
-        pub mod scraper;
-    }
-}
-
-mod handlers;
-/*
-*
-*
-*/
 
 fn clear_console() {
     print!("\x1B[2J\x1B[1;1H");
@@ -84,7 +59,7 @@ async fn default_get_job_details(
 
     tab.wait_until_navigated()?;
 
-    let body = tab.wait_for_element("body")?;
+    tab.wait_for_element("body")?;
     let content = tab.wait_for_element(content_selector)?;
 
     let html = content.get_content()?;
@@ -99,6 +74,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     clear_console();
     dotenv().ok();
 
+    let dialoguer_styles = ColorfulTheme::default();
+
     let welcome = figlet_rs::FIGfont::from_file("src/fonts/slant.flf").unwrap();
 
     let logo = welcome.convert("Skibidi Skraper").unwrap();
@@ -107,10 +84,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     sleep(Duration::from_secs(3));
     let mut app_active = true;
 
+    // INFO: Main App loop
     loop {
         clear_console();
 
-        let mut datav2 = DataV2::get_data();
         let mut data = Data::get_data();
 
         let mut companies = COMPANYKEYS.to_vec();
@@ -120,7 +97,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         companies.push("Exit");
 
         // Get company Selection
-        let selection = FuzzySelect::with_theme(&ColorfulTheme::default())
+        let selection = FuzzySelect::with_theme(&dialoguer_styles)
             .with_prompt("What do you choose?")
             .items(&companies)
             .interact()
@@ -133,7 +110,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         let options = ["Scrape Jobs", "Add a Connection"];
-        let selection = Select::with_theme(&ColorfulTheme::default())
+        let selection = Select::with_theme(&dialoguer_styles)
             .with_prompt("Select an option")
             .items(&options)
             .interact()
@@ -147,11 +124,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     new_jobs,
                     are_new_jobs,
                 } = match company {
-                    // "Anduril" => scrape_anduril(&mut data).await?,
-                    "1Password" => scrape_1password(&mut datav2).await?,
-                    // "Square" => scrape_square(&mut data).await?,
-                    // "Tarro" => scrape_tarro(&mut data).await?,
-                    // "Weedmaps" => scrape_weedmaps(&mut data).await?,
+                    "Anduril" => {
+                        default_scrape_jobs_handler(&mut data, ANDURIL_SCRAPE_OPTIONS).await?
+                    }
+                    "Weedmaps" => {
+                        default_scrape_jobs_handler(&mut data, WEEDMAPS_SCRAPE_OPTIONS).await?
+                    }
+                    "1Password" => {
+                        default_scrape_jobs_handler(&mut data, ONEPASSWORD_SCRAPE_OPTIONS).await?
+                    }
+
+                    "Discord" => {
+                        default_scrape_jobs_handler(&mut data, DISCORD_SCRAPE_OPTIONS).await?
+                    }
+                    "Reddit" => scrape_reddit(&mut data).await?,
+
                     _ => panic!(),
                 };
 
@@ -190,7 +177,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .into_iter()
                         .collect::<Vec<&String>>();
 
-                    let selection = Select::new()
+                    let selection = Select::with_theme(&dialoguer_styles)
                         .with_prompt("Select location")
                         .items(&locations)
                         .interact()
@@ -207,7 +194,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .iter()
                         .map(|j| &j.display_string)
                         .collect::<Vec<&String>>();
-                    let selected_job = FuzzySelect::with_theme(&ColorfulTheme::default())
+                    let selected_job = FuzzySelect::with_theme(&dialoguer_styles)
                         .with_prompt("Select a job")
                         .items(&display_options)
                         .interact()
@@ -217,13 +204,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     // INFO: Get Job Details from AI
                     let job_details = match company {
-                        "Weedmaps" => get_weedmaps_jod_details(&job).await?,
+                        // "Weedmaps" => get_weedmaps_jod_details(&job).await?,
                         "1Password" => default_get_job_details(&job, true, "body").await?,
                         "Tarro" => {
                             default_get_job_details(&job, true, "._content_ud4nd_71").await?
                         }
+                        "Discord" => default_get_job_details(&job, true, "body").await?,
                         "Anduril" => default_get_job_details(&job, true, "main").await?,
-                        _ => panic!(),
+                        _ => default_get_job_details(&job, true, "body").await?,
                     };
 
                     // Print details
@@ -237,7 +225,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     //     .unwrap();
 
                     let options = ["Apply", "Reach out to a connection", "Back"];
-                    let selection = Select::with_theme(&ColorfulTheme::default())
+                    let selection = Select::with_theme(&dialoguer_styles)
                         .with_prompt("Select an option")
                         .items(&options)
                         .interact()
@@ -246,16 +234,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     match options[selection] {
                         // The user wants to apply
                         "Apply" => {
-                            clear_console();
                             webbrowser::open(&job.link)?;
 
-                            let apply = Confirm::new()
+                            let apply = Confirm::with_theme(&dialoguer_styles)
                                 .with_prompt("Did you apply?")
                                 .interact()
                                 .unwrap();
 
                             if apply {
-                                if let Some(company) = datav2.data.get_mut(company) {
+                                if let Some(company) = data.data.get_mut(company) {
                                     //TODO: search by ID field when added to struct
                                     let selected_job = company
                                         .jobs
@@ -270,7 +257,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                             clear_console();
                             // Ask the user if they'd like details on another job;
-                            let get_another_job_details = Confirm::new()
+                            let get_another_job_details = Confirm::with_theme(&dialoguer_styles)
                                 .with_prompt("Would you like to get the details of another job?")
                                 .interact()
                                 .unwrap();
