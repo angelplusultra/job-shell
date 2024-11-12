@@ -95,3 +95,27 @@ return categoryJobs.map(job => ({
 JSON.stringify(jobs);
     "#,
 };
+
+pub const GITHUB_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    headless: true,
+    url: "https://www.github.careers/careers-home/jobs?categories=Engineering&page=1&limit=100",
+    company_key: "GitHub",
+    content_selector: "body",
+    get_jobs_js: r#"
+const jobsPayload = [...document.querySelectorAll(".mat-content")].map(el => {
+
+    const title = el.querySelector(".job-title").innerText;
+     const location = el.querySelector(".location").innerHTML.slice(0, -2);
+    const link = el.querySelector("a").href;
+
+    return {
+        title,
+        location,
+        link
+        
+    }
+});
+
+JSON.stringify(jobsPayload); 
+    "#,
+};
