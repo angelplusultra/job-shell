@@ -95,7 +95,6 @@ If you do not have any data for a field just put "NOT SPECIFIED" or ["NOT SPECIF
             &html, GEMINI_JSON
         );
 
-        // "AIzaSyAJLcuradb-Q6XuwrWuKA0HdST6sWbYMAY";
         let response = gemini_client
             .client
             .post(&gemini_client.url_with_api_key)
