@@ -71,9 +71,58 @@ Once JobShell is running:
 - Reddit
 - Weedmaps
   
----
+## How the Program Works
 
-### Note
-Make sure Chrome and Node.js are correctly installed and up-to-date. Contact support if you encounter issues setting up JobShell.
+### Data
 
-Happy job hunting with JobShell—bringing your job search to the terminal!
+All data including scraped jobs and the connections you create are stored in a local `data.json` file at the root level of the repo. 
+
+Example: 
+```json
+{
+  "data": {
+    "1Password": {
+      "connections": [],
+      "jobs": [
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/e8ed6e04-3455-498a-85df-368a699f7b26",
+          "location": "Remote (US or Canada)",
+          "title": "Backend Developer (Rust)"
+        },
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/10576c68-8f6e-48d4-9f34-359d95774f6d",
+          "location": "Remote (US or Canada)",
+          "title": "Engineering Manager, Product Engineering"
+        },
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/5aa629cf-270b-476b-9735-40bc28a1ba49",
+          "location": "Remote (US or Canada)",
+          "title": "Senior Developer (Backend)"
+        },
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/f6eb3494-6cc8-4658-b861-895f2d33b448",
+          "location": "Remote (US or Canada)",
+          "title": "Senior Developer, Product Engineering"
+        },
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/67e64bcb-23d7-43b2-b36f-09f231996922",
+          "location": "Remote (US or Canada)",
+          "title": "Senior Manager, Engineering"
+        },
+        {
+          "applied": false,
+          "link": "https://jobs.lever.co/1password/9a581a3f-2604-4496-bfb1-63fab7afa0be",
+          "location": "Remote (US or Canada)",
+          "title": "Windows Developer (Rust)"
+        }
+      ]
+    },
+
+```
+
+When adding a new company to the repo, the first step is adding a new company to the `COMPANYKEYS` global array variable in `main.rs`.
