@@ -138,6 +138,8 @@ There are currently 2 options to creating a new scraper
 
 If the careers site of the new company you'd like to add is simple, and doesnt require much DOM interaction to retrieve all the jobs, the `default_job_scraper` function might be enough.
 
+https://github.com/angelplusultra/job-shell/blob/ab480388519279665c5dce1bec60116506aa2dbb/src/handlers/handlers.rs#L12-L45
+
 You would just need to create the `DefaultJobScraperOptions` struct instance for your new company in `./src/handlers/scrape_options.rs`
 
 Example: 
