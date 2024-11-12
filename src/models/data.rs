@@ -89,7 +89,7 @@ impl Data {
         }
 
         // Convert to your Data type
-        let data: Data = serde_json::from_value(json_value["data"].clone())?;
+        let data: Data = serde_json::from_value(json_value)?;
         Ok(data)
     }
     pub fn get_data() -> Data {
@@ -97,7 +97,8 @@ impl Data {
 
         match Self::process_data() {
             Ok(data) => data,
-            Err(..) => {
+            Err(e) => {
+                eprintln!("{}", e);
                 let default = default_data;
                 default.save();
                 default
