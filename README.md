@@ -1,5 +1,8 @@
 
 ---
+<div align="center"><img src="https://cdn.discordapp.com/attachments/917180495849197568/1305841579893850173/image.png?ex=67347f3e&is=67332dbe&hm=0c7091e7929d2311d7f53d1d7e87de879bd6b47a9ed16d3d83af934396d3606f&" alt="Description of the image" width="250" height="250">
+</div>
+
 
 # JobShell
 
