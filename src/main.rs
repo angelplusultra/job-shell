@@ -20,7 +20,13 @@ use std::time::Duration;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 5] = ["Anduril", "1Password", "Weedmaps", "Discord", "Reddit"];
+const COMPANYKEYS: [&str; 5] = [
+    "Anduril",
+    "1Password",
+    "Weedmaps",
+    "Discord",
+    "Reddit",
+];
 mod handlers;
 mod scrapers;
 
@@ -82,7 +88,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     println!("{logo}");
     sleep(Duration::from_secs(3));
-    let mut app_active = true;
 
     // INFO: Main App loop
     loop {
