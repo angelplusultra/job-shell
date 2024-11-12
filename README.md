@@ -71,7 +71,7 @@ Once JobShell is running:
 - Reddit
 - Weedmaps
   
-## How the Program Works
+## How JobShell Works
 
 ### Data
 
