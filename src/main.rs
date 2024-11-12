@@ -195,17 +195,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     formatted_options.retain(|j| &j.original_job.location == selected_location);
                 }
 
-                let mut selected_job_loop = true;
-                while selected_job_loop {
-                    let display_options = formatted_options
+                loop {
+                    let mut display_options = formatted_options
                         .iter()
-                        .map(|j| &j.display_string)
-                        .collect::<Vec<&String>>();
+                        .map(|j| j.display_string.as_str())
+                        .collect::<Vec<&str>>();
+
+
+                    // Pushing Exit option
+                    display_options.push("Exit");
+
                     let selected_job = FuzzySelect::with_theme(&dialoguer_styles)
                         .with_prompt("Select a job")
                         .items(&display_options)
                         .interact()
                         .unwrap();
+
+
+                    if display_options[selected_job] == "Exit" {
+                            break;
+                    }
 
                     let job = formatted_options[selected_job].original_job;
 
