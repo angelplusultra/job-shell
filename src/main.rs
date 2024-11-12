@@ -4,13 +4,13 @@ use dialoguer::{Confirm, FuzzySelect, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS,
-    WEEDMAPS_SCRAPE_OPTIONS,
+    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS
 };
 use headless_chrome::{Browser, LaunchOptions};
 use models::data::Data;
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
+use scrapers::github::scraper::scrape_github;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::HashSet;
 use std::error::Error;
@@ -20,12 +20,13 @@ use std::time::Duration;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 5] = [
+const COMPANYKEYS: [&str; 6] = [
     "Anduril",
     "1Password",
     "Weedmaps",
     "Discord",
     "Reddit",
+    "GitHub",
 ];
 mod handlers;
 mod scrapers;
@@ -143,6 +144,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         default_scrape_jobs_handler(&mut data, DISCORD_SCRAPE_OPTIONS).await?
                     }
                     "Reddit" => scrape_reddit(&mut data).await?,
+
+                    "GitHub" => default_scrape_jobs_handler(&mut data, GITHUB_SCRAPE_OPTIONS).await?,
 
                     _ => panic!(),
                 };
