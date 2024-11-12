@@ -58,7 +58,7 @@ Once JobShell is running:
    For each job listing, JobShell provides AI-driven insights, breaking down responsibilities, requirements, and other essential details.
 
 4. **Apply or Continue Browsing**  
-   When you’re ready, you can apply directly to roles from within the terminal or continue exploring other opportunities.
+   When you’re ready, you can apply to roles or continue exploring other opportunities.
 
 ---
 
