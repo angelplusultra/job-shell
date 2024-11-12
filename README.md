@@ -63,7 +63,7 @@ Once JobShell is running:
 4. **Apply or Continue Browsing**  
    When you’re ready, you can apply to roles or continue exploring other opportunities.
    
-## Comapnies Currently Supported
+## Companies Currently Supported
 - 1Password
 - Anduril
 - Discord
