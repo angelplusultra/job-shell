@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import asyncFs from "fs/promises";
 import fs from "fs";
 import readline from "readline";
