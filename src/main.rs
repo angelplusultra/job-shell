@@ -78,7 +78,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let welcome = figlet_rs::FIGfont::from_file("src/fonts/slant.flf").unwrap();
 
-    let logo = welcome.convert("Skibidi Skraper").unwrap();
+    let logo = welcome.convert("JobShell").unwrap();
 
     println!("{logo}");
     sleep(Duration::from_secs(3));
