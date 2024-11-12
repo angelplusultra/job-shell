@@ -1,6 +1,6 @@
 
 ---
-<div align="center"><img src="https://cdn.discordapp.com/attachments/917180495849197568/1305851449363664906/jobshell_icon.png?ex=6734886f&is=673336ef&hm=36b5f4db8721676478ff4be6993ca7a2ff57dad05345865d31deb9c8c53b72c0&" alt="Description of the image" width="250" height="250">
+<div align="center"><img src="https://cdn.discordapp.com/attachments/917180495849197568/1305854030899314688/jobshell_icon.png?ex=67348ad6&is=67333956&hm=50424aa0d51b9d09890e781b528cb0d98988835f3be280f390f93f12cc6715ff&" alt="Description of the image" width="250" height="250">
 </div>
 
 
@@ -62,7 +62,15 @@ Once JobShell is running:
 
 4. **Apply or Continue Browsing**  
    When you’re ready, you can apply to roles or continue exploring other opportunities.
-
+   
+## Comapnies Currently Supported
+- 1Password
+- Anduril
+- Discord
+- GitHub
+- Reddit
+- Weedmaps
+  
 ---
 
 ### Note
