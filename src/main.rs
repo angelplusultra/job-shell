@@ -10,7 +10,6 @@ use headless_chrome::{Browser, LaunchOptions};
 use models::data::Data;
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
-use scrapers::github::scraper::scrape_github;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::HashSet;
 use std::error::Error;
