@@ -138,5 +138,48 @@ There are currently 2 options to creating a new scraper
 
 If the careers site of the new company you'd like to add is simple, and doesnt require much DOM interaction to retrieve all the jobs, the `default_job_scraper` function might be enough.
 
+You would just need to create the `DefaultJobScraperOptions` struct instance for your new company in `./src/handlers/scrape_options.rs`
 
+Example: 
+
+```rust
+pub const GITHUB_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+   // Whether or not chrome should launch in headless mode
+    headless: true,
+   // The careers page URL (Can include query params to filter jobs)
+    url: "https://www.github.careers/careers-home/jobs?categories=Engineering&page=1&limit=100",
+   // The "key" in the data hash map, should be the same name as what you added in `COMPANYKEYS`
+    company_key: "GitHub",
+   // The selector on the page with the content you're trying to scrape
+    content_selector: "body",
+
+   /*
+The JavaScript string for returning an array of
+
+{
+   title: string,
+   location: string,
+   link: string // The apply href
+}
+*/
+    get_jobs_js: r#"
+const jobsPayload = [...document.querySelectorAll(".mat-content")].map(el => {
+
+    const title = el.querySelector(".job-title").innerText;
+     const location = el.querySelector(".location").innerHTML.slice(0, -2);
+    const link = el.querySelector("a").href;
+
+    return {
+        title,
+        location,
+        link
+        
+    }
+});
+
+JSON.stringify(jobsPayload); 
+    "#,
+};
+
+```
 ### DOCS CURRENTLY IN DEVELOPMENT
