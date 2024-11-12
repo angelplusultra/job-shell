@@ -16,7 +16,7 @@ To run JobShell, make sure you have:
 - **Node.js v20+**
 - **Google Gemini API Key**
 
-You can get your Gemini API Key from Google’s [Gemini API Portal](https://cloud.google.com/gemini).
+You can get your Gemini API Key from Google’s [Gemini API Portal](https://ai.google.dev/).
 
 ## Installation
 
