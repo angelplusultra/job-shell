@@ -134,7 +134,7 @@ When you run JobShell it will check the `COMPANYKEYS` against the saved state of
 
 There are currently 2 options to creating a new scraper
 
-1. Using the `default_job_scraper` function
+ #### 1. Using the `default_job_scraper` function
 
 If the careers site of the new company you'd like to add is simple, and doesnt require much DOM interaction to retrieve all the jobs, the `default_job_scraper` function might be enough.
 
@@ -181,5 +181,33 @@ JSON.stringify(jobsPayload);
     "#,
 };
 
+```
+Here is a syntax highlighted example of the JavaScript needed for a deafult scraper. It MUST end with a JSON stringified array of:
+
+```ts
+{
+   title: string,
+   location: string,
+   link: string // the apply href
+}
+```
+
+Full Example:
+```js
+const jobs = [...document.querySelectorAll(".mat-content")].map(el => {
+
+    const title = el.querySelector(".job-title").innerText;
+     const location = el.querySelector(".location").innerHTML.slice(0, -2);
+    const link = el.querySelector("a").href;
+
+    return {
+        title,
+        location,
+        link
+        
+    }
+});
+
+JSON.stringify(jobs); 
 ```
 ### DOCS CURRENTLY IN DEVELOPMENT
