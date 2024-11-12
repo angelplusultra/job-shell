@@ -122,7 +122,10 @@ Example:
         }
       ]
     },
-
+}
 ```
 
 When adding a new company to the repo, the first step is adding a new company to the `COMPANYKEYS` global array variable in `main.rs`.
+https://github.com/angelplusultra/job-shell/blob/353c970f446f97142684a67a842df6072d67e8ae/src/main.rs#L22-L29
+
+When you run JobShell it will check the `COMPANYKEYS` against the saved state of data, if there is a new company key added it creates the company entry in the `data.json`
