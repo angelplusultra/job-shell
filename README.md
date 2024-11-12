@@ -22,8 +22,8 @@ You can get your Gemini API Key from Google’s [Gemini API Portal](https://ai.g
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/jobshell.git
-   cd jobshell
+   git clone https://github.com/angelplusultra/job-shell.git
+   cd job-shell
    ```
 
 2. **Install Dependencies**  
