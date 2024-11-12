@@ -128,4 +128,15 @@ Example:
 When adding a new company to the repo, the first step is adding a new company to the `COMPANYKEYS` global array variable in `main.rs`.
 https://github.com/angelplusultra/job-shell/blob/353c970f446f97142684a67a842df6072d67e8ae/src/main.rs#L22-L29
 
-When you run JobShell it will check the `COMPANYKEYS` against the saved state of data, if there is a new company key added it creates the company entry in the `data.json`
+When you run JobShell it will check the `COMPANYKEYS` against the saved state of data, if there is a new company key added it creates the company entry in the `data.json`.
+
+### Creating a New Job Scraper
+
+There are currently 2 options to creating a new scraper
+
+1. Using the `default_job_scraper` function
+
+If the careers site of the new company you'd like to add is simple, and doesnt require much DOM interaction to retrieve all the jobs, the `default_job_scraper` function might be enough.
+
+
+### DOCS CURRENTLY IN DEVELOPMENT
