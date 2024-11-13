@@ -18,7 +18,7 @@ use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
 use webbrowser;
-
+use colored::*;
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
 const COMPANYKEYS: [&str; 6] = [
     "Anduril",
@@ -169,7 +169,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     .map(|j| {
                         let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
 
-                        let mut display_string = format!("{} {}", j.title, j.location);
+                        let mut display_string = format!("🧳 {} | 🌎 {}", j.title, j.location);
                         if new_job.is_some() {
                             display_string += " NEW!!!";
                         }
@@ -241,11 +241,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     clear_console();
                     job_details.print_job();
 
-                    // Confirm to apply
-                    // let apply = Confirm::new()
-                    //     .with_prompt("Want to apply?")
-                    //     .interact()
-                    //     .unwrap();
 
                     let options = ["Apply", "Reach out to a connection", "Back"];
                     let selection = Select::with_theme(&dialoguer_styles)
