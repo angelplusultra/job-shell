@@ -1,13 +1,14 @@
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Confirm, FuzzySelect, Select};
+use dialoguer::{Confirm, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS
+    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS,
+    ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
-use models::data::Data;
+use models::data::{Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use scrapers::reddit::scraper::scrape_reddit;
@@ -95,25 +96,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let mut data = Data::get_data();
 
-        let mut companies = COMPANYKEYS.to_vec();
+        let mut main_options = COMPANYKEYS.to_vec();
 
-        companies.sort();
+        main_options.sort();
 
-        companies.push("Exit");
+        main_options.push("Scrape My Connection Jobs");
+        main_options.push("Exit");
 
         // Get company Selection
         let selection = FuzzySelect::with_theme(&dialoguer_styles)
             .with_prompt("What do you choose?")
-            .items(&companies)
+            .items(&main_options)
             .interact()
             .unwrap();
 
-        let company = companies[selection];
+        let main_selection = main_options[selection];
 
-        if company == "Exit" {
+        if main_selection == "Exit" {
             break;
         }
 
+        if main_selection == "Scrape My Connection Jobs" {
+            todo!();
+        }
+
+        let company = main_selection;
         let options = ["Scrape Jobs", "Add a Connection"];
         let selection = Select::with_theme(&dialoguer_styles)
             .with_prompt("Select an option")
@@ -144,7 +151,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     "Reddit" => scrape_reddit(&mut data).await?,
 
-                    "GitHub" => default_scrape_jobs_handler(&mut data, GITHUB_SCRAPE_OPTIONS).await?,
+                    "GitHub" => {
+                        default_scrape_jobs_handler(&mut data, GITHUB_SCRAPE_OPTIONS).await?
+                    }
 
                     _ => panic!(),
                 };
@@ -201,7 +210,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .map(|j| j.display_string.as_str())
                         .collect::<Vec<&str>>();
 
-
                     // Pushing Exit option
                     display_options.push("Exit");
 
@@ -211,9 +219,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         .interact()
                         .unwrap();
 
-
                     if display_options[selected_job] == "Exit" {
-                            break;
+                        break;
                     }
 
                     let job = formatted_options[selected_job].original_job;
@@ -291,15 +298,80 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                         }
                         // TODO: Reach out to connection
-                        "Reach out to a connection" => {
-                            todo!();
-                        }
+                        "Reach out to a connection" => {}
                         _ => {}
                     }
                 }
             }
             "Add a Connection" => {
                 // TODO: Add a connections handler
+                let first_name: String = Input::with_theme(&dialoguer_styles)
+                    .with_prompt("Enter their first name")
+                    .interact_text()
+                    .unwrap();
+
+                let last_name: String = Input::with_theme(&dialoguer_styles)
+                    .with_prompt("Enter their last name")
+                    .interact_text()
+                    .unwrap();
+
+                let current_employee = Confirm::with_theme(&dialoguer_styles)
+                    .with_prompt("Are they currently employed at this company?")
+                    .interact()
+                    .unwrap();
+
+                let role: String = Input::with_theme(&dialoguer_styles)
+                    .with_prompt("Enter their role at this company (e.g Software Engineer)")
+                    .interact_text()
+                    .unwrap();
+
+                let email: Option<String> = Input::with_theme(&dialoguer_styles)
+                    .with_prompt("Enter their email (Press Enter to skip)")
+                    .allow_empty(true)
+                    .interact_text()
+                    .ok()
+                    .filter(|s: &String| !s.is_empty());
+
+                let linkedin: Option<String> = Input::with_theme(&dialoguer_styles)
+                    .with_prompt("Enter their LinkedIn profile (Press Enter to skip)")
+                    .allow_empty(true)
+                    .interact_text()
+                    .ok()
+                    .filter(|s: &String| !s.is_empty());
+
+                let new_connection = Connection {
+                    first_name,
+                    last_name,
+                    role,
+                    current_employee,
+                    email,
+                    linkedin,
+                };
+
+                if let Some(c) = data.data.get_mut(company) {
+                    let existing_connection = c.connections.iter().find(|&c| {
+                        if c.last_name == new_connection.last_name
+                            && c.first_name == new_connection.first_name
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    });
+
+                    if existing_connection.is_some() {
+                        let create_new_connection = Confirm::with_theme(&dialoguer_styles).with_prompt("A connection already exists with the same first name and last name, are you sure you would like to continue creating a new connection?").interact().unwrap();
+
+                        if !create_new_connection {
+                            continue;
+                        }
+                    }
+                    c.connections.push(new_connection);
+
+                    data.save();
+                }
+
+                data.save();
             }
             _ => {}
         }
