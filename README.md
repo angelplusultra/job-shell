@@ -10,7 +10,7 @@ JobShell is a command-line tool designed to streamline your software engineering
 
 ## Demo
 <div align="left">
-   <img src="assets/jobshell_gif.gif" />
+   <img src="assets/jobshell_demo_2.gif" />
 </div>
 
 
