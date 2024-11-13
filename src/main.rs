@@ -1,5 +1,4 @@
 use colored::*;
-use tabled::Table;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Input, Select};
@@ -19,6 +18,7 @@ use std::error::Error;
 use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
+use tabled::Table;
 use webbrowser;
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
 const COMPANYKEYS: [&str; 6] = [
@@ -164,7 +164,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let selected_connection = &connects[idx];
 
                     let connection_table = Table::new(vec![selected_connection]);
-
 
                     println!("{}", connection_table);
 
@@ -353,7 +352,41 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                             // TODO: Reach out to connection
                             "Reach out to a connection" => {
-                                
+                                let connections = &data.data[company].connections;
+
+                                let display_strings: Vec<String> = connections
+                                    .iter()
+                                    .map(|c| {
+                                        format!("{} {} ({})", c.first_name, c.last_name, c.role)
+                                    })
+                                    .collect();
+
+                                let idx = Select::with_theme(&dialoguer_styles)
+                                    .with_prompt("Select a connection")
+                                    .items(&display_strings)
+                                    .interact()
+                                    .unwrap();
+
+                                let selected_connection = &connections[idx];
+
+                                let connection_table = Table::new(vec![selected_connection]);
+
+                                println!("{}", connection_table);
+
+                                let connections_options = ["Open LinkedIn", "Back"];
+
+                                let selected_connection_option = connections_options
+                                    [Select::with_theme(&dialoguer_styles)
+                                        .with_prompt("Select an option")
+                                        .items(&connections_options)
+                                        .interact()
+                                        .unwrap()];
+
+                                match selected_connection_option {
+                                    "Open LinkedIn" => todo!(),
+                                    "Back" => continue,
+                                    _ => panic!(),
+                                }
                             }
                             _ => {}
                         }
@@ -428,7 +461,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
 
                     data.save();
-
                 }
                 _ => {}
             }
