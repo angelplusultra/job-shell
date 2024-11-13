@@ -8,6 +8,12 @@
 
 JobShell is a command-line tool designed to streamline your software engineering job search by delivering relevant job listings directly to your terminal. With a curated selection of companies—regularly updated—you can view the latest job openings from companies you're interested in without the hassle of visiting multiple job boards. JobShell’s intuitive interface lets you browse job roles and get AI-generated insights, such as responsibilities, requirements, and essential details for each role. When you find an opportunity that stands out, apply directly from the terminal or continue exploring—all within one streamlined experience.
 
+## Demo
+<div align="left">
+   <img src="assets/jobshell_gif.gif" />
+</div>
+
+
 <!-- ## Features -->
 <!-- - **Curated Company Selection**: Choose from a regularly updated list of companies, ensuring you’re always seeing the freshest and most relevant openings. -->
 <!-- - **AI-Enhanced Insights**: JobShell uses AI to analyze job listings, providing detailed insights on each role, including responsibilities, requirements, and skills. -->
