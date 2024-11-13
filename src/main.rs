@@ -1,3 +1,4 @@
+use colored::*;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Input, Select};
@@ -18,7 +19,6 @@ use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
 use webbrowser;
-use colored::*;
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
 const COMPANYKEYS: [&str; 6] = [
     "Anduril",
@@ -121,7 +121,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         let company = main_selection;
-        let options = ["Scrape Jobs", "Add a Connection"];
+
+        let options = ["Scrape Jobs", "Add a Connection", "View/Edit Connections", "Back"];
+
+        //INFO: Company Loop
+        // loop {
+        //     // TODO: Need to put below in this loop
+        //
+        // }
         let selection = Select::with_theme(&dialoguer_styles)
             .with_prompt("Select an option")
             .items(&options)
@@ -129,6 +136,20 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .unwrap();
 
         match options[selection] {
+            "View/Edit Connections" => {
+                let connects = &data.data[company].connections;
+
+                let display_strings: Vec<String> = connects
+                    .iter()
+                    .map(|c| format!("{} {} ({})", c.first_name, c.last_name, c.role))
+                    .collect();
+
+                let idx = FuzzySelect::with_theme(&dialoguer_styles)
+                    .with_prompt("Select a connection")
+                    .items(&display_strings)
+                    .interact()
+                    .unwrap();
+            }
             "Scrape Jobs" => {
                 //TODO: ScrapeJobs Handler
                 let JobsPayload {
@@ -204,6 +225,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     formatted_options.retain(|j| &j.original_job.location == selected_location);
                 }
 
+                // INFO: Job Selection Loop
                 loop {
                     let mut display_options = formatted_options
                         .iter()
@@ -240,7 +262,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     // Print details
                     clear_console();
                     job_details.print_job();
-
 
                     let options = ["Apply", "Reach out to a connection", "Back"];
                     let selection = Select::with_theme(&dialoguer_styles)
