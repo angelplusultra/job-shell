@@ -9,7 +9,7 @@ use super::scraper::Job;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Company {
-    pub connections: Vec<Conenction>,
+    pub connections: Vec<Connection>,
     pub jobs: Vec<Job>,
 }
 
@@ -23,9 +23,11 @@ impl Company {
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
-pub struct Conenction {
+pub struct Connection {
     pub first_name: String,
     pub last_name: String,
+    pub current_employee: bool,
+    pub role: String,
     pub email: Option<String>,
     pub linkedin: Option<String>,
 }
