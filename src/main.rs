@@ -9,11 +9,11 @@ use handlers::scrape_options::{
     ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
-use models::data::{Connection, Data};
+use models::data::{Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use scrapers::reddit::scraper::scrape_reddit;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::io::Write;
 use std::thread::sleep;
@@ -118,7 +118,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
 
         if main_selection == "Scrape My Connection Jobs" {
-            todo!();
+            // TODO: ugh huge todo
+            let companies_with_connections: HashMap<&String, &Company> = data
+                .data
+                .iter()
+                .filter(|(_, c)| !c.connections.is_empty())
+                .collect();
+
+            for (name, _) in companies_with_connections {
+                println!("{name}");
+            }
+            continue;
         }
 
         let company = main_selection;
@@ -132,7 +142,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         //INFO: Company Loop
         loop {
-            // TODO: Need to put below in this loop
 
             let selection = Select::with_theme(&dialoguer_styles)
                 .with_prompt("Select an option")
@@ -183,8 +192,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         _ => panic!(),
                     }
                 }
+                // INFO: Scrape Jobs
                 "Scrape Jobs" => {
-                    //TODO: ScrapeJobs Handler
                     let JobsPayload {
                         all_jobs,
                         new_jobs,
@@ -350,7 +359,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }
                                 }
                             }
-                            // TODO: Reach out to connection
                             "Reach out to a connection" => {
                                 let connections = &data.data[company].connections;
 
@@ -373,7 +381,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 println!("{}", connection_table);
 
-                                let connections_options = ["Open LinkedIn", "Back"];
+                                let mut connections_options = vec!["Back"];
+
+                                if selected_connection.linkedin.is_some() {
+                                    connections_options.insert(0, "Open LinkedIn")
+                                }
 
                                 let selected_connection_option = connections_options
                                     [Select::with_theme(&dialoguer_styles)
@@ -383,7 +395,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         .unwrap()];
 
                                 match selected_connection_option {
-                                    "Open LinkedIn" => todo!(),
+                                    "Open LinkedIn" => {
+                                        let linkedin_url =
+                                            selected_connection.linkedin.as_ref().unwrap();
+
+                                        webbrowser::open(linkedin_url)?;
+                                    }
+
                                     "Back" => continue,
                                     _ => panic!(),
                                 }
@@ -393,7 +411,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 "Add a Connection" => {
-                    // TODO: Add a connections handler
                     let first_name: String = Input::with_theme(&dialoguer_styles)
                         .with_prompt("Enter their first name")
                         .interact_text()
@@ -423,10 +440,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     let linkedin: Option<String> = Input::with_theme(&dialoguer_styles)
                         .with_prompt("Enter their LinkedIn profile (Press Enter to skip)")
+                        .with_initial_text("https://linkedin.com/in/")
                         .allow_empty(true)
+                        .validate_with(|c: &String| {
+                            if !c.starts_with("https://linkedin.com/in/") {
+                                Err("This is not the valid schema for a linkedin profile href")
+                            } else {
+                                Ok(())
+                            }
+                        })
                         .interact_text()
                         .ok()
-                        .filter(|s: &String| !s.is_empty());
+                        .filter(|s: &String| {
+                            if s == "https://linkedin.com/in/" {
+                                return false;
+                            }
+
+                            return true;
+                        });
 
                     let new_connection = Connection {
                         first_name,
