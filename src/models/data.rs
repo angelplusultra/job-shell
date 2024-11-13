@@ -2,6 +2,7 @@ use std::{collections::HashMap, error::Error, fs};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use tabled::Tabled;
 
 use crate::COMPANYKEYS;
 
@@ -22,15 +23,26 @@ impl Company {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Debug, Default, Deserialize, Serialize, Tabled)]
 pub struct Connection {
     pub first_name: String,
     pub last_name: String,
     pub current_employee: bool,
     pub role: String,
+    #[tabled(display_with = "display_option")]
     pub email: Option<String>,
+    #[tabled(display_with = "display_option")]
     pub linkedin: Option<String>,
 }
+
+// Helper function for displaying Option<String>
+fn display_option(opt: &Option<String>) -> &str {
+    match opt {
+        Some(value) => value.as_str(),
+        None => "N/A", // Customize for missing data
+    }
+}
+
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Data {
