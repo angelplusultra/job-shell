@@ -78,9 +78,7 @@ impl GeminiJob {
     }
 
     pub async fn from_job_html(html: String) -> Result<Self, Box<dyn Error>> {
-        let gemini_client = GeminiClient::new();
-        let s = format!(
-            r#"{} Prompt: Please respond with a json object in the following format. DO NOT respond with markdown, respond with raw json that adheres to the following structure:
+        let original_prompt = r#"Please respond with a json object in the following format. DO NOT respond with markdown, respond with raw json that adheres to the following structure:
 
 
 {}
@@ -91,11 +89,21 @@ I REPEAT, DO NOT RESPOND WITH ANYTHING BESDIES RAW STRING JSON, DO NOT WRAP THE 
 
 DO NOT WRAP IN BACKTICKS, DO NOT WRAP IN BACKTICKS, DO NOT WRAP IN BACKTICKS, RAW JSON STRING ONLY. MY LIFE DEPENDS ON IT, YOU CANNOT MESS THIS UP.
 
+Another Important Details:"#;
+
+        let gemini_client = GeminiClient::new();
+        let s = format!(
+            r#"{} 
+
+            Prompt: Please parse the HTML Job page and return the job details. The JSON structure is as specified.
+
+            Do not exceed 500 characters for the job_description field.
+
 Another Important Details:
 
-If you do not have any data for a field just put "NOT SPECIFIED" or ["NOT SPECIFIED"] instead of null
+If you do not have any data for a field just put ["NOT SPECIFIED"] instead of null
 "#,
-            &html, GEMINI_JSON
+            &html
         );
 
         // let response = gemini_client
@@ -111,41 +119,57 @@ If you do not have any data for a field just put "NOT SPECIFIED" or ["NOT SPECIF
         //     .json::<Root>()
         //     .await?;
 
-
-
-
-
         // TODO: Refactor this bullshit to propogate errors upwards naturally with (?)
         match gemini_client
             .client
             .post(&gemini_client.url_with_api_key)
             .json(&json!({
-                "contents": {
-                "parts": [{"text": s}]
-            }
-            }))
+                        "generationConfig": {
+                "response_mime_type": "application/json",
+                "response_schema": {
+                  "type": "OBJECT",
+                    "properties": {
+                      "title": {"type":"STRING"},
+                      "skills": {
+                            "type":"ARRAY",
+                            "items": {
+                                "type": "STRING"
+                        }
+                    },
+                      "job_description": {"type":"STRING"},
+                      "years_of_experience": {"type":"STRING"},
+                      "compensation": {"type":"STRING"},
+                      "benefits": {
+                            "type":"ARRAY",
+                            "items": {
+                                "type": "STRING"
+                        }
+                    },
+                      "location": {"type":"STRING"},
+                    }
+                }
+            },
+                        "contents": {
+                        "parts": [{"text": s}]
+                    }
+                    }))
             .send()
             .await
         {
-            Ok(res) => {
-                match res.json::<Value>().await {
-                    Ok(json) => {
-                        let json_response =
-                            json["candidates"][0]["content"]["parts"][0]["text"].clone();
-                        // let response_json = &json.candidates[0].content.parts[0].text;
-                        //
+            Ok(res) => match res.json::<Value>().await {
+                Ok(json) => {
+                    println!("{:#?}", json);
+                    let json_response =
+                        json["candidates"][0]["content"]["parts"][0]["text"].clone();
 
-                        let gemini_job =
-                            serde_json::from_str::<Self>(json_response.as_str().unwrap())?;
-                        //
-                        return Ok(gemini_job);
-                    }
-                    Err(e) => {
-                        eprintln!("Error: {e}");
-                        return Err(Box::new(e));
-                    }
+                    let gemini_job = serde_json::from_str::<Self>(json_response.as_str().unwrap())?;
+                    return Ok(gemini_job);
                 }
-            }
+                Err(e) => {
+                    eprintln!("Error: {e}");
+                    return Err(Box::new(e));
+                }
+            },
             Err(e) => {
                 eprintln!("Error: {e}");
                 return Err(Box::new(e));
