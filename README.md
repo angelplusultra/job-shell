@@ -45,7 +45,8 @@ You can get your Gemini API Key from Google’s [Gemini API Portal](https://ai.g
      ```
    - Open `.env` in a text editor and add the following line:
      ```plaintext
-     GEMINI_KEY=your_gemini_api_key_here
+     GEMINI_KEY={YOUR_GEMINI_API_KEY}
+     GEMINI_MODEL=flash 
      ```
    - Replace `your_gemini_api_key_here` with your actual Gemini API key.
 
@@ -74,7 +75,9 @@ Once JobShell is running:
 - Anduril
 - Discord
 - GitHub
+- GitLab
 - Reddit
+- The Browser Company
 - Weedmaps
   
 ## How JobShell Works
