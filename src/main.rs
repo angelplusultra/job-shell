@@ -1,7 +1,8 @@
+use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Confirm, FuzzySelect, Input, Select};
+use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
@@ -20,6 +21,7 @@ use std::thread::sleep;
 use std::time::Duration;
 use tabled::Table;
 use webbrowser;
+
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
 const COMPANYKEYS: [&str; 6] = [
     "Anduril",
@@ -72,9 +74,13 @@ async fn default_get_job_details(
 
     let html = content.get_content()?;
 
-    let gemini_job = GeminiJob::from_job_html(html).await?;
-
-    return Ok(gemini_job);
+    match GeminiJob::from_job_html(html).await {
+        Ok(gemini_job) => Ok(gemini_job),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            Err(e)
+        }
+    }
 }
 
 #[tokio::main]
@@ -101,7 +107,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         main_options.sort();
 
-        main_options.push("Scrape My Connection Jobs");
+        // main_options.push("Scrape My Connection Jobs");
+        // main_options.push("View All Connections");
         main_options.push("Exit");
 
         // Get company Selection
@@ -117,18 +124,53 @@ async fn main() -> Result<(), Box<dyn Error>> {
             break;
         }
 
+        if main_selection == "View All Connections" {
+            let all_connections: Vec<&Connection> = data
+                .data
+                .iter()
+                .map(|(_, c)| &c.connections)
+                .flatten()
+                .collect();
+
+            let table = Table::new(all_connections);
+
+            println!("{}", table);
+
+            Input::<String>::new()
+                .with_prompt("Press enter to continue")
+                .interact()
+                .unwrap();
+
+            continue;
+        }
+
         if main_selection == "Scrape My Connection Jobs" {
             // TODO: ugh huge todo
-            let companies_with_connections: HashMap<&String, &Company> = data
+            let companies_to_scrape: Vec<String> = data
                 .data
                 .iter()
                 .filter(|(_, c)| !c.connections.is_empty())
+                .map(|(k, _)| k.clone())
                 .collect();
 
-            for (name, _) in companies_with_connections {
-                println!("{name}");
+            println!("{:?}", companies_to_scrape);
+
+            for company_key in companies_to_scrape {
+                println!("Scraping {}", company_key);
+                let jobs_payload = scrape_jobs(&mut data, &company_key).await?;
+
+                if jobs_payload.are_new_jobs {
+                    let string = format!("{} has new jobs!", company_key);
+                    println!("{string}");
+                }
+
+                println!("Finished scraping {}", company_key);
             }
+
+            sleep(Duration::from_secs(5));
             continue;
+
+            // PResent to the user which company has new jobs
         }
 
         let company = main_selection;
@@ -142,9 +184,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         //INFO: Company Loop
         loop {
-
             let selection = Select::with_theme(&dialoguer_styles)
-                .with_prompt("Select an option")
+                .with_prompt(&format!("Select an option for {}", company))
                 .items(&options)
                 .interact()
                 .unwrap();
@@ -198,29 +239,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         all_jobs,
                         new_jobs,
                         are_new_jobs,
-                    } = match company {
-                        "Anduril" => {
-                            default_scrape_jobs_handler(&mut data, ANDURIL_SCRAPE_OPTIONS).await?
-                        }
-                        "Weedmaps" => {
-                            default_scrape_jobs_handler(&mut data, WEEDMAPS_SCRAPE_OPTIONS).await?
-                        }
-                        "1Password" => {
-                            default_scrape_jobs_handler(&mut data, ONEPASSWORD_SCRAPE_OPTIONS)
-                                .await?
-                        }
-
-                        "Discord" => {
-                            default_scrape_jobs_handler(&mut data, DISCORD_SCRAPE_OPTIONS).await?
-                        }
-                        "Reddit" => scrape_reddit(&mut data).await?,
-
-                        "GitHub" => {
-                            default_scrape_jobs_handler(&mut data, GITHUB_SCRAPE_OPTIONS).await?
-                        }
-
-                        _ => panic!(),
-                    };
+                    } = scrape_jobs(&mut data, company).await?;
 
                     struct FormattedJob<'a> {
                         display_string: String,
@@ -306,6 +325,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         clear_console();
                         job_details.print_job();
 
+                        loop {
+
+                        }
+                        //TODO: shove below in loop above
                         let options = ["Apply", "Reach out to a connection", "Back"];
                         let selection = Select::with_theme(&dialoguer_styles)
                             .with_prompt("Select an option")
@@ -359,8 +382,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }
                                 }
                             }
+                            // INFO: Reach out to a connection handler
                             "Reach out to a connection" => {
                                 let connections = &data.data[company].connections;
+
+                                // TODO: If connections is empty, print message and continue loop
 
                                 let display_strings: Vec<String> = connections
                                     .iter()
@@ -381,7 +407,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 println!("{}", connection_table);
 
-                                let mut connections_options = vec!["Back"];
+                                let mut connections_options = vec!["Craft a Message", "Back"];
 
                                 if selected_connection.linkedin.is_some() {
                                     connections_options.insert(0, "Open LinkedIn")
@@ -401,6 +427,32 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                         webbrowser::open(linkedin_url)?;
                                     }
+                                    "Craft a Message" => {
+                                        let mut message = Editor::new()
+                                            .edit("Craft your message")
+                                            .unwrap()
+                                            .unwrap();
+
+                                        message += &format!("\n\n{}", job.link);
+                                        let mut clipboard: ClipboardContext =
+                                            ClipboardProvider::new().unwrap();
+                                        clipboard.set_contents(message.clone()).unwrap();
+
+                                        println!("Your message has been copied to your clipboard.");
+
+                                        if selected_connection.linkedin.is_some() {
+                                            let open_linkedIn =
+                                                Confirm::with_theme(&dialoguer_styles)
+                                                    .with_prompt("Open LinkedIn?")
+                                                    .interact()
+                                                    .unwrap();
+                                            if open_linkedIn {
+                                                webbrowser::open(
+                                                    &selected_connection.linkedin.as_ref().unwrap(),
+                                                );
+                                            }
+                                        }
+                                    }
 
                                     "Back" => continue,
                                     _ => panic!(),
@@ -411,62 +463,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
                 "Add a Connection" => {
-                    let first_name: String = Input::with_theme(&dialoguer_styles)
-                        .with_prompt("Enter their first name")
-                        .interact_text()
-                        .unwrap();
+                    clear_console();
+                    println!("Create a new connection at {}", company);
 
-                    let last_name: String = Input::with_theme(&dialoguer_styles)
-                        .with_prompt("Enter their last name")
-                        .interact_text()
-                        .unwrap();
-
-                    let current_employee = Confirm::with_theme(&dialoguer_styles)
-                        .with_prompt("Are they currently employed at this company?")
-                        .interact()
-                        .unwrap();
-
-                    let role: String = Input::with_theme(&dialoguer_styles)
-                        .with_prompt("Enter their role at this company (e.g Software Engineer)")
-                        .interact_text()
-                        .unwrap();
-
-                    let email: Option<String> = Input::with_theme(&dialoguer_styles)
-                        .with_prompt("Enter their email (Press Enter to skip)")
-                        .allow_empty(true)
-                        .interact_text()
-                        .ok()
-                        .filter(|s: &String| !s.is_empty());
-
-                    let linkedin: Option<String> = Input::with_theme(&dialoguer_styles)
-                        .with_prompt("Enter their LinkedIn profile (Press Enter to skip)")
-                        .with_initial_text("https://linkedin.com/in/")
-                        .allow_empty(true)
-                        .validate_with(|c: &String| {
-                            if !c.starts_with("https://linkedin.com/in/") {
-                                Err("This is not the valid schema for a linkedin profile href")
-                            } else {
-                                Ok(())
-                            }
-                        })
-                        .interact_text()
-                        .ok()
-                        .filter(|s: &String| {
-                            if s == "https://linkedin.com/in/" {
-                                return false;
-                            }
-
-                            return true;
-                        });
-
-                    let new_connection = Connection {
-                        first_name,
-                        last_name,
-                        role,
-                        current_employee,
-                        email,
-                        linkedin,
-                    };
+                    let new_connection = Connection::create_with_form(&dialoguer_styles);
 
                     if let Some(c) = data.data.get_mut(company) {
                         let existing_connection = c.connections.iter().find(|&c| {
@@ -491,7 +491,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         data.save();
                     }
 
-                    data.save();
+                    // data.save();
                 }
                 _ => {}
             }
@@ -499,4 +499,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
+}
+
+pub async fn scrape_jobs(
+    data: &mut Data,
+    company_key: &str,
+) -> Result<JobsPayload, Box<dyn Error>> {
+    match company_key {
+        "Anduril" => Ok(default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await?),
+        "Weedmaps" => Ok(default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await?),
+        "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
+
+        "Discord" => Ok(default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await?),
+        "Reddit" => Ok(scrape_reddit(data).await?),
+
+        "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
+
+        _ => panic!(),
+    }
 }
