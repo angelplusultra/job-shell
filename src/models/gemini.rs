@@ -101,7 +101,7 @@ Another Important Details:"#;
 
 Another Important Details:
 
-If you do not have any data for a field just put ["NOT SPECIFIED"] instead of null
+If you do not have any data for a field just put ["NOT SPECIFIED"] for the ARRAY types and "NOT SPECIFIED" for the STRING types instead of null
 "#,
             &html
         );
@@ -200,7 +200,7 @@ pub const GEMINI_JSON: &'static str = r#"{
 }"#;
 
 pub struct GeminiClient {
-    url: &'static str,
+    url: String,
     key: String,
     url_with_api_key: String,
     client: Client,
@@ -208,7 +208,7 @@ pub struct GeminiClient {
 
 impl GeminiClient {
     pub fn new() -> Self {
-        let url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
+        let url = format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-{}:generateContent", env::var("GEMINI_MODEL").expect("GEMINI_MODEL is missing"));
         let key = env::var("GEMINI_KEY").expect("GEMINI_KEY is missing");
         let url_with_api_key = format!("{url}?key={key}");
 
