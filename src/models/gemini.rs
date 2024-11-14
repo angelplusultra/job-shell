@@ -19,7 +19,7 @@ pub struct Root {
 pub struct Candidate {
     pub content: Content,
     finishReason: String,
-    index: u32,
+    // index: u32,
     safetyRatings: Vec<SafetyRating>,
 }
 
@@ -86,7 +86,10 @@ impl GeminiJob {
 {}
 
 
-I REPEAT, DO NOT RESPOND WITH ANYTHING BESDIES RAW STRING JSON, DO NOT WRAP THE JSON IN BACKTICKS.
+I REPEAT, DO NOT RESPOND WITH ANYTHING BESDIES RAW STRING JSON, DO NOT WRAP THE JSON IN BACKTICKS, Do not do this:  ```json```
+
+
+DO NOT WRAP IN BACKTICKS, DO NOT WRAP IN BACKTICKS, DO NOT WRAP IN BACKTICKS, RAW JSON STRING ONLY. MY LIFE DEPENDS ON IT, YOU CANNOT MESS THIS UP.
 
 Another Important Details:
 
@@ -95,7 +98,25 @@ If you do not have any data for a field just put "NOT SPECIFIED" or ["NOT SPECIF
             &html, GEMINI_JSON
         );
 
-        let response = gemini_client
+        // let response = gemini_client
+        //     .client
+        //     .post(&gemini_client.url_with_api_key)
+        //     .json(&json!({
+        //         "contents": {
+        //         "parts": [{"text": s}]
+        //     }
+        //     }))
+        //     .send()
+        //     .await?
+        //     .json::<Root>()
+        //     .await?;
+
+
+
+
+
+        // TODO: Refactor this bullshit to propogate errors upwards naturally with (?)
+        match gemini_client
             .client
             .post(&gemini_client.url_with_api_key)
             .json(&json!({
@@ -104,20 +125,43 @@ If you do not have any data for a field just put "NOT SPECIFIED" or ["NOT SPECIF
             }
             }))
             .send()
-            .await?
-            .json::<Root>()
-            .await?;
+            .await
+        {
+            Ok(res) => {
+                match res.json::<Value>().await {
+                    Ok(json) => {
+                        let json_response =
+                            json["candidates"][0]["content"]["parts"][0]["text"].clone();
+                        // let response_json = &json.candidates[0].content.parts[0].text;
+                        //
+
+                        let gemini_job =
+                            serde_json::from_str::<Self>(json_response.as_str().unwrap())?;
+                        //
+                        return Ok(gemini_job);
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {e}");
+                        return Err(Box::new(e));
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Error: {e}");
+                return Err(Box::new(e));
+            }
+        }
 
         // let job_obj: GeminiJob = serde_json::from_str(j).unwrap();
-        let response_json = &response.candidates[0].content.parts[0].text;
-
-        if let Ok(job) = serde_json::from_str::<Self>(response_json) {
-            return Ok(job);
-        } else {
-            return Err(Box::new(CustomError {
-                details: "The html couldnt be parsed".to_string(),
-            }));
-        }
+        // let response_json = &response.candidates[0].content.parts[0].text;
+        //
+        // if let Ok(job) = serde_json::from_str::<Self>(response_json) {
+        //     return Ok(job);
+        // } else {
+        //     return Err(Box::new(CustomError {
+        //         details: "The html couldnt be parsed".to_string(),
+        //     }));
+        // }
     }
 }
 
@@ -140,7 +184,7 @@ pub struct GeminiClient {
 
 impl GeminiClient {
     pub fn new() -> Self {
-        let url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+        let url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
         let key = env::var("GEMINI_KEY").expect("GEMINI_KEY is missing");
         let url_with_api_key = format!("{url}?key={key}");
 
@@ -151,5 +195,4 @@ impl GeminiClient {
             client: Client::new(),
         }
     }
-
 }
