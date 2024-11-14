@@ -111,11 +111,37 @@ const jobsPayload = [...document.querySelectorAll(".mat-content")].map(el => {
     return {
         title,
         location,
-        link
+        link // href
         
     }
 });
 
 JSON.stringify(jobsPayload); 
     "#,
+};
+
+pub const GITLAB_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    url: "https://about.gitlab.com/jobs/all-jobs/#engineering",
+    headless: true,
+    company_key: "GitLab",
+    content_selector: "#engineering",
+    get_jobs_js: r##"
+    const engSection = document.querySelector("#engineering");
+
+const jobs = [...engSection.querySelectorAll(".job")].map(j => {
+
+    const title = j.querySelector("a").innerText;
+    const link = j.querySelector("a").href;
+    const location = j.querySelector("p").innerText;
+
+    return {
+
+        title,
+        link,
+        location
+    }
+})
+
+JSON.stringify(jobs)
+    "##,
 };
