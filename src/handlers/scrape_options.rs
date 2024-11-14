@@ -142,6 +142,36 @@ const jobs = [...engSection.querySelectorAll(".job")].map(j => {
     }
 })
 
+
 JSON.stringify(jobs)
     "##,
+};
+
+
+pub const THE_BROWSER_COMPANY_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    url: "https://jobs.ashbyhq.com/The%20Browser%20Company?departmentId=48071c1e-bfb0-4c30-985f-88ab3ce24920",
+    headless: true,
+    company_key: "The Browser Company",
+    content_selector: "._departments_12ylk_345",
+    get_jobs_js: r#"
+    const jobs_cont = document.querySelector("._departments_12ylk_345")
+
+
+const jobs = [...jobs_cont.querySelectorAll("[class^=' _container']")].map(j => {
+
+    const title = j.querySelector("h3").innerText;
+    const locations = j.querySelector("p").innerText.split("•");
+
+    
+    const location = locations[1] + locations[2]
+
+    return {
+        link: j.href,
+        title,
+        location
+    }
+})
+
+JSON.stringify(jobs)
+    "#
 };

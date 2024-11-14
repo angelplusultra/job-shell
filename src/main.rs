@@ -7,7 +7,7 @@ use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
-    ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
+    ONEPASSWORD_SCRAPE_OPTIONS, THE_BROWSER_COMPANY_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
 use models::data::{Company, Connection, Data};
@@ -23,7 +23,7 @@ use tabled::Table;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 7] = [
+const COMPANYKEYS: [&str; 8] = [
     "Anduril",
     "1Password",
     "Weedmaps",
@@ -31,6 +31,7 @@ const COMPANYKEYS: [&str; 7] = [
     "Reddit",
     "GitHub",
     "GitLab",
+    "The Browser Company",
 ];
 mod handlers;
 mod scrapers;
@@ -511,6 +512,9 @@ pub async fn scrape_jobs(
 
         "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
         "GitLab" => Ok(default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await?),
+        "The Browser Company" => {
+            Ok(default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_OPTIONS).await?)
+        }
 
         _ => panic!(),
     }
