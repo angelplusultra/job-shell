@@ -158,7 +158,6 @@ If you do not have any data for a field just put ["NOT SPECIFIED"] for the ARRAY
         {
             Ok(res) => match res.json::<Value>().await {
                 Ok(json) => {
-                    println!("{:#?}", json);
                     let json_response =
                         json["candidates"][0]["content"]["parts"][0]["text"].clone();
 
