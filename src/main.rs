@@ -6,7 +6,7 @@ use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS,
+    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
     ONEPASSWORD_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
@@ -23,13 +23,14 @@ use tabled::Table;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 6] = [
+const COMPANYKEYS: [&str; 7] = [
     "Anduril",
     "1Password",
     "Weedmaps",
     "Discord",
     "Reddit",
     "GitHub",
+    "GitLab",
 ];
 mod handlers;
 mod scrapers;
@@ -509,6 +510,7 @@ pub async fn scrape_jobs(
         "Reddit" => Ok(scrape_reddit(data).await?),
 
         "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
+        "GitLab" => Ok(default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await?),
 
         _ => panic!(),
     }
