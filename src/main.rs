@@ -169,8 +169,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
             sleep(Duration::from_secs(5));
             continue;
-
-            // PResent to the user which company has new jobs
         }
 
         let company = main_selection;
@@ -325,9 +323,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         clear_console();
                         job_details.print_job();
 
-                        loop {
-
-                        }
                         //TODO: shove below in loop above
                         let options = ["Apply", "Reach out to a connection", "Back"];
                         let selection = Select::with_theme(&dialoguer_styles)
@@ -454,7 +449,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         }
                                     }
 
-                                    "Back" => continue,
+                                    "Back" => break,
                                     _ => panic!(),
                                 }
                             }
