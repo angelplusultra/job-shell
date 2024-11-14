@@ -1,5 +1,6 @@
 use std::{collections::HashMap, error::Error, fs};
 
+use dialoguer::{theme::ColorfulTheme, Confirm, Input};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tabled::Tabled;
@@ -35,6 +36,67 @@ pub struct Connection {
     pub linkedin: Option<String>,
 }
 
+impl Connection {
+    pub fn create_with_form(dialoguer_styles: &ColorfulTheme) -> Self {
+        let first_name: String = Input::with_theme(dialoguer_styles)
+            .with_prompt("Enter their first name")
+            .interact_text()
+            .unwrap();
+
+        let last_name: String = Input::with_theme(dialoguer_styles)
+            .with_prompt("Enter their last name")
+            .interact_text()
+            .unwrap();
+
+        let current_employee = Confirm::with_theme(dialoguer_styles)
+            .with_prompt("Are they currently employed at this company?")
+            .interact()
+            .unwrap();
+
+        let role: String = Input::with_theme(dialoguer_styles)
+            .with_prompt("Enter their role at this company (e.g Software Engineer)")
+            .interact_text()
+            .unwrap();
+
+        let email: Option<String> = Input::with_theme(dialoguer_styles)
+            .with_prompt("Enter their email (Press Enter to skip)")
+            .allow_empty(true)
+            .interact_text()
+            .ok()
+            .filter(|s: &String| !s.is_empty());
+
+        let linkedin: Option<String> = Input::with_theme(dialoguer_styles)
+            .with_prompt("Enter their LinkedIn profile (Press Enter to skip)")
+            .with_initial_text("https://linkedin.com/in/")
+            .allow_empty(true)
+            .validate_with(|c: &String| {
+                if !c.starts_with("https://linkedin.com/in/") {
+                    Err("This is not the valid schema for a linkedin profile href")
+                } else {
+                    Ok(())
+                }
+            })
+            .interact_text()
+            .ok()
+            .filter(|s: &String| {
+                if s == "https://linkedin.com/in/" {
+                    return false;
+                }
+
+                return true;
+            });
+
+        Connection {
+            first_name,
+            last_name,
+            role,
+            current_employee,
+            email,
+            linkedin,
+        }
+    }
+}
+
 // Helper function for displaying Option<String>
 fn display_option(opt: &Option<String>) -> &str {
     match opt {
@@ -42,7 +104,6 @@ fn display_option(opt: &Option<String>) -> &str {
         None => "N/A", // Customize for missing data
     }
 }
-
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Data {
