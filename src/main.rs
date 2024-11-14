@@ -7,7 +7,8 @@ use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
-    ONEPASSWORD_SCRAPE_OPTIONS, THE_BROWSER_COMPANY_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
+    ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
+    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
 use models::data::{Company, Connection, Data};
@@ -23,7 +24,7 @@ use tabled::Table;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 8] = [
+const COMPANYKEYS: [&str; 9] = [
     "Anduril",
     "1Password",
     "Weedmaps",
@@ -32,6 +33,7 @@ const COMPANYKEYS: [&str; 8] = [
     "GitHub",
     "GitLab",
     "The Browser Company",
+    "Palantir",
 ];
 mod handlers;
 mod scrapers;
@@ -294,11 +296,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             .map(|j| j.display_string.as_str())
                             .collect::<Vec<&str>>();
 
+                        let prompt = format!("Select a job ({})", display_options.len());
                         // Pushing Exit option
                         display_options.push("Exit");
 
                         let selected_job = FuzzySelect::with_theme(&dialoguer_styles)
-                            .with_prompt("Select a job")
+                            .with_prompt(&prompt)
                             .items(&display_options)
                             .interact()
                             .unwrap();
@@ -317,6 +320,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 default_get_job_details(&job, true, "._content_ud4nd_71").await?
                             }
                             "Discord" => default_get_job_details(&job, true, "body").await?,
+                            "Palantir" => default_get_job_details(&job, true, ".content").await?,
                             "Anduril" => default_get_job_details(&job, true, "main").await?,
                             _ => default_get_job_details(&job, true, "body").await?,
                         };
@@ -508,13 +512,16 @@ pub async fn scrape_jobs(
         "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
 
         "Discord" => Ok(default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await?),
+        "Palantir" => Ok(default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await?),
         "Reddit" => Ok(scrape_reddit(data).await?),
 
         "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
         "GitLab" => Ok(default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await?),
-        "The Browser Company" => {
-            Ok(default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_OPTIONS).await?)
-        }
+        "The Browser Company" => Ok(default_scrape_jobs_handler(
+            data,
+            THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS,
+        )
+        .await?),
 
         _ => panic!(),
     }

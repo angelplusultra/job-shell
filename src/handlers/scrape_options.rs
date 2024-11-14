@@ -148,7 +148,7 @@ JSON.stringify(jobs)
 };
 
 
-pub const THE_BROWSER_COMPANY_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+pub const THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
     url: "https://jobs.ashbyhq.com/The%20Browser%20Company?departmentId=48071c1e-bfb0-4c30-985f-88ab3ce24920",
     headless: true,
     company_key: "The Browser Company",
@@ -173,5 +173,42 @@ const jobs = [...jobs_cont.querySelectorAll("[class^=' _container']")].map(j => 
 })
 
 JSON.stringify(jobs)
+    "#
+};
+
+
+pub const PALANTIR_DEFAULT_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    url: "https://jobs.lever.co/palantir/",
+    headless:  true,
+    company_key: "Palantir",
+    content_selector: "body",
+    get_jobs_js: r#"
+    const postingsGroups = document.querySelectorAll('.postings-group');
+
+// Use .find to locate the matching group
+const matchingGroup = Array.from(postingsGroups).find(group => {
+  const firstChild = group.firstElementChild;
+
+  return (
+    firstChild &&
+    firstChild.classList.contains('posting-category-title') &&
+    firstChild.classList.contains('large-category-label') &&
+    firstChild.textContent.trim() === 'Dev'
+  );
+});
+
+
+const jobs = [...matchingGroup.querySelectorAll(".posting-title")].map(j => {
+
+    return {
+        link: j.href,
+        title: j.querySelector("h5").textContent,
+        location: j.querySelector("span.location").textContent
+    }
+})
+
+JSON.stringify(jobs)
+
+
     "#
 };
