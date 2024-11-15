@@ -6,14 +6,18 @@ use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, COINBASE_DEFAULT_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS
+    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
+    ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
+    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
 use models::data::{Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
+use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
+use std::env;
 use std::error::Error;
 use std::io::Write;
 use std::thread::sleep;
@@ -22,7 +26,7 @@ use tabled::Table;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 9] = [
+const COMPANYKEYS: [&str; 10] = [
     "Anduril",
     "1Password",
     "Weedmaps",
@@ -32,7 +36,7 @@ const COMPANYKEYS: [&str; 9] = [
     "GitLab",
     "The Browser Company",
     "Palantir",
-    // "Coinbase" (In Development)
+    "Coinbase", // (In Development)
 ];
 mod handlers;
 mod scrapers;
@@ -321,6 +325,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             "Discord" => default_get_job_details(&job, true, "body").await?,
                             "Palantir" => default_get_job_details(&job, true, ".content").await?,
                             "Anduril" => default_get_job_details(&job, true, "main").await?,
+                            "Coinbase" => default_get_job_details(&job, false, ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU").await?,
                             _ => default_get_job_details(&job, true, "body").await?,
                         };
 
@@ -507,7 +512,7 @@ pub async fn scrape_jobs(
 ) -> Result<JobsPayload, Box<dyn Error>> {
     match company_key {
         "Anduril" => Ok(default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await?),
-        "Coinbase" => Ok(default_scrape_jobs_handler(data, COINBASE_DEFAULT_SCRAPE_OPTIONS).await?),
+        "Coinbase" => Ok(scrape_coinbase(data).await?),
         "Weedmaps" => Ok(default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await?),
         "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
 
