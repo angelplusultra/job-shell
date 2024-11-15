@@ -212,3 +212,28 @@ JSON.stringify(jobs)
 
     "#
 };
+
+
+pub const COINBASE_DEFAULT_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    url: "https://www.coinbase.com/careers/positions",
+    headless: false,
+    company_key: "Coinbase",
+    // content_selector: ".Positions__PositionsColumn-sc-48777b23-7.eQUcAP",
+    content_selector: "body",
+    get_jobs_js: r#"
+    const engDeps = [...document.querySelectorAll(".Department__Wrapper-sc-3686241a-0.dACtTU")]
+    .filter(dep => dep.querySelector("p").textContent.includes("Engineering"));
+
+engDeps.forEach(dep => dep.querySelector("p").click());
+
+const jobs = engDeps.flatMap(dep =>
+    [...dep.querySelectorAll('div[class^="Department__Job-sc"]')].map(job => ({
+        title: job.querySelector("a").textContent,
+        link: job.querySelector("a").href,
+        location: job.querySelector("p").textContent
+    }))
+);
+
+JSON.stringify(jobs);
+    "#
+};

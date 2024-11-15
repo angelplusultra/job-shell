@@ -6,9 +6,7 @@ use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::default_scrape_jobs_handler;
 use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
-    ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
-    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
+    ANDURIL_SCRAPE_OPTIONS, COINBASE_DEFAULT_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS, ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS
 };
 use headless_chrome::{Browser, LaunchOptions};
 use models::data::{Company, Connection, Data};
@@ -34,6 +32,7 @@ const COMPANYKEYS: [&str; 9] = [
     "GitLab",
     "The Browser Company",
     "Palantir",
+    // "Coinbase" (In Development)
 ];
 mod handlers;
 mod scrapers;
@@ -508,6 +507,7 @@ pub async fn scrape_jobs(
 ) -> Result<JobsPayload, Box<dyn Error>> {
     match company_key {
         "Anduril" => Ok(default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await?),
+        "Coinbase" => Ok(default_scrape_jobs_handler(data, COINBASE_DEFAULT_SCRAPE_OPTIONS).await?),
         "Weedmaps" => Ok(default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await?),
         "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
 
