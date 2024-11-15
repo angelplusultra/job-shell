@@ -212,3 +212,25 @@ JSON.stringify(jobs)
 
     "#
 };
+
+
+pub const TOAST_DEFAULT_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOptions {
+    url: "https://careers.toasttab.com/jobs/search?page=1&department_uids%5B%5D=546da8e254b79111ee592914ea196336&query=",
+    headless: true,
+    company_key: "Toast",
+    content_selector: "body",
+    get_jobs_js: r#"
+const jobs = [...document.querySelectorAll(".col-12.job-search-results-card-col")].map(j => {
+
+let a = j.querySelector("a[id^='link_job_title']");
+    let t = j.querySelector("span[id^='location']")
+    return {
+        title: a.innerText,
+        link: a.href,
+        location: t?.innerText ?? "Remote"
+    }
+})
+
+JSON.stringify(jobs)
+    "#
+};
