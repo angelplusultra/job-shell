@@ -3,6 +3,7 @@ use std::{env, error::Error};
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::{json, Value};
+use tabled::{Table, Tabled};
 
 use crate::models::scraper::Job;
 
@@ -207,7 +208,10 @@ pub struct GeminiClient {
 
 impl GeminiClient {
     pub fn new() -> Self {
-        let url = format!("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-{}:generateContent", env::var("GEMINI_MODEL").expect("GEMINI_MODEL is missing"));
+        let url = format!(
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-{}:generateContent",
+            env::var("GEMINI_MODEL").expect("GEMINI_MODEL is missing")
+        );
         let key = env::var("GEMINI_KEY").expect("GEMINI_KEY is missing");
         let url_with_api_key = format!("{url}?key={key}");
 
