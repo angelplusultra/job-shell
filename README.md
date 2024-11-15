@@ -76,6 +76,7 @@ Once JobShell is running:
 - Discord
 - GitHub
 - GitLab
+- Palantir
 - Reddit
 - The Browser Company
 - Weedmaps
