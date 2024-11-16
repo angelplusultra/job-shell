@@ -130,7 +130,7 @@ pub const GITLAB_SCRAPE_OPTIONS: DefaultJobScraperOptions = DefaultJobScraperOpt
 
 const jobs = [...engSection.querySelectorAll(".job")].map(j => {
 
-    const title = j.querySelector("a").innerText;
+    const title = j.querySelector("a").innerText.trim();
     const link = j.querySelector("a").href;
     const location = j.querySelector("p").innerText;
 
