@@ -154,7 +154,7 @@ impl JobsPayload {
             // BUG: What is jobs have the same title but different locations????
             // Possible Solution: Combine the name of the scraped job with the location and that
             // will act as an ID
-            
+
             let existing = company.jobs.iter().find(|j| {
                 let job_identifier = format!("{}{}", j.title, j.location);
                 let scraped_job_identifier = format!("{}{}", sc.title, sc.location);
@@ -170,9 +170,9 @@ impl JobsPayload {
                 all_jobs.push(existing_job.clone());
             } else {
                 let new_job = Job {
-                    title: sc.title.clone(),
-                    link: sc.link.clone(),
-                    location: sc.location.clone(),
+                    title: sc.title.clone().trim().to_string(),
+                    link: sc.link.clone().trim().to_string(),
+                    location: sc.location.clone().trim().to_string(),
                     applied: false,
                 };
 
