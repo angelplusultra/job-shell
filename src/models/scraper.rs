@@ -104,6 +104,7 @@ use serde::{Deserialize, Serialize};
 use std::future::Future;
 use std::pin::Pin;
 use std::{collections::HashSet, error::Error};
+use uuid::Uuid;
 
 use super::data::{Company, Data};
 
@@ -115,7 +116,8 @@ pub struct ScrapedJob {
 }
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Job {
-    // TODO: Add an `id` field
+    pub id: Uuid,
+    pub is_seen: bool,
     pub title: String,
     pub location: String,
     pub link: String,
@@ -150,34 +152,49 @@ impl JobsPayload {
         let mut all_jobs: Vec<Job> = Vec::new();
         let mut new_jobs: Vec<Job> = Vec::new();
 
-        for sc in scraped_jobs {
-            // BUG: What is jobs have the same title but different locations????
-            // Possible Solution: Combine the name of the scraped job with the location and that
-            // will act as an ID
-
-            let existing = company.jobs.iter().find(|j| {
-                let job_identifier = format!("{}{}", j.title, j.location);
-                let scraped_job_identifier = format!("{}{}", sc.title, sc.location);
-
-                if job_identifier == scraped_job_identifier {
-                    return true;
-                } else {
-                    return false;
-                }
-            });
-
-            if let Some(existing_job) = existing {
-                all_jobs.push(existing_job.clone());
-            } else {
-                let new_job = Job {
-                    title: sc.title.clone().trim().to_string(),
-                    link: sc.link.clone().trim().to_string(),
-                    location: sc.location.clone().trim().to_string(),
+        // Check for first scrape
+        if company.jobs.is_empty() {
+            all_jobs = scraped_jobs
+                .into_iter()
+                .map(|sj| Job {
+                    id: Uuid::new_v4(),
+                    title: sj.title.trim().to_string(),
+                    location: sj.location.trim().to_string(),
+                    link: sj.link.trim().to_string(),
                     applied: false,
-                };
+                    is_seen: false,
+                })
+                .collect();
+        } else {
+            for sc in scraped_jobs {
+                let existing = company.jobs.iter().find(|j| {
+                    let job_identifier = format!("{}{}", j.title, j.location);
+                    let scraped_job_identifier =
+                        format!("{}{}", sc.title.trim(), sc.location.trim());
 
-                new_jobs.push(new_job.clone());
-                all_jobs.push(new_job.clone());
+                    if job_identifier == scraped_job_identifier {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+                if let Some(existing_job) = existing {
+
+                    all_jobs.push(existing_job.clone());
+                } else {
+                    let new_job = Job {
+                        id: Uuid::new_v4(),
+                        title: sc.title.clone().trim().to_string(),
+                        link: sc.link.clone().trim().to_string(),
+                        location: sc.location.clone().trim().to_string(),
+                        applied: false,
+                        is_seen: false,
+                    };
+
+                    new_jobs.push(new_job.clone());
+                    all_jobs.push(new_job.clone());
+                }
             }
         }
 
@@ -186,20 +203,5 @@ impl JobsPayload {
             new_jobs,
             all_jobs,
         };
-
-        // let old_jobs: HashSet<&str> = company.jobs.iter().map(|j| j.title.as_str()).collect();
-        //
-        // let new_jobs = scraped_jobs
-        //     .iter()
-        //     .filter(|&j| !old_jobs.contains(j.title.as_str()))
-        //     .map(|j|)
-        //     .cloned()
-        //     .collect::<Vec<ScrapedJob>>();
-        //
-        // JobsPayload {
-        //     are_new_jobs: new_jobs.len() > 0,
-        //     new_jobs,
-        //     all_jobs: jobs.clone(),
-        // }
     }
 }
