@@ -28,6 +28,7 @@ impl Company {
 pub struct Connection {
     pub first_name: String,
     pub last_name: String,
+    pub company: String,
     pub current_employee: bool,
     pub role: String,
     #[tabled(display_with = "display_option")]
@@ -37,7 +38,7 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn create_with_form(dialoguer_styles: &ColorfulTheme) -> Self {
+    pub fn create_with_form(dialoguer_styles: &ColorfulTheme, company: &str) -> Self {
         let first_name: String = Input::with_theme(dialoguer_styles)
             .with_prompt("Enter their first name")
             .interact_text()
@@ -89,6 +90,7 @@ impl Connection {
         Connection {
             first_name,
             last_name,
+            company: company.to_string(),
             role,
             current_employee,
             email,
