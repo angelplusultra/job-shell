@@ -9,7 +9,7 @@ use crate::models::{
 
 pub async fn scrape_reddit(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
     let launch_options = LaunchOptions {
-        headless: false,
+        headless: true,
         window_size: Some((1920, 1080)),
         enable_logging: true,
 
