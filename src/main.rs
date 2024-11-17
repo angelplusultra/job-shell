@@ -15,6 +15,7 @@ use headless_chrome::{Browser, LaunchOptions};
 use models::data::{Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
+use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
@@ -39,6 +40,7 @@ const COMPANYKEYS: [&str; 11] = [
     "Palantir",
     "Coinbase", // (In Development)
     "Toast",
+    // "Blizzard" (In Development),
 ];
 mod handlers;
 mod scrapers;
@@ -112,213 +114,186 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let mut data = Data::get_data();
 
-        let mut main_options = COMPANYKEYS.to_vec();
-
-        main_options.sort();
-
-        // main_options.push("Scrape My Connection Jobs");
-        // main_options.push("View All Connections");
-        main_options.push("Exit");
-
-        // Get company Selection
-        let selection = FuzzySelect::with_theme(&dialoguer_styles)
-            .with_prompt("What do you choose?")
-            .items(&main_options)
-            .interact()
-            .unwrap();
-
-        let main_selection = main_options[selection];
-
-        if main_selection == "Exit" {
-            break;
-        }
-
-        if main_selection == "View All Connections" {
-            let all_connections: Vec<&Connection> = data
-                .data
-                .iter()
-                .map(|(_, c)| &c.connections)
-                .flatten()
-                .collect();
-
-            let table = Table::new(all_connections);
-
-            println!("{}", table);
-
-            Input::<String>::new()
-                .with_prompt("Press enter to continue")
-                .interact()
-                .unwrap();
-
-            continue;
-        }
-
-        if main_selection == "Scrape My Connection Jobs" {
-            // TODO: ugh huge todo
-            let companies_to_scrape: Vec<String> = data
-                .data
-                .iter()
-                .filter(|(_, c)| !c.connections.is_empty())
-                .map(|(k, _)| k.clone())
-                .collect();
-
-            println!("{:?}", companies_to_scrape);
-
-            for company_key in companies_to_scrape {
-                println!("Scraping {}", company_key);
-                let jobs_payload = scrape_jobs(&mut data, &company_key).await?;
-
-                if jobs_payload.are_new_jobs {
-                    let string = format!("{} has new jobs!", company_key);
-                    println!("{string}");
-                }
-
-                println!("Finished scraping {}", company_key);
-            }
-
-            sleep(Duration::from_secs(5));
-            continue;
-        }
-
-        let company = main_selection;
-
-        let options = [
-            "Scrape Jobs",
-            "Add a Connection",
-            "View/Edit Connections",
-            "Back",
+        let main_menu_options = [
+            "Select a Company",
+            "Network-Wide Scrape",
+            "My Connections",
+            "Exit",
         ];
 
-        //INFO: Company Loop
-        loop {
-            let selection = Select::with_theme(&dialoguer_styles)
-                .with_prompt(&format!("Select an option for {}", company))
-                .items(&options)
-                .interact()
-                .unwrap();
+        let main_menu_selection = main_menu_options[Select::with_theme(&dialoguer_styles)
+            .with_prompt("Select an option")
+            .items(&main_menu_options)
+            .interact()
+            .unwrap()];
 
-            match options[selection] {
-                "Back" => break,
-                "View/Edit Connections" => {
-                    let connects = &data.data[company].connections;
+        match main_menu_selection {
+            "Select a Company" => {
+                //TODO: Scrape a specific company, manage connections at a specifc company
+                let mut company_options = COMPANYKEYS.to_vec();
 
-                    if connects.is_empty() {
-                        println!("You do not have any connections in this company");
-                        continue;
-                    }
+                company_options.sort();
 
-                    let display_strings: Vec<String> = connects
-                        .iter()
-                        .map(|c| format!("{} {} ({})", c.first_name, c.last_name, c.role))
-                        .collect();
+                // company_options.push("Scrape My Connection Jobs");
+                // company_options.push("View All Connections");
+                company_options.push("Back");
 
-                    let idx = FuzzySelect::with_theme(&dialoguer_styles)
-                        .with_prompt("Select a connection")
-                        .items(&display_strings)
+                // INFO: Prompt User for Company Selection
+                let selection = FuzzySelect::with_theme(&dialoguer_styles)
+                    .with_prompt("What do you choose?")
+                    .items(&company_options)
+                    .interact()
+                    .unwrap();
+
+                let company_selection = company_options[selection];
+
+                if company_selection == "Back" {
+                    continue;
+                }
+
+
+                let company = company_selection;
+
+                let options = [
+                    "Scrape Jobs",
+                    "Add a Connection",
+                    "View/Edit Connections",
+                    "Back",
+                ];
+
+                //INFO: Company Loop
+                loop {
+                    let selection = Select::with_theme(&dialoguer_styles)
+                        .with_prompt(&format!("Select an option for {}", company))
+                        .items(&options)
                         .interact()
                         .unwrap();
 
-                    let selected_connection = &connects[idx];
+                    match options[selection] {
+                        "Back" => break,
+                        "View/Edit Connections" => {
+                            let connects = &data.data[company].connections;
 
-                    let connection_table = Table::new(vec![selected_connection]);
-
-                    println!("{}", connection_table);
-
-                    let connections_options = ["Edit", "Open LinkedIn", "Delete", "Back"];
-                    let selected_connection_option =
-                        connections_options[Select::with_theme(&dialoguer_styles)
-                            .with_prompt("Select an option")
-                            .items(&connections_options)
-                            .interact()
-                            .unwrap()];
-
-                    match selected_connection_option {
-                        "Edit" => todo!(),
-                        "Open LinkedIn" => todo!(),
-                        "Delete" => todo!(),
-                        "Back" => continue,
-                        _ => panic!(),
-                    }
-                }
-                // INFO: Scrape Jobs
-                "Scrape Jobs" => {
-                    let JobsPayload {
-                        all_jobs,
-                        new_jobs,
-                        are_new_jobs,
-                    } = scrape_jobs(&mut data, company).await?;
-
-                    struct FormattedJob<'a> {
-                        display_string: String,
-                        original_job: &'a Job,
-                    }
-
-                    // INFO: Format jobs for presentation
-                    let mut formatted_options = all_jobs
-                        .iter()
-                        .map(|j| {
-                            let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
-
-                            let mut display_string = format!("🧳 {} | 🌎 {}", j.title, j.location);
-                            if new_job.is_some() {
-                                display_string += " NEW!!!";
+                            if connects.is_empty() {
+                                println!("You do not have any connections in this company");
+                                continue;
                             }
 
-                            FormattedJob {
-                                display_string,
-                                original_job: j,
+                            let display_strings: Vec<String> = connects
+                                .iter()
+                                .map(|c| format!("{} {} ({})", c.first_name, c.last_name, c.role))
+                                .collect();
+
+                            let idx = FuzzySelect::with_theme(&dialoguer_styles)
+                                .with_prompt("Select a connection")
+                                .items(&display_strings)
+                                .interact()
+                                .unwrap();
+
+                            let selected_connection = &connects[idx];
+
+                            let connection_table = Table::new(vec![selected_connection]);
+
+                            println!("{}", connection_table);
+
+                            let connections_options = ["Edit", "Open LinkedIn", "Delete", "Back"];
+                            let selected_connection_option = connections_options
+                                [Select::with_theme(&dialoguer_styles)
+                                    .with_prompt("Select an option")
+                                    .items(&connections_options)
+                                    .interact()
+                                    .unwrap()];
+
+                            match selected_connection_option {
+                                "Edit" => todo!(),
+                                "Open LinkedIn" => todo!(),
+                                "Delete" => todo!(),
+                                "Back" => continue,
+                                _ => panic!(),
                             }
-                        })
-                        .collect::<Vec<FormattedJob>>();
-
-                    // INFO: Filter jobs down by locations if data set too large
-                    if all_jobs.len() > 99 {
-                        let locations = all_jobs
-                            .iter()
-                            .fold(HashSet::new(), |mut hash, job| {
-                                hash.insert(&job.location);
-
-                                return hash;
-                            })
-                            .into_iter()
-                            .collect::<Vec<&String>>();
-
-                        let selection = Select::with_theme(&dialoguer_styles)
-                            .with_prompt("Select location")
-                            .items(&locations)
-                            .interact()
-                            .unwrap();
-
-                        let selected_location = locations[selection];
-
-                        formatted_options.retain(|j| &j.original_job.location == selected_location);
-                    }
-
-                    // INFO: Job Selection Loop
-                    loop {
-                        let mut display_options = formatted_options
-                            .iter()
-                            .map(|j| j.display_string.as_str())
-                            .collect::<Vec<&str>>();
-
-                        let prompt = format!("Select a job ({})", display_options.len());
-                        // Pushing Exit option
-                        display_options.push("Exit");
-
-                        let selected_job = FuzzySelect::with_theme(&dialoguer_styles)
-                            .with_prompt(&prompt)
-                            .items(&display_options)
-                            .interact()
-                            .unwrap();
-
-                        if display_options[selected_job] == "Exit" {
-                            break;
                         }
+                        // INFO: Scrape Jobs
+                        "Scrape Jobs" => {
+                            let JobsPayload {
+                                all_jobs,
+                                new_jobs,
+                                are_new_jobs,
+                            } = scrape_jobs(&mut data, company).await?;
 
-                        let job = formatted_options[selected_job].original_job;
+                            struct FormattedJob<'a> {
+                                display_string: String,
+                                original_job: &'a Job,
+                            }
 
-                        // INFO: Get Job Details from AI
-                        let job_details = match company {
+                            // INFO: Format jobs for presentation
+                            let mut formatted_options = all_jobs
+                                .iter()
+                                .map(|j| {
+                                    let new_job = new_jobs.iter().find(|nj| j.title == nj.title);
+
+                                    let mut display_string =
+                                        format!("🧳 {} | 🌎 {}", j.title, j.location);
+                                    if new_job.is_some() {
+                                        display_string +=
+                                            " NEW!!!".bright_green().bold().to_string().as_str();
+                                    }
+
+                                    FormattedJob {
+                                        display_string,
+                                        original_job: j,
+                                    }
+                                })
+                                .collect::<Vec<FormattedJob>>();
+
+                            // INFO: Filter jobs down by locations if data set too large
+                            if all_jobs.len() > 99 {
+                                let locations = all_jobs
+                                    .iter()
+                                    .fold(HashSet::new(), |mut hash, job| {
+                                        hash.insert(&job.location);
+
+                                        return hash;
+                                    })
+                                    .into_iter()
+                                    .collect::<Vec<&String>>();
+
+                                let selection = Select::with_theme(&dialoguer_styles)
+                                    .with_prompt("Select location")
+                                    .items(&locations)
+                                    .interact()
+                                    .unwrap();
+
+                                let selected_location = locations[selection];
+
+                                formatted_options
+                                    .retain(|j| &j.original_job.location == selected_location);
+                            }
+
+                            // INFO: Job Selection Loop
+                            loop {
+                                let mut display_options = formatted_options
+                                    .iter()
+                                    .map(|j| j.display_string.as_str())
+                                    .collect::<Vec<&str>>();
+
+                                let prompt = format!("Select a job ({})", display_options.len());
+                                // Pushing Exit option
+                                display_options.push("Exit");
+
+                                let selected_job = FuzzySelect::new()
+                                    .with_prompt(&prompt)
+                                    .items(&display_options)
+                                    .interact()
+                                    .unwrap();
+
+                                if display_options[selected_job] == "Exit" {
+                                    break;
+                                }
+
+                                let job = formatted_options[selected_job].original_job;
+
+                                // INFO: Get Job Details from AI
+                                let job_details = match company {
                             // "Weedmaps" => get_weedmaps_jod_details(&job).await?,
                             "1Password" => default_get_job_details(&job, true, "body").await?,
                             "Tarro" => {
@@ -331,177 +306,241 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             _ => default_get_job_details(&job, true, "body").await?,
                         };
 
-                        // Print details
-                        clear_console();
-                        job_details.print_job();
+                                // Print details
+                                clear_console();
+                                job_details.print_job();
 
-                        //TODO: shove below in loop above
-                        let options = ["Apply", "Reach out to a connection", "Back"];
-                        let selection = Select::with_theme(&dialoguer_styles)
-                            .with_prompt("Select an option")
-                            .items(&options)
-                            .interact()
-                            .unwrap();
-
-                        match options[selection] {
-                            // The user wants to apply
-                            "Apply" => {
-                                webbrowser::open(&job.link)?;
-
-                                let apply = Confirm::with_theme(&dialoguer_styles)
-                                    .with_prompt("Did you apply?")
+                                //TODO: shove below in loop above
+                                let options = ["Apply", "Reach out to a connection", "Back"];
+                                let selection = Select::with_theme(&dialoguer_styles)
+                                    .with_prompt("Select an option")
+                                    .items(&options)
                                     .interact()
                                     .unwrap();
 
-                                if apply {
-                                    if let Some(company) = data.data.get_mut(company) {
-                                        //TODO: search by ID field when added to struct
-                                        let selected_job = company
-                                            .jobs
-                                            .iter_mut()
-                                            .find(|j| j.title == job.title)
+                                match options[selection] {
+                                    // The user wants to apply
+                                    "Apply" => {
+                                        webbrowser::open(&job.link)?;
+
+                                        let apply = Confirm::with_theme(&dialoguer_styles)
+                                            .with_prompt("Did you apply?")
+                                            .interact()
                                             .unwrap();
-                                        selected_job.applied = true;
 
-                                        data.save();
-                                    }
-                                }
+                                        if apply {
+                                            if let Some(company) = data.data.get_mut(company) {
+                                                //TODO: search by ID field when added to struct
+                                                let selected_job = company
+                                                    .jobs
+                                                    .iter_mut()
+                                                    .find(|j| j.title == job.title)
+                                                    .unwrap();
+                                                selected_job.applied = true;
 
-                                clear_console();
-                                // Ask the user if they'd like details on another job;
-                                let get_another_job_details =
-                                    Confirm::with_theme(&dialoguer_styles)
+                                                data.save();
+                                            }
+                                        }
+
+                                        clear_console();
+                                        // Ask the user if they'd like details on another job;
+                                        let get_another_job_details = Confirm::with_theme(
+                                            &dialoguer_styles,
+                                        )
                                         .with_prompt(
                                             "Would you like to get the details of another job?",
                                         )
                                         .interact()
                                         .unwrap();
 
-                                match get_another_job_details {
-                                    // if they do, repeat the loop
-                                    true => {
-                                        continue;
-                                    }
-                                    // break the inner loop, starting the app over
-                                    _ => {
-                                        // selected_job_loop = false;
-                                        break;
-                                    }
-                                }
-                            }
-                            // INFO: Reach out to a connection handler
-                            "Reach out to a connection" => {
-                                let connections = &data.data[company].connections;
-
-                                // TODO: If connections is empty, print message and continue loop
-
-                                let display_strings: Vec<String> = connections
-                                    .iter()
-                                    .map(|c| {
-                                        format!("{} {} ({})", c.first_name, c.last_name, c.role)
-                                    })
-                                    .collect();
-
-                                let idx = Select::with_theme(&dialoguer_styles)
-                                    .with_prompt("Select a connection")
-                                    .items(&display_strings)
-                                    .interact()
-                                    .unwrap();
-
-                                let selected_connection = &connections[idx];
-
-                                let connection_table = Table::new(vec![selected_connection]);
-
-                                println!("{}", connection_table);
-
-                                let mut connections_options = vec!["Craft a Message", "Back"];
-
-                                if selected_connection.linkedin.is_some() {
-                                    connections_options.insert(0, "Open LinkedIn")
-                                }
-
-                                let selected_connection_option = connections_options
-                                    [Select::with_theme(&dialoguer_styles)
-                                        .with_prompt("Select an option")
-                                        .items(&connections_options)
-                                        .interact()
-                                        .unwrap()];
-
-                                match selected_connection_option {
-                                    "Open LinkedIn" => {
-                                        let linkedin_url =
-                                            selected_connection.linkedin.as_ref().unwrap();
-
-                                        webbrowser::open(linkedin_url)?;
-                                    }
-                                    "Craft a Message" => {
-                                        let mut message = Editor::new()
-                                            .edit("Craft your message")
-                                            .unwrap()
-                                            .unwrap();
-
-                                        message += &format!("\n\n{}", job.link);
-                                        let mut clipboard: ClipboardContext =
-                                            ClipboardProvider::new().unwrap();
-                                        clipboard.set_contents(message.clone()).unwrap();
-
-                                        println!("Your message has been copied to your clipboard.");
-
-                                        if selected_connection.linkedin.is_some() {
-                                            let open_linkedIn =
-                                                Confirm::with_theme(&dialoguer_styles)
-                                                    .with_prompt("Open LinkedIn?")
-                                                    .interact()
-                                                    .unwrap();
-                                            if open_linkedIn {
-                                                webbrowser::open(
-                                                    &selected_connection.linkedin.as_ref().unwrap(),
-                                                );
+                                        match get_another_job_details {
+                                            // if they do, repeat the loop
+                                            true => {
+                                                continue;
+                                            }
+                                            // break the inner loop, starting the app over
+                                            _ => {
+                                                // selected_job_loop = false;
+                                                break;
                                             }
                                         }
                                     }
+                                    // INFO: Reach out to a connection handler
+                                    "Reach out to a connection" => {
+                                        let connections = &data.data[company].connections;
 
-                                    "Back" => break,
-                                    _ => panic!(),
+                                        // TODO: If connections is empty, print message and continue loop
+
+                                        let display_strings: Vec<String> = connections
+                                            .iter()
+                                            .map(|c| {
+                                                format!(
+                                                    "{} {} ({})",
+                                                    c.first_name, c.last_name, c.role
+                                                )
+                                            })
+                                            .collect();
+
+                                        let idx = Select::with_theme(&dialoguer_styles)
+                                            .with_prompt("Select a connection")
+                                            .items(&display_strings)
+                                            .interact()
+                                            .unwrap();
+
+                                        let selected_connection = &connections[idx];
+
+                                        let connection_table =
+                                            Table::new(vec![selected_connection]);
+
+                                        println!("{}", connection_table);
+
+                                        let mut connections_options =
+                                            vec!["Craft a Message", "Back"];
+
+                                        if selected_connection.linkedin.is_some() {
+                                            connections_options.insert(0, "Open LinkedIn")
+                                        }
+
+                                        let selected_connection_option = connections_options
+                                            [Select::with_theme(&dialoguer_styles)
+                                                .with_prompt("Select an option")
+                                                .items(&connections_options)
+                                                .interact()
+                                                .unwrap()];
+
+                                        match selected_connection_option {
+                                            "Open LinkedIn" => {
+                                                let linkedin_url =
+                                                    selected_connection.linkedin.as_ref().unwrap();
+
+                                                webbrowser::open(linkedin_url)?;
+                                            }
+                                            "Craft a Message" => {
+                                                let mut message = Editor::new()
+                                                    .edit("Craft your message")
+                                                    .unwrap()
+                                                    .unwrap();
+
+                                                message += &format!("\n\n{}", job.link);
+                                                let mut clipboard: ClipboardContext =
+                                                    ClipboardProvider::new().unwrap();
+                                                clipboard.set_contents(message.clone()).unwrap();
+
+                                                println!("Your message has been copied to your clipboard.");
+
+                                                if selected_connection.linkedin.is_some() {
+                                                    let open_linkedIn =
+                                                        Confirm::with_theme(&dialoguer_styles)
+                                                            .with_prompt("Open LinkedIn?")
+                                                            .interact()
+                                                            .unwrap();
+                                                    if open_linkedIn {
+                                                        webbrowser::open(
+                                                            &selected_connection
+                                                                .linkedin
+                                                                .as_ref()
+                                                                .unwrap(),
+                                                        );
+                                                    }
+                                                }
+                                            }
+
+                                            "Back" => break,
+                                            _ => panic!(),
+                                        }
+                                    }
+                                    _ => {}
                                 }
                             }
-                            _ => {}
                         }
-                    }
-                }
-                "Add a Connection" => {
-                    clear_console();
-                    println!("Create a new connection at {}", company);
+                        "Add a Connection" => {
+                            clear_console();
+                            println!("Create a new connection at {}", company);
 
-                    let new_connection = Connection::create_with_form(&dialoguer_styles);
+                            let new_connection = Connection::create_with_form(&dialoguer_styles, company);
 
-                    if let Some(c) = data.data.get_mut(company) {
-                        let existing_connection = c.connections.iter().find(|&c| {
-                            if c.last_name == new_connection.last_name
-                                && c.first_name == new_connection.first_name
-                            {
-                                return true;
+                            if let Some(c) = data.data.get_mut(company) {
+                                let existing_connection = c.connections.iter().find(|&c| {
+                                    if c.last_name == new_connection.last_name
+                                        && c.first_name == new_connection.first_name
+                                    {
+                                        return true;
+                                    }
+
+                                    return false;
+                                });
+
+                                if existing_connection.is_some() {
+                                    let create_new_connection = Confirm::with_theme(&dialoguer_styles).with_prompt("A connection already exists with the same first name and last name, are you sure you would like to continue creating a new connection?").interact().unwrap();
+
+                                    if !create_new_connection {
+                                        continue;
+                                    }
+                                }
+                                c.connections.push(new_connection);
+
+                                data.save();
                             }
 
-                            return false;
-                        });
-
-                        if existing_connection.is_some() {
-                            let create_new_connection = Confirm::with_theme(&dialoguer_styles).with_prompt("A connection already exists with the same first name and last name, are you sure you would like to continue creating a new connection?").interact().unwrap();
-
-                            if !create_new_connection {
-                                continue;
-                            }
+                            // data.save();
                         }
-                        c.connections.push(new_connection);
-
-                        data.save();
+                        _ => {}
                     }
-
-                    // data.save();
                 }
-                _ => {}
             }
+            "Network-Wide Scrape" => {
+                //TODO: Scrape all jobs where connections > 0
+                    let companies_to_scrape: Vec<String> = data
+                        .data
+                        .iter()
+                        .filter(|(_, c)| !c.connections.is_empty())
+                        .map(|(k, _)| k.clone())
+                        .collect();
+
+                    println!("{:?}", companies_to_scrape);
+
+                    for company_key in companies_to_scrape {
+                        println!("Scraping {}", company_key);
+                        let jobs_payload = scrape_jobs(&mut data, &company_key).await?;
+
+                        if jobs_payload.are_new_jobs {
+                            let string = format!("{} has new jobs!", company_key);
+                            println!("{string}");
+                        }
+
+                        println!("Finished scraping {}", company_key);
+                    }
+
+                    sleep(Duration::from_secs(5));
+                    continue;
+
+            }
+            "My Connections" => {
+                let all_connections: Vec<&Connection> = data
+                    .data
+                    .iter()
+                    .map(|(_, c)| &c.connections)
+                    .flatten()
+                    .collect();
+
+                if all_connections.is_empty() {
+                    println!("You currently have no connections.");
+                    continue;
+                }
+
+                let table = Table::new(all_connections);
+
+                println!("{}", table);
+
+                Input::<String>::new()
+                    .with_prompt("Press enter to continue")
+                    .allow_empty(true)
+                    .interact()
+                    .unwrap();
+
+                continue;
+            }
+            _ => break,
         }
     }
 
@@ -514,6 +553,7 @@ pub async fn scrape_jobs(
 ) -> Result<JobsPayload, Box<dyn Error>> {
     match company_key {
         "Anduril" => Ok(default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await?),
+        "Blizzard" => Ok(scrape_blizzard(data).await?),
         "Coinbase" => Ok(scrape_coinbase(data).await?),
         "Weedmaps" => Ok(default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await?),
         "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
