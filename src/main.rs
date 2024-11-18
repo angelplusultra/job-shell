@@ -4,7 +4,7 @@ use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
-use handlers::handlers::default_scrape_jobs_handler;
+use handlers::handlers::{default_scrape_jobs_handler, prompt_user_for_company_option, prompt_user_for_company_selection};
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
     ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
@@ -131,23 +131,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         match main_menu_selection {
             "Select a Company" => {
-                //TODO: Scrape a specific company, manage connections at a specifc company
-                let mut company_options = COMPANYKEYS.to_vec();
-
-                company_options.sort();
-
-                // company_options.push("Scrape My Connection Jobs");
-                // company_options.push("View All Connections");
-                company_options.push("Back");
-
-                // INFO: Prompt User for Company Selection
-                let selection = FuzzySelect::with_theme(&dialoguer_styles)
-                    .with_prompt("What do you choose?")
-                    .items(&company_options)
-                    .interact()
-                    .unwrap();
-
-                let company_selection = company_options[selection];
+                let company_selection = prompt_user_for_company_selection();
 
                 if company_selection == "Back" {
                     continue;
@@ -155,22 +139,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 let company = company_selection;
 
-                let options = [
-                    "Scrape Jobs",
-                    "Add a Connection",
-                    "View/Edit Connections",
-                    "Back",
-                ];
 
                 //INFO: Company Loop
                 loop {
-                    let selection = Select::with_theme(&dialoguer_styles)
-                        .with_prompt(&format!("Select an option for {}", company))
-                        .items(&options)
-                        .interact()
-                        .unwrap();
+                    let selected_company_option = prompt_user_for_company_option(company);
 
-                    match options[selection] {
+                    match selected_company_option {
                         "Back" => break,
                         "View/Edit Connections" => {
                             let connects = &data.data[company].connections;
@@ -226,6 +200,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 original_job: &'a Job,
                             }
 
+
                             // INFO: Job Selection Loop
                             loop {
                                 // INFO: Format jobs for presentation
@@ -240,19 +215,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                         let new_job = new_jobs.iter().find(|nj| j.id == nj.id);
                                         if !j.is_seen {
-                                            display_string += " 👀"
-                                                .bright_green()
-                                                .bold()
-                                                .to_string()
-                                                .as_str();
+                                            display_string +=
+                                                " 👀".bright_green().bold().to_string().as_str();
                                         }
 
                                         if new_job.is_some() {
-                                            display_string += " ❗"
-                                                .bright_green()
-                                                .bold()
-                                                .to_string()
-                                                .as_str();
+                                            display_string +=
+                                                " ❗".bright_green().bold().to_string().as_str();
                                         }
 
                                         FormattedJob {
