@@ -81,3 +81,8 @@ pub fn prompt_user_for_company_option(company: &'static str) -> &'static str {
 
     return options[selection];
 }
+
+
+pub fn handle_view_edit_connections() {
+
+}

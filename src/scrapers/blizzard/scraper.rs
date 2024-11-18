@@ -50,6 +50,7 @@ pub async fn scrape_blizzard(data: &mut Data) -> Result<JobsPayload, Box<dyn Err
 
     while let Ok(button) = button_result {
         button.click()?;
+        tab.evaluate("window.scrollTo(0, document.body.scrollHeight);", false)?;
         tab.wait_for_element("#jobs-list-item")?;
         button_result = tab.find_element("#acc-skip-content > div.body-wrapper.ph-page-container > div > div > div > div.col-lg-8.col-md-8.col-sm-7 > section:nth-child(2) > div > div > div > div.pagination-block.au-target > ul > li:nth-child(5) > a");
     }
