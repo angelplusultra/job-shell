@@ -155,7 +155,6 @@ return ({
             false,
         )?;
 
-
         println!("RO: {:#?}", remote_object);
 
         let scraped_jobs: Vec<ScrapedJob> =
