@@ -11,3 +11,6 @@ pub mod gen {
     pub mod scraper;
 }
 
+pub mod disney {
+	pub mod scraper;
+}

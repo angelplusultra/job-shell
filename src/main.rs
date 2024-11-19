@@ -20,6 +20,7 @@ use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::coinbase::scraper::scrape_coinbase;
+use scrapers::disney::scraper::scrape_disney;
 use scrapers::gen::scraper::scrape_gen;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
@@ -33,7 +34,7 @@ use tokio::time::Instant;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 12] = [
+const COMPANYKEYS: [&str; 13] = [
     "Anduril",
     "1Password",
     "Weedmaps",
@@ -46,7 +47,7 @@ const COMPANYKEYS: [&str; 12] = [
     "Coinbase", // (In Development)
     "Toast",
     "Gen",
-    // "Blizzard" (In Development),
+    "Disney", // "Blizzard" (In Development),
 ];
 mod handlers;
 mod scrapers;
@@ -611,27 +612,28 @@ pub async fn scrape_jobs(
     data: &mut Data,
     company_key: &str,
 ) -> Result<JobsPayload, Box<dyn Error>> {
-    match company_key {
-        "Anduril" => Ok(default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await?),
-        "Blizzard" => Ok(scrape_blizzard(data).await?),
-        "Coinbase" => Ok(scrape_coinbase(data).await?),
-        "Weedmaps" => Ok(default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await?),
-        "1Password" => Ok(default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await?),
+    let jobs_payload = match company_key {
+        "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
+        "Blizzard" => scrape_blizzard(data).await,
+        "Coinbase" => scrape_coinbase(data).await,
+        "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
+        "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
 
-        "Discord" => Ok(default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await?),
-        "Palantir" => Ok(default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await?),
-        "Reddit" => Ok(scrape_reddit(data).await?),
-        "Gen" => Ok(scrape_gen(data).await?),
+        "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
+        "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
+        "Reddit" => scrape_reddit(data).await,
+        "Gen" => scrape_gen(data).await,
+        "Disney" => scrape_disney(data).await,
 
-        "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
-        "GitLab" => Ok(default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await?),
-        "The Browser Company" => Ok(default_scrape_jobs_handler(
-            data,
-            THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS,
-        )
-        .await?),
-        "Toast" => Ok(default_scrape_jobs_handler(data, TOAST_DEFAULT_SCRAPE_OPTIONS).await?),
+        "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
+        "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
+        "The Browser Company" => {
+            default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS).await
+        }
+        "Toast" => default_scrape_jobs_handler(data, TOAST_DEFAULT_SCRAPE_OPTIONS).await,
 
         _ => panic!(),
-    }
+    }?;
+
+    Ok(jobs_payload)
 }
