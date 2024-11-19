@@ -4,7 +4,9 @@ use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
-use handlers::handlers::{default_scrape_jobs_handler, prompt_user_for_company_option, prompt_user_for_company_selection};
+use handlers::handlers::{
+    default_scrape_jobs_handler, prompt_user_for_company_option, prompt_user_for_company_selection,
+};
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
     ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
@@ -18,6 +20,7 @@ use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::coinbase::scraper::scrape_coinbase;
+use scrapers::gen::scraper::scrape_gen;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -30,7 +33,7 @@ use tokio::time::Instant;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 11] = [
+const COMPANYKEYS: [&str; 12] = [
     "Anduril",
     "1Password",
     "Weedmaps",
@@ -42,6 +45,7 @@ const COMPANYKEYS: [&str; 11] = [
     "Palantir",
     "Coinbase", // (In Development)
     "Toast",
+    "Gen",
     // "Blizzard" (In Development),
 ];
 mod handlers;
@@ -139,7 +143,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 let company = company_selection;
 
-
                 //INFO: Company Loop
                 loop {
                     let selected_company_option = prompt_user_for_company_option(company);
@@ -199,7 +202,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 display_string: String,
                                 original_job: &'a Job,
                             }
-
 
                             // INFO: Job Selection Loop
                             loop {
@@ -619,6 +621,7 @@ pub async fn scrape_jobs(
         "Discord" => Ok(default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await?),
         "Palantir" => Ok(default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await?),
         "Reddit" => Ok(scrape_reddit(data).await?),
+        "Gen" => Ok(scrape_gen(data).await?),
 
         "GitHub" => Ok(default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await?),
         "GitLab" => Ok(default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await?),
