@@ -155,8 +155,6 @@ return ({
             false,
         )?;
 
-        println!("RO: {:#?}", remote_object);
-
         let scraped_jobs: Vec<ScrapedJob> =
             serde_json::from_str(remote_object.value.unwrap().as_str().unwrap()).unwrap();
 
@@ -173,4 +171,3 @@ return ({
 
     Ok(jobs_payload)
 }
-
