@@ -8,7 +8,7 @@ use crate::{
         data::Data,
         scraper::{JobsPayload, ScrapedJob},
     },
-    COMPANYKEYS,
+    COMPANYKEYS, 
 };
 
 use super::scrape_options::DefaultJobScraperOptions;
@@ -70,6 +70,7 @@ pub fn prompt_user_for_company_option(company: &'static str) -> &'static str {
         "Scrape Jobs",
         "Add a Connection",
         "View/Edit Connections",
+        "View Jobs",
         "Back",
     ];
 
