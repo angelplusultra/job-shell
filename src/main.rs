@@ -1,5 +1,8 @@
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use tabled::settings::object::Columns;
+use tabled::settings::width::Wrap;
+use tabled::settings::{Alignment, Panel};
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
@@ -29,13 +32,17 @@ use std::error::Error;
 use std::io::Write;
 use std::thread::sleep;
 use std::time::Duration;
-use tabled::Table;
+use tabled::{
+    settings::{Modify, Style, Width},
+    Table,
+};
 use tokio::time::Instant;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 13] = [
+const COMPANYKEYS: [&str; 20] = [
     "Anduril",
+    "Blizzard",
     "1Password",
     "Weedmaps",
     "Discord",
@@ -48,7 +55,14 @@ const COMPANYKEYS: [&str; 13] = [
     "Toast",
     "Gen",
     "Disney", // "Blizzard" (In Development),
+    "IBM",
+    "Netflix",
+    "Meta",
+    "Pelaton",
+    "Chase",
+    "Slack",
 ];
+
 mod handlers;
 mod scrapers;
 
@@ -150,6 +164,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     match selected_company_option {
                         "Back" => break,
+                        "View Jobs" => {
+                            if data.data[company].jobs.is_empty() {
+                                eprintln!("Error: No jobs");
+                                continue;
+                            }
+
+                            let jobs = data.data.get(company).unwrap().jobs.clone();
+
+                            let mut table = Table::new(jobs);
+                            table.with(Style::modern());
+
+                            println!("{}", table);
+
+                            println!("{}", table);
+                        }
                         "View/Edit Connections" => {
                             let connects = &data.data[company].connections;
 
@@ -193,11 +222,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         }
                         // INFO: Scrape Jobs
                         "Scrape Jobs" => {
+                            // let JobsPayload {
+                            //     all_jobs,
+                            //     new_jobs,
+                            //     are_new_jobs,
+                            // } = scrape_jobs(&mut data, company).await;
+
                             let JobsPayload {
                                 all_jobs,
                                 new_jobs,
                                 are_new_jobs,
-                            } = scrape_jobs(&mut data, company).await?;
+                            } = match scrape_jobs(&mut data, company).await {
+                                Ok(jp) => jp,
+                                Err(e) => {
+                                    let error_string = format!("Error: {}", e).red();
+                                    eprintln!("{error_string}");
+                                    continue;
+                                }
+                            };
 
                             struct FormattedJob<'a> {
                                 display_string: String,
@@ -401,13 +443,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                                     println!("Your message has been copied to your clipboard.");
 
                                                     if selected_connection.linkedin.is_some() {
-                                                        let open_linkedIn =
+                                                        let open_linked_in =
                                                             Confirm::with_theme(&dialoguer_styles)
                                                                 .with_prompt("Open LinkedIn?")
                                                                 .interact()
                                                                 .unwrap();
-                                                        if open_linkedIn {
-                                                            webbrowser::open(
+                                                        if open_linked_in {
+                                                            let _ = webbrowser::open(
                                                                 &selected_connection
                                                                     .linkedin
                                                                     .as_ref()
@@ -521,7 +563,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     let start = Instant::now();
 
                     // Perform the scraping
-                    let jobs_payload = scrape_jobs(&mut data, &company_key).await?;
+                    let jobs_payload = match scrape_jobs(&mut data, &company_key).await {
+                        Ok(jb) => jb,
+                        Err(e) => {
+                            eprintln!("{}", format!("Error: {}", e).red());
+                            continue;
+                        }
+                    };
 
                     // Update progress and message
                     pb.inc(1);
@@ -614,7 +662,7 @@ pub async fn scrape_jobs(
 ) -> Result<JobsPayload, Box<dyn Error>> {
     let jobs_payload = match company_key {
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
-        "Blizzard" => scrape_blizzard(data).await,
+        // "Blizzard" => scrape_blizzard(data).await,
         "Coinbase" => scrape_coinbase(data).await,
         "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
         "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
@@ -632,7 +680,7 @@ pub async fn scrape_jobs(
         }
         "Toast" => default_scrape_jobs_handler(data, TOAST_DEFAULT_SCRAPE_OPTIONS).await,
 
-        _ => panic!(),
+        _ => return Err(format!("Scraper yet to be implemented for {}", company_key).into()),
     }?;
 
     Ok(jobs_payload)
