@@ -101,6 +101,7 @@
 
 use headless_chrome::{Browser, LaunchOptions};
 use serde::{Deserialize, Serialize};
+use tabled::Tabled;
 use std::future::Future;
 use std::pin::Pin;
 use std::{collections::HashSet, error::Error};
@@ -114,7 +115,7 @@ pub struct ScrapedJob {
     pub location: String,
     pub link: String,
 }
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, Tabled)]
 pub struct Job {
     pub id: Uuid,
     pub is_seen: bool,
