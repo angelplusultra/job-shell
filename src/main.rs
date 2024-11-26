@@ -1,14 +1,16 @@
+use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use tabled::settings::object::Columns;
-use tabled::settings::width::Wrap;
-use tabled::settings::{Alignment, Panel};
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::{
-    default_scrape_jobs_handler, prompt_user_for_company_option, prompt_user_for_company_selection,
+    default_scrape_jobs_handler, handle_craft_a_message, handle_reach_out_to_a_connection,
+    prompt_user_for_company_option, prompt_user_for_company_selection,
+    prompt_user_for_connection_option, prompt_user_for_connection_selection,
+    prompt_user_for_job_option, prompt_user_for_job_selection, JobOption,
+    ReachOutToAConnectionOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -27,15 +29,19 @@ use scrapers::disney::scraper::scrape_disney;
 use scrapers::gen::scraper::scrape_gen;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
-use std::env;
 use std::error::Error;
+use std::fs::OpenOptions;
 use std::io::Write;
+use std::path::PathBuf;
+use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
+use std::{env, fs};
 use tabled::{
     settings::{Modify, Style, Width},
     Table,
 };
+
 use tokio::time::Instant;
 use webbrowser;
 
@@ -135,21 +141,40 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         let mut data = Data::get_data();
 
+        enum MainMenuOptions {
+            SelectACompany,
+            ScrapeNewJobsAcrossNetwork,
+            MyConnections,
+            Exit,
+        }
+
+        trait IOptions {
+            fn display_strings(&self) -> Vec<&str>;
+        }
+
+        impl IOptions for [(MainMenuOptions, &str)] {
+            fn display_strings(&self) -> Vec<&str> {
+                self.iter().map(|o| o.1).collect()
+            }
+        }
         let main_menu_options = [
-            "Select a Company",
-            "Network-Wide Scrape",
-            "My Connections",
-            "Exit",
+            (MainMenuOptions::SelectACompany, "Select a Company"),
+            (
+                MainMenuOptions::ScrapeNewJobsAcrossNetwork,
+                "Scrape New Jobs Across Network",
+            ),
+            (MainMenuOptions::MyConnections, "My Connections"),
+            (MainMenuOptions::Exit, "Exit"),
         ];
 
-        let main_menu_selection = main_menu_options[Select::with_theme(&dialoguer_styles)
+        let main_menu_selection = &main_menu_options[Select::with_theme(&dialoguer_styles)
             .with_prompt("Select an option")
-            .items(&main_menu_options)
+            .items(&main_menu_options.display_strings())
             .interact()
             .unwrap()];
 
-        match main_menu_selection {
-            "Select a Company" => {
+        match main_menu_selection.0 {
+            MainMenuOptions::SelectACompany => {
                 let company_selection = prompt_user_for_company_selection();
 
                 if company_selection == "Back" {
@@ -169,15 +194,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 eprintln!("Error: No jobs");
                                 continue;
                             }
-
                             let jobs = data.data.get(company).unwrap().jobs.clone();
+                            //
 
-                            let mut table = Table::new(jobs);
-                            table.with(Style::modern());
-
-                            println!("{}", table);
-
-                            println!("{}", table);
+                            match prompt_user_for_job_selection(jobs, None) {
+                                Some(selected_job) => {
+                                    data.mark_job_seen(&selected_job.id);
+                                }
+                                None => break,
+                            }
                         }
                         "View/Edit Connections" => {
                             let connects = &data.data[company].connections;
@@ -241,6 +266,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                             };
 
+                            // TODO: Use 1 FormattedJob struct
                             struct FormattedJob<'a> {
                                 display_string: String,
                                 original_job: &'a Job,
@@ -252,238 +278,93 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 //
                                 let jobs = data.data[company].jobs.clone();
 
-                                let mut formatted_options = jobs
-                                    .iter()
-                                    .map(|j| {
-                                        let mut display_string =
-                                            format!("🧳 {} | 🌎 {}", j.title, j.location);
+                                match prompt_user_for_job_selection(jobs, Some(new_jobs.clone())) {
+                                    Some(selected_job) => {
+                                        data.mark_job_seen(&selected_job.id);
 
-                                        let new_job = new_jobs.iter().find(|nj| j.id == nj.id);
-                                        if !j.is_seen {
-                                            display_string +=
-                                                " 👀".bright_green().bold().to_string().as_str();
-                                        }
+                                        loop {
+                                            let prompt = format!(
+                                                "Select an option for {}",
+                                                selected_job.title
+                                            );
 
-                                        if new_job.is_some() {
-                                            display_string +=
-                                                " ❗".bright_green().bold().to_string().as_str();
-                                        }
-
-                                        FormattedJob {
-                                            display_string,
-                                            original_job: j,
-                                        }
-                                    })
-                                    .collect::<Vec<FormattedJob>>();
-
-                                // INFO: Filter jobs down by locations if data set too large
-                                if all_jobs.len() > 99 {
-                                    let locations = all_jobs
-                                        .iter()
-                                        .fold(HashSet::new(), |mut hash, job| {
-                                            hash.insert(&job.location);
-
-                                            return hash;
-                                        })
-                                        .into_iter()
-                                        .collect::<Vec<&String>>();
-
-                                    let selection = Select::with_theme(&dialoguer_styles)
-                                        .with_prompt("Select location")
-                                        .items(&locations)
-                                        .interact()
-                                        .unwrap();
-
-                                    let selected_location = locations[selection];
-
-                                    formatted_options
-                                        .retain(|j| &j.original_job.location == selected_location);
-                                }
-
-                                let mut display_options = formatted_options
-                                    .iter()
-                                    .map(|j| j.display_string.as_str())
-                                    .collect::<Vec<&str>>();
-
-                                let prompt = format!(
-                                    "Select a job ({}, 👀: Unseen, ❗: New Listing)",
-                                    display_options.len()
-                                );
-                                // Pushing Exit option
-                                display_options.push("Exit");
-
-                                // Prompt user for job selection
-                                let selected_job = FuzzySelect::new()
-                                    .with_prompt(&prompt)
-                                    .items(&display_options)
-                                    .interact()
-                                    .unwrap();
-
-                                if display_options[selected_job] == "Exit" {
-                                    break;
-                                }
-
-                                let job = formatted_options[selected_job].original_job;
-                                // INFO: Mark Job as seen
-                                data.data
-                                    .get_mut(company)
-                                    .unwrap()
-                                    .jobs
-                                    .iter_mut()
-                                    .find(|j| j.id == job.id)
-                                    .unwrap()
-                                    .is_seen = true;
-
-                                data.save();
-                                loop {
-                                    let prompt = format!("Select an option for {}", job.title);
-
-                                    let job_options = [
-                                        "Open Job in Browser",
-                                        "Reach Out to a Connection",
-                                        "Generate Job Details with AI",
-                                        "Back",
-                                    ];
-                                    let job_options_selection =
-                                        job_options[Select::with_theme(&dialoguer_styles)
-                                            .with_prompt(prompt)
-                                            .items(&job_options)
-                                            .interact()
-                                            .unwrap()];
-
-                                    match job_options_selection {
-                                        "Open Job in Browser" => {
-                                            webbrowser::open(&job.link)?;
-
-                                            let apply = Confirm::with_theme(&dialoguer_styles)
-                                                .with_prompt("Did you apply?")
-                                                .interact()
-                                                .unwrap();
-
-                                            if apply {
-                                                if let Some(company) = data.data.get_mut(company) {
-                                                    //TODO: search by ID field when added to struct
-                                                    let selected_job = company
-                                                        .jobs
-                                                        .iter_mut()
-                                                        .find(|j| j.id == job.id)
-                                                        .unwrap();
-                                                    selected_job.applied = true;
-
-                                                    data.save();
-                                                }
-                                            }
-
-                                            continue;
-                                        }
-                                        "Reach Out to a Connection" => {
-                                            let connections = &data.data[company].connections;
-
-                                            // TODO: If connections is empty, print message and continue loop
-
-                                            let display_strings: Vec<String> = connections
-                                                .iter()
-                                                .map(|c| {
-                                                    format!(
-                                                        "{} {} ({})",
-                                                        c.first_name, c.last_name, c.role
-                                                    )
-                                                })
-                                                .collect();
-
-                                            let idx = Select::with_theme(&dialoguer_styles)
-                                                .with_prompt("Select a connection")
-                                                .items(&display_strings)
-                                                .interact()
-                                                .unwrap();
-
-                                            let selected_connection = &connections[idx];
-
-                                            let connection_table =
-                                                Table::new(vec![selected_connection]);
-
-                                            println!("{}", connection_table);
-
-                                            let mut connections_options =
-                                                vec!["Craft a Message", "Back"];
-
-                                            if selected_connection.linkedin.is_some() {
-                                                connections_options.insert(0, "Open LinkedIn")
-                                            }
-
-                                            let selected_connection_option = connections_options
+                                            let job_options = [
+                                                "Open Job in Browser",
+                                                "Reach Out to a Connection",
+                                                "Generate Job Details with AI",
+                                                "Back",
+                                            ];
+                                            let job_options_selection = job_options
                                                 [Select::with_theme(&dialoguer_styles)
-                                                    .with_prompt("Select an option")
-                                                    .items(&connections_options)
+                                                    .with_prompt(prompt)
+                                                    .items(&job_options)
                                                     .interact()
                                                     .unwrap()];
 
-                                            match selected_connection_option {
-                                                "Open LinkedIn" => {
-                                                    let linkedin_url = selected_connection
-                                                        .linkedin
-                                                        .as_ref()
-                                                        .unwrap();
+                                            match job_options_selection {
+                                                "Open Job in Browser" => {
+                                                    webbrowser::open(&selected_job.link)?;
 
-                                                    webbrowser::open(linkedin_url)?;
-                                                }
-                                                "Craft a Message" => {
-                                                    let mut message = Editor::new()
-                                                        .edit("Craft your message")
-                                                        .unwrap()
-                                                        .unwrap();
+                                                    let apply =
+                                                        Confirm::with_theme(&dialoguer_styles)
+                                                            .with_prompt("Did you apply?")
+                                                            .interact()
+                                                            .unwrap();
 
-                                                    message += &format!("\n\n{}", job.link);
-                                                    let mut clipboard: ClipboardContext =
-                                                        ClipboardProvider::new().unwrap();
-                                                    clipboard
-                                                        .set_contents(message.clone())
-                                                        .unwrap();
-
-                                                    println!("Your message has been copied to your clipboard.");
-
-                                                    if selected_connection.linkedin.is_some() {
-                                                        let open_linked_in =
-                                                            Confirm::with_theme(&dialoguer_styles)
-                                                                .with_prompt("Open LinkedIn?")
-                                                                .interact()
+                                                    if apply {
+                                                        if let Some(company) =
+                                                            data.data.get_mut(company)
+                                                        {
+                                                            //TODO: search by ID field when added to struct
+                                                            let selected_job = company
+                                                                .jobs
+                                                                .iter_mut()
+                                                                .find(|j| j.id == selected_job.id)
                                                                 .unwrap();
-                                                        if open_linked_in {
-                                                            let _ = webbrowser::open(
-                                                                &selected_connection
-                                                                    .linkedin
-                                                                    .as_ref()
-                                                                    .unwrap(),
-                                                            );
+                                                            selected_job.applied = true;
+
+                                                            data.save();
                                                         }
                                                     }
-                                                }
 
-                                                "Back" => break,
-                                                _ => panic!(),
-                                            }
-                                        }
-                                        "Generate Job Details with AI" => {
-                                            let job_details = match company {
-                            // "Weedmaps" => get_weedmaps_jod_details(&job).await?,
-                            "1Password" => default_get_job_details(&job, true, "body").await?,
+                                                    continue;
+                                                }
+                                                "Reach Out to a Connection" => {
+                                                    let break_loop =
+                                                        handle_reach_out_to_a_connection(
+                                                            &data.data[company].connections,
+                                                            &selected_job,
+                                                        )?;
+
+                                                    if break_loop {
+                                                        break;
+                                                    }
+                                                }
+                                                "Generate Job Details with AI" => {
+                                                    let job_details = match company {
+                            // "Weedmaps" => get_weedmaps_jod_details(&selected_job).await?,
+                            "1Password" => default_get_job_details(&selected_job, true, "body").await?,
                             "Tarro" => {
-                                default_get_job_details(&job, true, "._content_ud4nd_71").await?
+                                default_get_job_details(&selected_job, true, "._content_ud4nd_71").await?
                             }
-                            "Discord" => default_get_job_details(&job, true, "body").await?,
-                            "Palantir" => default_get_job_details(&job, true, ".content").await?,
-                            "Anduril" => default_get_job_details(&job, true, "main").await?,
-                            "Coinbase" => default_get_job_details(&job, false, ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU").await?,
-                            _ => default_get_job_details(&job, true, "body").await?,
+                            "Discord" => default_get_job_details(&selected_job, true, "body").await?,
+                            "Palantir" => default_get_job_details(&selected_job, true, ".content").await?,
+                            "Anduril" => default_get_job_details(&selected_job, true, "main").await?,
+                            "Coinbase" => default_get_job_details(&selected_job, false, ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU").await?,
+                            _ => default_get_job_details(&selected_job, true, "body").await?,
                         };
 
-                                            // Print details
-                                            // clear_console();
-                                            job_details.print_job();
+                                                    // Print details
+                                                    // clear_console();
+                                                    job_details.print_job();
+                                                }
+                                                _ => break,
+                                            }
                                         }
-                                        _ => break,
                                     }
+                                    None => break,
                                 }
+                                // INFO: Mark Job as seen
                             }
                         }
                         "Add a Connection" => {
@@ -520,8 +401,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            "Network-Wide Scrape" => {
-                //TODO: Scrape all jobs where connections > 0
+            MainMenuOptions::ScrapeNewJobsAcrossNetwork => {
                 let companies_to_scrape: Vec<String> = data
                     .data
                     .iter()
@@ -548,11 +428,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 // Enable steady ticks for animation
                 pb.enable_steady_tick(Duration::from_millis(100));
 
-                struct FormattedJob {
-                    company: String,
-                    display_name: String,
-                    job: Job,
-                }
                 for company_key in companies_to_scrape {
                     clear_console();
 
@@ -608,22 +483,47 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     continue;
                 }
 
-                let selected_job = &new_jobs[FuzzySelect::new()
-                    .with_prompt("Select a job")
-                    .items(
-                        &new_jobs
-                            .iter()
-                            .map(|fj| &fj.display_name)
-                            .collect::<Vec<&String>>(),
-                    )
-                    .interact()
-                    .unwrap()]
-                .job;
+                create_report(&new_jobs, ReportMode::HTML)?;
 
-                sleep(Duration::from_secs(5));
-                continue;
+                loop {
+                    let options = new_jobs
+                        .iter()
+                        .map(|fj| fj.display_name.clone())
+                        .chain(vec!["Exit".to_string()])
+                        .collect::<Vec<String>>();
+
+                    let selection = FuzzySelect::new()
+                        .with_prompt("Select a job")
+                        .items(&options)
+                        .interact()
+                        .unwrap();
+
+                    let selected_job = &options[selection];
+
+                    if selected_job == "Exit" {
+                        break;
+                    }
+
+                    let selected_job = &new_jobs[selection];
+
+                    data.mark_job_seen(&selected_job.job.id);
+
+                    match prompt_user_for_job_option(&selected_job.job).0 {
+                        JobOption::OpenJobInBrowser => {
+                            webbrowser::open(&selected_job.job.link)?;
+                            let did_apply = prompt_user_did_apply();
+
+                            if did_apply {
+                                data.mark_job_applied(&selected_job.job.id);
+                            }
+                        }
+                        JobOption::ReachOut => {}
+                        JobOption::GenerateJobDetails => {}
+                        JobOption::Back => continue,
+                    }
+                }
             }
-            "My Connections" => {
+            MainMenuOptions::MyConnections => {
                 let all_connections: Vec<&Connection> = data
                     .data
                     .iter()
@@ -684,4 +584,148 @@ pub async fn scrape_jobs(
     }?;
 
     Ok(jobs_payload)
+}
+
+fn prompt_user_did_apply() -> bool {
+    let dialoguer_styles = ColorfulTheme::default();
+
+    let apply = Confirm::with_theme(&dialoguer_styles)
+        .with_prompt("Did you apply?")
+        .interact()
+        .unwrap();
+
+    return apply;
+}
+
+// TODO: Use 1 FormattedJob struct
+struct FormattedJob {
+    company: String,
+    display_name: String,
+    job: Job,
+}
+fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> Result<(), Box<dyn Error>> {
+    let today = Utc::now().naive_utc().date().to_string();
+
+    let mut path = PathBuf::new();
+
+    if cfg!(test) {
+        path.push("tests");
+        if !fs::exists(&path)? {
+            fs::create_dir(&path)?;
+        }
+    }
+    path.push("reports");
+
+    if !fs::exists(&path)? {
+        fs::create_dir(&path)?;
+    }
+    match mode {
+        ReportMode::CSV => {
+            let names_row = "Company,Title,Location,Link\n";
+            let entries = new_jobs
+                .iter()
+                .map(|j| {
+                    format!(
+                        "{},{},{},{}\n",
+                        j.company,
+                        j.job.title,
+                        j.job.location.replace(",", ""),
+                        j.job.link
+                    )
+                })
+                .collect::<String>();
+            let csv = format!("{}{}", names_row, entries);
+            // check if the root path exists
+            path.push(today + ".csv");
+
+            if fs::exists(&path)? {
+                let mut file = OpenOptions::new().append(true).open(&path)?;
+
+                write!(file, "{}", entries)?;
+            } else {
+                fs::write(&path, format!("{}", csv))?;
+            }
+        }
+        ReportMode::HTML => {
+            let html = format!(
+                r#"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title></title>
+  </head>
+
+  <body>
+    <h1>{}</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Title</th>
+          <th>Location</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {}
+      </tbody>
+    </table>
+  </body>
+</html>
+"#,
+                format!("New Jobs: {}", today),
+                new_jobs
+                    .iter()
+                    .map(|fj| {
+                        format!(
+                            r#"<tr><td>{}</td> <td>{}</td> <td>{}</td> <td><a href="{}">Apply</a></td></tr>"#,
+                            fj.company, fj.job.title, fj.job.location, fj.job.link
+                        )
+                    })
+                    .collect::<String>()
+            );
+
+            path.push(today + ".html");
+
+            fs::write(&path, html)?;
+        }
+    }
+
+    Ok(())
+}
+
+enum ReportMode {
+    HTML,
+    CSV,
+}
+
+#[cfg(test)]
+mod test {
+    use uuid::Uuid;
+
+    use super::*;
+
+    #[test]
+    fn test_create_report() {
+        let v = create_report(
+            &vec![FormattedJob {
+                display_name: "SWE".to_string(),
+                company: "Disney".to_string(),
+                job: Job {
+                    title: "Software Engineer".to_string(),
+                    link: "https://somelinktoapply.com".to_string(),
+                    location: "Anaheim, CA".to_string(),
+                    id: Uuid::new_v4(),
+                    is_seen: false,
+                    applied: false,
+                },
+            }],
+            ReportMode::HTML,
+        );
+
+        assert_eq!(v.is_ok(), true);
+    }
 }
