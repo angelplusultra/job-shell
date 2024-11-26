@@ -182,6 +182,42 @@ impl Data {
             }
         }
     }
+
+    pub fn mark_job_seen(&mut self, id: &uuid::Uuid) {
+        if self
+            .data
+            .iter_mut()
+            .flat_map(|(_, c)| &mut c.jobs)
+            .any(|j| {
+                if j.id == *id {
+                    j.is_seen = true;
+                    true
+                } else {
+                    false
+                }
+            })
+        {
+            self.save();
+        }
+    }
+
+    pub fn mark_job_applied(&mut self, id: &uuid::Uuid) {
+        if self
+            .data
+            .iter_mut()
+            .flat_map(|(_, c)| &mut c.jobs)
+            .any(|j| {
+                if j.id == *id {
+                    j.applied = true;
+                    true
+                } else {
+                    false
+                }
+            })
+        {
+            self.save();
+        }
+    }
     // TODO: Need to check COMPANY_KEYS for new keys and save if new keys are there.
     // pub fn get_data() -> Data {
     //     let default_data = Data::default();
