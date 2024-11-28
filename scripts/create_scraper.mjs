@@ -16,25 +16,35 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const { companyName, url, contentSelector } = await new Promise((res) => {
-  rl.question("What is the name of the company? ", (companyName) => {
-    companyName = companyName.split(" ").join("_");
-    companyName = companyName.split(",").join("_");
+const { companyName, url, contentSelector, scraperType } = await new Promise(
+  (res) => {
+    let done = false;
+      rl.question("What is the name of the company? ", (companyName) => {
+        companyName = companyName.split(" ").join("_");
+        companyName = companyName.split(",").join("_");
 
-    rl.question("What is the careers URL? ", (url) => {
-      rl.question(
-        `What is the content selector (e.g ".content")? `,
-        (contentSelector) => {
-          res({
-            companyName,
-            url,
-            contentSelector,
-          });
-        },
-      );
-    });
-  });
-});
+        rl.question(
+          "Do you want to use Headless Chrome or set up your own custom scrape function? (type 'h' for Headless Chrome, type 'c' for Custom Fn) ",
+          (scraperType) => {
+            rl.question("What is the careers URL? ", (url) => {
+              rl.question(
+                `What is the content selector (e.g ".content")? `,
+                (contentSelector) => {
+                  done = true;
+                  res({
+                    companyName,
+                    url,
+                    contentSelector,
+                    scraperType,
+                  });
+                },
+              );
+            });
+          },
+        );
+      });
+  },
+);
 rl.close();
 
 /**
@@ -43,10 +53,37 @@ rl.close();
  *	@param {string} content_selector
  *
  */
-function create_new_scraper(name, url, content_selector) {
+function create_new_scraper(name, url, content_selector, scraperType) {
   const dataKey = name[0].toUpperCase() + name.slice(1).toLowerCase();
+  let rustCode = `
+use std::error::Error;
 
-  const rustCode = `
+use crate::models::{
+    data::Data,
+    scraper::{JobsPayload, ScrapedJob},
+};
+
+pub async fn scrape_${name.toLowerCase()}(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+
+		// Acquire Vector of ScrapedJob
+    let scraped_jobs: Vec<ScrapedJob> =
+        serde_json::from_str(remote_object.value.unwrap().as_str().unwrap()).unwrap();
+
+		// Convert Vector of ScrapedJob into a JobsPayload
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["${dataKey}"]);
+
+		// REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
+    data.data.get_mut("${dataKey}").unwrap().jobs = jobs_payload.all_jobs.clone();
+    data.save();
+
+	// Return JobsPayload
+    Ok(jobs_payload)
+}
+
+	`;
+
+  if (scraperType === "h") {
+    rustCode = `
 use std::error::Error;
 
 use headless_chrome::{Browser, LaunchOptions};
@@ -72,13 +109,13 @@ pub async fn scrape_${name.toLowerCase()}(data: &mut Data) -> Result<JobsPayload
     tab.wait_for_element("body")?;
     tab.wait_for_element("${content_selector || `body`}")?;
 
-    let scraped_jobs = tab.evaluate(
+    let remote_object = tab.evaluate(
         r##"
 
 // DELETE AND REPLACE WITH CUSTOM JS LOGIC    
 const engJobs = document.querySelector("#jobs-16253")
 
-const jobsPayload = Array.from(engJobs.querySelectorAll(".job")).map(j => {
+const jobs = Array.from(engJobs.querySelectorAll(".job")).map(j => {
     const title = j.querySelector(".job-title").innerHTML;
     const location = j.querySelector(".job-location").innerHTML;
     const link = j.querySelector("a").href;
@@ -90,65 +127,29 @@ const jobsPayload = Array.from(engJobs.querySelectorAll(".job")).map(j => {
     }
 })
 
-JSON.stringify(jobsPayload);
+JSON.stringify(jobs);
     "##,
         false,
     )?;
 
+		// Acquire Vector of ScrapedJob
     let scraped_jobs: Vec<ScrapedJob> =
-        serde_json::from_str(scraped_jobs.value.unwrap().as_str().unwrap()).unwrap();
+        serde_json::from_str(remote_object.value.unwrap().as_str().unwrap()).unwrap();
 
+		// Convert Vector of ScrapedJob into a JobsPayload
     let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["${dataKey}"]);
 
+		// REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
     data.data.get_mut("${dataKey}").unwrap().jobs = jobs_payload.all_jobs.clone();
-
     data.save();
 
+	// Return JobsPayload
     Ok(jobs_payload)
 }
 
 
 	`;
-
-  const rustCodeDeprecated = `async fn scrape_${name.toLowerCase()}(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
-      let launch_options = LaunchOptions {
-        headless: options.headless,
-        window_size: Some((1920, 1080)),
-        enable_logging: true,
-
-        ..LaunchOptions::default()
-    };
-    let browser = Browser::new(launch_options)?;
-
-    let tab = browser.new_tab()?;
-
-    tab.navigate_to("${url}")?;
-    tab.wait_for_element("body")?;
-    tab.wait_for_element("${content_selector || `body`}")?;
-
-	
-/*
-		--------IMPLEMENT CUSTOM LOGIC TO SCRAPE JOBS---------
-		
- 		let engineering_jobs = tab.evaluate(&options.get_jobs_js, false)?;
-
-    let scraped_jobs: Vec<ScrapedJob> =
-        serde_json::from_str(engineering_jobs.value.unwrap().as_str().unwrap()).unwrap();
-
-    let onepassword_jobs_payload =
-        JobsPayload::from_scraped_jobs(scraped_jobs, &data.data[options.company_key]);
-
-    data.data.get_mut(options.company_key).unwrap().jobs =
-        onepassword_jobs_payload.all_jobs.clone();
-
-    data.save();
-
-    Ok(onepassword_jobs_payload)
-*/
-
-	Err(())
-
-  }`;
+  }
 
   const scrapersDir = path.join(__dirname, "..", "src", "scrapers");
   const companyDir = path.join(scrapersDir, name.toLowerCase());
@@ -156,7 +157,7 @@ JSON.stringify(jobsPayload);
 
   const moduleData = `pub mod ${name.toLowerCase()} {
 	pub mod scraper;
-}`;
+}\n`;
 
   return {
     scrapersDir,
@@ -167,7 +168,12 @@ JSON.stringify(jobsPayload);
   };
 }
 
-const scraper_data = create_new_scraper(companyName, url, contentSelector);
+const scraper_data = create_new_scraper(
+  companyName,
+  url,
+  contentSelector,
+  scraperType,
+);
 const modPath = path.join(__dirname, "..", "src", "scrapers", "mod.rs");
 try {
   const pathExists = fs.existsSync(scraper_data.fullFilePath);
