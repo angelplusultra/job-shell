@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use scrapers::chase::scraper::scrape_chase;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
@@ -27,6 +28,8 @@ use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::disney::scraper::scrape_disney;
 use scrapers::gen::scraper::scrape_gen;
+use scrapers::meta::scraper::scrape_meta;
+use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -247,12 +250,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         }
                         // INFO: Scrape Jobs
                         "Scrape Jobs" => {
-                            // let JobsPayload {
-                            //     all_jobs,
-                            //     new_jobs,
-                            //     are_new_jobs,
-                            // } = scrape_jobs(&mut data, company).await;
-
                             let JobsPayload {
                                 all_jobs,
                                 new_jobs,
@@ -274,11 +271,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                             // INFO: Job Selection Loop
                             loop {
-                                // INFO: Format jobs for presentation
-                                //
-                                let jobs = data.data[company].jobs.clone();
-
-                                match prompt_user_for_job_selection(jobs, Some(new_jobs.clone())) {
+                                match prompt_user_for_job_selection(
+                                    all_jobs.clone(),
+                                    Some(new_jobs.clone()),
+                                ) {
                                     Some(selected_job) => {
                                         data.mark_job_seen(&selected_job.id);
 
@@ -562,7 +558,8 @@ pub async fn scrape_jobs(
 ) -> Result<JobsPayload, Box<dyn Error>> {
     let jobs_payload = match company_key {
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
-        // "Blizzard" => scrape_blizzard(data).await,
+        "Chase" => scrape_chase(data).await,
+        "Blizzard" => scrape_blizzard(data).await,
         "Coinbase" => scrape_coinbase(data).await,
         "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
         "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
@@ -572,6 +569,8 @@ pub async fn scrape_jobs(
         "Reddit" => scrape_reddit(data).await,
         "Gen" => scrape_gen(data).await,
         "Disney" => scrape_disney(data).await,
+        "Meta" => scrape_meta(data).await,
+        "Netflix" => scrape_netflix(data).await,
 
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
