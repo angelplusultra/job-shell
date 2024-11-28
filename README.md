@@ -73,9 +73,16 @@ Once JobShell is running:
 ## Companies Currently Supported
 - 1Password
 - Anduril
+- Blizzard
+- Chase
+- Coinbase
 - Discord
+- Disney
+- Gen
 - GitHub
 - GitLab
+- Meta
+- Netflix
 - Palantir
 - Reddit
 - The Browser Company
