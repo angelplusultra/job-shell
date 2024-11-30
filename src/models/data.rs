@@ -1,4 +1,8 @@
-use std::{collections::HashMap, error::Error, fs};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+    fs,
+};
 
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
 use serde::{Deserialize, Serialize};
@@ -112,6 +116,98 @@ pub struct Data {
     pub data: HashMap<String, Company>,
 }
 
+#[derive(Debug)]
+pub struct JobCounts {
+    intern: i32,
+    junior: i32,
+    mid: i32,
+    senior: i32,
+    staff: i32,
+    principal: i32,
+    unidentified: i32,
+}
+
+impl JobCounts {
+    pub fn export_csv(&self) -> Result<(), Box<dyn Error>> {
+        let csv_string = format!("Title,Quantity\nIntern,{}\nJunior,{}\nMid,{}\nSenior,{}\nStaff,{}\nPrincipal,{}\nUnidentified,{}", self.intern, self.junior, self.mid, self.senior, self.staff, self.principal, self.unidentified);
+        fs::write("./job_data.csv", csv_string)?;
+
+        Ok(())
+    }
+}
+pub trait AnalyzeData {
+    fn get_job_counts(&self) -> JobCounts;
+}
+
+impl AnalyzeData for Data {
+    fn get_job_counts(&self) -> JobCounts {
+        let intern_tokens: HashSet<&str> = HashSet::from_iter(vec!["intern", "internship"]);
+        let junior_tokens: HashSet<&str> =
+            HashSet::from_iter(vec!["junior", "i", "new grad", "new graduate", "newgrad", "entry", "jr", "jr.", "entry"]);
+
+        let mid_tokens: HashSet<&str> = HashSet::from_iter(vec!["mid", "ii"]);
+        let senior_tokens: HashSet<&str> = HashSet::from_iter(vec!["senior", "iii", "sr", "sr."]);
+        let staff_tokens: HashSet<&str> = HashSet::from_iter(vec!["staff", "iv"]);
+        let principal_tokens: HashSet<&str> = HashSet::from_iter(vec!["principal"]);
+        let mut intern = 0;
+        let mut junior = 0;
+        let mut senior = 0;
+        let mut staff = 0;
+        let mut mid = 0;
+        let mut principal = 0;
+        let mut unidentified = 0;
+        for (_, c) in self.data.iter() {
+            'job_loop: for j in c.jobs.iter() {
+                let normalized_title = j.title.to_lowercase();
+
+                let tokens = normalized_title.split_whitespace().collect::<Vec<&str>>();
+
+                for token in tokens.iter() {
+                    if intern_tokens.contains(token) {
+                        intern += 1;
+                        continue 'job_loop;
+                    }
+                    if junior_tokens.contains(token) {
+                        junior += 1;
+                        continue 'job_loop;
+                    }
+
+                    if mid_tokens.contains(token) {
+                        mid += 1;
+                        continue 'job_loop;
+                    }
+                    if senior_tokens.contains(token) {
+                        senior += 1;
+                        continue 'job_loop;
+                    }
+
+                    if staff_tokens.contains(token) {
+                        staff += 1;
+                        continue 'job_loop;
+                    }
+
+                    if principal_tokens.contains(token) {
+                        principal += 1;
+                        continue 'job_loop;
+                    }
+
+                    unidentified += 1;
+                }
+            }
+        }
+
+        return JobCounts {
+            intern,
+            mid,
+            staff,
+            senior,
+            junior,
+            principal,
+            unidentified,
+        };
+    }
+}
+
 impl Data {
     pub fn default() -> Self {
         let companies: Vec<(String, Company)> = COMPANYKEYS
@@ -218,45 +314,4 @@ impl Data {
             self.save();
         }
     }
-    // TODO: Need to check COMPANY_KEYS for new keys and save if new keys are there.
-    // pub fn get_data() -> Data {
-    //     let default_data = Data::default();
-    //
-    //     fs::read_to_string("data.json")
-    //         .map_err(|_| "Failed to read snapshots file")
-    //         .and_then(|content| {
-    //             serde_json::from_str::<serde_json::Value>(&content)
-    //                 .map_err(|_| "Failed to parse JSON")
-    //         })
-    //         .and_then(|mut value| {
-    //             value
-    //                 .get_mut("data")
-    //                 .ok_or("Missing 'data' field")
-    //                 .and_then(|data| {
-    //                     let mut new_company_keys_detected = false;
-    //                     for key in COMPANYKEYS {
-    //                         if !data["data"].as_object().unwrap().contains_key(key) {
-    //                             data["data"][key] = json!({
-    //                                 "connections": [],
-    //                                 "jobs": []
-    //                             });
-    //                             new_company_keys_detected = true;
-    //                         }
-    //                         if new_company_keys_detected {
-    //
-    //                         }
-    //                     }
-    //                     let data = serde_json::from_value::<Data>(data.clone()).expect("IDK some shit failed");
-    //
-    //                     data.save();
-    //
-    //
-    //                 })
-    //         })
-    //         .unwrap_or_else(|err| {
-    //             eprintln!("Error reading snapshots: {}", err);
-    //             default_data.save();
-    //             default_data
-    //         })
-    // }
 }
