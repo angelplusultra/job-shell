@@ -63,6 +63,8 @@ pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>>
         .iter()
         .map(|v| ScrapedJob {
             title: v["title"].as_str().unwrap().trim().to_string(),
+            // TODO: Fix this so it will create a ScrapedJob per location not joining the locations
+            // into a string
             location: v["locations"]
                 .as_array()
                 .unwrap()
