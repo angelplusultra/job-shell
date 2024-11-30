@@ -23,3 +23,12 @@ pub mod meta {
 pub mod chase {
 	pub mod scraper;
 }
+pub mod square {
+	pub mod scraper;
+}
+pub mod ibm {
+	pub mod scraper;
+}
+pub mod cisco {
+	pub mod scraper;
+}
