@@ -1,7 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::chase::scraper::scrape_chase;
+use scrapers::cisco::scraper::scrape_cisco;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
@@ -21,16 +21,19 @@ use handlers::scrape_options::{
 };
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
-use models::data::{Company, Connection, Data};
+use models::data::{AnalyzeData, Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use scrapers::blizzard::scraper::scrape_blizzard;
+use scrapers::chase::scraper::scrape_chase;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::disney::scraper::scrape_disney;
 use scrapers::gen::scraper::scrape_gen;
+use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
+use scrapers::square::scraper::scrape_square;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::OpenOptions;
@@ -49,27 +52,30 @@ use tokio::time::Instant;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 20] = [
+const COMPANYKEYS: [&str; 19] = [
     "Anduril",
     "Blizzard",
+    "Cisco",
     "1Password",
     "Weedmaps",
     "Discord",
     "Reddit",
     "GitHub",
     "GitLab",
+    "IBM",
     "The Browser Company",
     "Palantir",
-    "Coinbase", // (In Development)
-    "Toast",
+    "Coinbase",
+    // "Toast",
     "Gen",
-    "Disney", // "Blizzard" (In Development),
-    "IBM",
+    "Disney",
+    // "IBM",
     "Netflix",
     "Meta",
-    "Pelaton",
+    // "Pelaton",
     "Chase",
-    "Slack",
+    // "Slack",
+    "Square",
 ];
 
 mod handlers;
@@ -143,6 +149,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
         clear_console();
 
         let mut data = Data::get_data();
+
+        // let counts = data.get_job_counts();
+        //
+        //
+        // println!("{:#?}", counts);
+        // sleep(Duration::from_secs(10));
 
         enum MainMenuOptions {
             SelectACompany,
@@ -559,6 +571,7 @@ pub async fn scrape_jobs(
     let jobs_payload = match company_key {
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
         "Chase" => scrape_chase(data).await,
+        "Cisco" => scrape_cisco(data).await,
         "Blizzard" => scrape_blizzard(data).await,
         "Coinbase" => scrape_coinbase(data).await,
         "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
@@ -568,9 +581,11 @@ pub async fn scrape_jobs(
         "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
         "Reddit" => scrape_reddit(data).await,
         "Gen" => scrape_gen(data).await,
+        "IBM" => scrape_ibm(data).await,
         "Disney" => scrape_disney(data).await,
         "Meta" => scrape_meta(data).await,
         "Netflix" => scrape_netflix(data).await,
+        "Square" => scrape_square(data).await,
 
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
