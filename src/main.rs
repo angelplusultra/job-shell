@@ -66,15 +66,11 @@ const COMPANYKEYS: [&str; 19] = [
     "The Browser Company",
     "Palantir",
     "Coinbase",
-    // "Toast",
     "Gen",
     "Disney",
-    // "IBM",
     "Netflix",
     "Meta",
-    // "Pelaton",
     "Chase",
-    // "Slack",
     "Square",
 ];
 
