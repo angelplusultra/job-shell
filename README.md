@@ -75,16 +75,19 @@ Once JobShell is running:
 - Anduril
 - Blizzard
 - Chase
+- Cisco
 - Coinbase
 - Discord
 - Disney
 - Gen
 - GitHub
 - GitLab
+- IBM
 - Meta
 - Netflix
 - Palantir
 - Reddit
+- Square
 - The Browser Company
 - Weedmaps
   
