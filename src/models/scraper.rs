@@ -101,10 +101,10 @@
 
 use headless_chrome::{Browser, LaunchOptions};
 use serde::{Deserialize, Serialize};
-use tabled::Tabled;
 use std::future::Future;
 use std::pin::Pin;
 use std::{collections::HashSet, error::Error};
+use tabled::Tabled;
 use uuid::Uuid;
 
 use super::data::{Company, Data};
@@ -123,6 +123,7 @@ pub struct Job {
     pub location: String,
     pub link: String,
     pub applied: bool,
+    pub is_bookmarked: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -164,6 +165,7 @@ impl JobsPayload {
                     link: sj.link.trim().to_string(),
                     applied: false,
                     is_seen: false,
+                    is_bookmarked: false,
                 })
                 .collect();
         } else {
@@ -181,7 +183,6 @@ impl JobsPayload {
                 });
 
                 if let Some(existing_job) = existing {
-
                     all_jobs.push(existing_job.clone());
                 } else {
                     let new_job = Job {
@@ -191,6 +192,7 @@ impl JobsPayload {
                         location: sc.location.clone().trim().to_string(),
                         applied: false,
                         is_seen: false,
+                        is_bookmarked: false,
                     };
 
                     new_jobs.push(new_job.clone());
