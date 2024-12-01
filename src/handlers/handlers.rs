@@ -90,9 +90,11 @@ pub fn prompt_user_for_company_option(company: &'static str) -> &'static str {
 pub enum JobOption {
     OpenJobInBrowser,
     ReachOut,
+    Bookmark,
     GenerateJobDetails,
     Back,
 }
+
 pub fn prompt_user_for_job_option(job: &Job) -> (JobOption, &'static str) {
     let prompt = format!("Select an option for {}", job.title);
 
@@ -101,6 +103,7 @@ pub fn prompt_user_for_job_option(job: &Job) -> (JobOption, &'static str) {
     let job_options = [
         (JobOption::OpenJobInBrowser, "Open Job in Browser"),
         (JobOption::ReachOut, "Reach Out to a Connection"),
+        (JobOption::Bookmark, "Bookmark Job"),
         (
             JobOption::GenerateJobDetails,
             "Generate Job Details with AI",
@@ -117,7 +120,21 @@ pub fn prompt_user_for_job_option(job: &Job) -> (JobOption, &'static str) {
 }
 
 pub fn handle_view_edit_connections() {}
+pub fn handle_open_job_in_browser(job: &Job, data: &mut Data) -> Result<(), Box<dyn Error>> {
+    webbrowser::open(&job.link)?;
 
+    let dialoguer_styles = ColorfulTheme::default();
+    let apply = Confirm::with_theme(&dialoguer_styles)
+        .with_prompt("Did you apply?")
+        .interact()
+        .unwrap();
+
+    if apply {
+        data.mark_job_applied(&job.id);
+    }
+
+    Ok(())
+}
 pub fn handle_craft_a_message(job: &Job, connection: &Connection) {
     let dialoguer_styles = ColorfulTheme::default();
     let mut message = Editor::new().edit("Craft your message").unwrap().unwrap();
@@ -207,7 +224,7 @@ pub fn prompt_user_for_connection_option(
 pub fn handle_reach_out_to_a_connection(
     connections: &Vec<Connection>,
     selected_job: &Job,
-) -> Result<bool, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     let selected_connection = prompt_user_for_connection_selection(connections);
 
     let reach_out_to_a_connection_option = prompt_user_for_connection_option(selected_connection);
@@ -217,17 +234,15 @@ pub fn handle_reach_out_to_a_connection(
             let linkedin_url = selected_connection.linkedin.as_ref().unwrap();
 
             webbrowser::open(linkedin_url)?;
-
-            Ok(false)
         }
         ReachOutToAConnectionOption::CraftAMessage => {
             handle_craft_a_message(selected_job, &selected_connection);
-
-            Ok(false)
         }
 
-        ReachOutToAConnectionOption::Back => Ok(true),
+        ReachOutToAConnectionOption::Back => {}
     }
+
+    Ok(())
 }
 
 pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>) -> Option<Job> {
