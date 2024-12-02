@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use cron::initialize_cron;
 use core::panic;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
@@ -75,6 +76,7 @@ const COMPANYKEYS: [&str; 19] = [
 
 mod handlers;
 mod scrapers;
+mod cron;
 
 // mod links
 mod utils;
@@ -740,31 +742,3 @@ pub async fn scan_for_new_jobs_across_network(
     Ok(new_jobs)
 }
 
-pub async fn initialize_cron() -> Result<(), Box<dyn Error>> {
-    // Create a new scheduler
-    let scheduler = JobScheduler::new().await?;
-
-    // Create a job that runs every 5 minutes
-    let job1 = CronJob::new_async("0 0 */6 * * *", move |_uuid, _lock| {
-        Box::pin(async move {
-            let mut data = Data::get_data();
-            if let Err(e) = scan_for_new_jobs_across_network(&mut data).await {
-                eprintln!("Error scanning for jobs: {}", e);
-            }
-        })
-    })?;
-
-    // Add job to the scheduler
-    scheduler.add(job1).await?;
-
-    // Start the scheduler
-    scheduler.start().await?;
-
-    println!("Job scheduler started! Press Ctrl+C to exit.");
-
-    // Keep the main task running
-    tokio::signal::ctrl_c().await?;
-    println!("Shutting down scheduler...");
-
-    Ok(())
-}
