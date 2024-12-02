@@ -49,6 +49,7 @@ use tabled::{
 };
 
 use tokio::time::Instant;
+use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
@@ -126,8 +127,27 @@ async fn default_get_job_details(
     }
 }
 
+/// Hunt for jobs in the terminal
+use clap::Parser;
+
+/// Simple CLI application with a cron flag
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Run in cron mode
+    #[arg(long)]
+    cron: bool,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    let args = Args::parse();
+
+    if args.cron {
+        println!("Running in Cron mode!");
+        initialize_cron().await?;
+        return Ok(());
+    }
     clear_console();
     dotenv().ok();
 
@@ -142,9 +162,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // INFO: Main App loop
     loop {
-        clear_console();
-
         let mut data = Data::get_data();
+        clear_console();
 
         // let counts = data.get_job_counts();
         //
@@ -153,7 +172,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
         enum MainMenuOptions {
             SelectACompany,
-            ScrapeNewJobsAcrossNetwork,
+            ScanForNewJobsAcrossNetwork,
             MyConnections,
             Exit,
         }
@@ -170,8 +189,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let main_menu_options = [
             (MainMenuOptions::SelectACompany, "Select a Company"),
             (
-                MainMenuOptions::ScrapeNewJobsAcrossNetwork,
-                "Scrape New Jobs Across Network",
+                MainMenuOptions::ScanForNewJobsAcrossNetwork,
+                "Scan For New Jobs Across Network",
             ),
             (MainMenuOptions::MyConnections, "My Connections"),
             (MainMenuOptions::Exit, "Exit"),
@@ -388,90 +407,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            MainMenuOptions::ScrapeNewJobsAcrossNetwork => {
-                let companies_to_scrape: Vec<String> = data
-                    .data
-                    .iter()
-                    .filter(|(_, c)| !c.connections.is_empty())
-                    .map(|(k, _)| k.clone())
-                    .collect();
-
-                if companies_to_scrape.is_empty() {
-                    println!("You must have at least 1 connection to a company to do this.");
-                    sleep(Duration::from_secs(3));
-                    continue;
-                }
-
-                let pb = ProgressBar::new(companies_to_scrape.len() as u64);
-                pb.set_style(
-    ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] {bar:60.cyan/blue} {pos}/{len} ({percent}%) {msg}")
-        .unwrap()
-        .progress_chars("=>-"),
-);
-
-                let mut new_jobs: Vec<FormattedJob> = vec![];
-
-                // Enable steady ticks for animation
-                pb.enable_steady_tick(Duration::from_millis(100));
-
-                for company_key in companies_to_scrape {
-                    clear_console();
-
-                    // Set a message to show current activity
-                    pb.set_message(format!("Scraping {}", company_key));
-
-                    // Start timing the operation
-                    let start = Instant::now();
-
-                    // Perform the scraping
-                    let jobs_payload = match scrape_jobs(&mut data, &company_key).await {
-                        Ok(jb) => jb,
-                        Err(e) => {
-                            eprintln!("{}", format!("Error: {}", e).red());
-                            continue;
-                        }
-                    };
-
-                    // Update progress and message
-                    pb.inc(1);
-
-                    if jobs_payload.are_new_jobs {
-                        let new_jobs_count = jobs_payload.new_jobs.len();
-                        pb.println(format!(
-                            "✨ Found {} new jobs for {}!",
-                            new_jobs_count, company_key
-                        ));
-
-                        for j in jobs_payload.new_jobs {
-                            new_jobs.push(FormattedJob {
-                                display_name: format!(
-                                    "{} | {} | ({})",
-                                    j.title, j.location, company_key
-                                ),
-                                job: j,
-                                company: company_key.clone(),
-                            });
-                        }
-                    }
-
-                    // Optional: Show time taken for each company
-                    let elapsed = start.elapsed();
-                    pb.set_message(format!("Done in {:.2}s", elapsed.as_secs_f64()));
-                }
-
-                // Finish the progress bar
-                pb.finish_with_message("Scraping completed!");
-
-                if new_jobs.is_empty() {
-                    clear_console();
-                    println!("No new jobs have been detected :(");
-                    sleep(Duration::from_secs(3));
-                    continue;
-                }
-
-                create_report(&new_jobs, ReportMode::HTML)?;
-
+            MainMenuOptions::ScanForNewJobsAcrossNetwork => {
+                let new_jobs = scan_for_new_jobs_across_network(&mut data).await?;
                 loop {
                     let options = new_jobs
                         .iter()
@@ -724,4 +661,119 @@ mod test {
 
         assert_eq!(v.is_ok(), true);
     }
+}
+
+pub async fn scan_for_new_jobs_across_network(
+    data: &mut Data,
+) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
+    let companies_to_scrape: Vec<String> = data
+        .data
+        .iter()
+        .filter(|(_, c)| !c.connections.is_empty())
+        .map(|(k, _)| k.clone())
+        .collect();
+
+    if companies_to_scrape.is_empty() {
+        println!("You must have at least 1 connection to a company to do this.");
+        sleep(Duration::from_secs(3));
+        return Err("You must have at least 1 connection to a company to do this.".into());
+    }
+
+    let pb = ProgressBar::new(companies_to_scrape.len() as u64);
+    pb.set_style(
+    ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] {bar:60.cyan/blue} {pos}/{len} ({percent}%) {msg}")
+        .unwrap()
+        .progress_chars("=>-"),
+);
+
+    let mut new_jobs: Vec<FormattedJob> = vec![];
+
+    // Enable steady ticks for animation
+    pb.enable_steady_tick(Duration::from_millis(100));
+
+    for company_key in companies_to_scrape {
+        clear_console();
+
+        // Set a message to show current activity
+        pb.set_message(format!("Scraping {}", company_key));
+
+        // Start timing the operation
+        let start = Instant::now();
+
+        // Perform the scraping
+        let jobs_payload = match scrape_jobs(data, &company_key).await {
+            Ok(jb) => jb,
+            Err(e) => {
+                eprintln!("{}", format!("Error: {}", e).red());
+                continue;
+            }
+        };
+
+        // Update progress and message
+        pb.inc(1);
+
+        if jobs_payload.are_new_jobs {
+            let new_jobs_count = jobs_payload.new_jobs.len();
+            pb.println(format!(
+                "✨ Found {} new jobs for {}!",
+                new_jobs_count, company_key
+            ));
+
+            for j in jobs_payload.new_jobs {
+                new_jobs.push(FormattedJob {
+                    display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                    job: j,
+                    company: company_key.clone(),
+                });
+            }
+        }
+
+        // Optional: Show time taken for each company
+        let elapsed = start.elapsed();
+        pb.set_message(format!("Done in {:.2}s", elapsed.as_secs_f64()));
+    }
+
+    // Finish the progress bar
+    pb.finish_with_message("Scraping completed!");
+
+    if new_jobs.is_empty() {
+        clear_console();
+        println!("No new jobs have been detected :(");
+        sleep(Duration::from_secs(3));
+        return Err("No new jobs have been detcted".into());
+    }
+
+    create_report(&new_jobs, ReportMode::HTML)?;
+
+    Ok(new_jobs)
+}
+
+pub async fn initialize_cron() -> Result<(), Box<dyn Error>> {
+    // Create a new scheduler
+    let scheduler = JobScheduler::new().await?;
+
+    // Create a job that runs every 5 minutes
+    let job1 = CronJob::new_async("0 */10 * * * *", move |_uuid, _lock| {
+        Box::pin(async move {
+            let mut data = Data::get_data();
+            if let Err(e) = scan_for_new_jobs_across_network(&mut data).await {
+                eprintln!("Error scanning for jobs: {}", e);
+            }
+        })
+    })?;
+
+    // Add job to the scheduler
+    scheduler.add(job1).await?;
+
+    // Start the scheduler
+    scheduler.start().await?;
+
+    println!("Job scheduler started! Press Ctrl+C to exit.");
+
+    // Keep the main task running
+    tokio::signal::ctrl_c().await?;
+    println!("Shutting down scheduler...");
+
+    Ok(())
 }
