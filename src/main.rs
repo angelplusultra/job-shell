@@ -43,10 +43,7 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, fs};
-use tabled::{
-    settings::{Modify, Style, Width},
-    Table,
-};
+use tabled::{settings::Style, Table};
 
 use tokio::time::Instant;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
@@ -754,7 +751,7 @@ pub async fn initialize_cron() -> Result<(), Box<dyn Error>> {
     let scheduler = JobScheduler::new().await?;
 
     // Create a job that runs every 5 minutes
-    let job1 = CronJob::new_async("0 */10 * * * *", move |_uuid, _lock| {
+    let job1 = CronJob::new_async("0 0 */6 * * *", move |_uuid, _lock| {
         Box::pin(async move {
             let mut data = Data::get_data();
             if let Err(e) = scan_for_new_jobs_across_network(&mut data).await {
