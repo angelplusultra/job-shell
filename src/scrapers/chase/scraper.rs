@@ -26,14 +26,13 @@ pub async fn scrape_chase(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>
         let scraped_jobs_subset: Vec<ScrapedJob> = jobs.iter().map(|v| ScrapedJob {
             title: v["Title"].as_str().unwrap().trim().to_string(),
             location: v["PrimaryLocation"].as_str().unwrap().trim().split(",").take(2).collect::<Vec<&str>>().join(","),
-            link: format!("https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1002/{}", v["Id"].as_str().unwrap())
+            link: format!("https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1002/job/{}", v["Id"].as_str().unwrap())
 
         }).collect();
 
         scraped_jobs.extend(scraped_jobs_subset);
         offset += 200;
     }
-
     // Convert Vector of ScrapedJob into a JobsPayload
     let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Chase"]);
 
