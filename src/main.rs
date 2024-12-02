@@ -47,6 +47,7 @@ use tabled::{settings::Style, Table};
 
 use tokio::time::Instant;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
+use utils::clear_console;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
@@ -76,19 +77,12 @@ mod handlers;
 mod scrapers;
 
 // mod links
-mod utils {
-    pub mod stringify_js;
-}
+mod utils;
 mod models {
     pub mod custom_error;
     pub mod data;
     pub mod gemini;
     pub mod scraper;
-}
-
-fn clear_console() {
-    print!("\x1B[2J\x1B[1;1H");
-    std::io::stdout().flush().unwrap()
 }
 
 async fn default_get_job_details(
