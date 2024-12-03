@@ -1,8 +1,8 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use cron::initialize_cron;
 use core::panic;
+use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
@@ -11,7 +11,7 @@ use handlers::handlers::{
     handle_reach_out_to_a_connection, prompt_user_for_company_option,
     prompt_user_for_company_selection, prompt_user_for_connection_option,
     prompt_user_for_connection_selection, prompt_user_for_job_option,
-    prompt_user_for_job_selection, JobOption, ReachOutToAConnectionOption,
+    prompt_user_for_job_selection, CompanyOption, JobOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -74,9 +74,9 @@ const COMPANYKEYS: [&str; 19] = [
     "Square",
 ];
 
+mod cron;
 mod handlers;
 mod scrapers;
-mod cron;
 
 // mod links
 mod utils;
@@ -211,8 +211,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         let selected_company_option = prompt_user_for_company_option(company);
 
                         match selected_company_option {
-                            "Back" => break,
-                            "View Jobs" => {
+                            CompanyOption::Back => break,
+                            CompanyOption::ViewJobs => {
                                 if data.data[company].jobs.is_empty() {
                                     eprintln!("Error: No jobs");
                                     continue;
@@ -225,7 +225,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         data.mark_job_seen(&selected_job.id);
 
                                         loop {
-                                            match prompt_user_for_job_option(&selected_job).0 {
+                                            match prompt_user_for_job_option(&selected_job) {
                                                 JobOption::OpenJobInBrowser => {
                                                     handle_open_job_in_browser(
                                                         &selected_job,
@@ -247,7 +247,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     None => break,
                                 }
                             }
-                            "View/Edit Connections" => {
+                            CompanyOption::ViewOrEditConnections => {
                                 let connects = &data.data[company].connections;
 
                                 if connects.is_empty() {
@@ -295,7 +295,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                             }
                             // INFO: Scrape Jobs
-                            "Scrape Jobs" => {
+                            CompanyOption::ScrapeAndUpdateJobs => {
                                 let JobsPayload {
                                     all_jobs,
                                     new_jobs,
@@ -325,7 +325,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                             data.mark_job_seen(&selected_job.id);
 
                                             loop {
-                                                match prompt_user_for_job_option(&selected_job).0 {
+                                                match prompt_user_for_job_option(&selected_job) {
                                                     JobOption::OpenJobInBrowser => {
                                                         handle_open_job_in_browser(
                                                             &selected_job,
@@ -365,7 +365,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }
                                 }
                             }
-                            "Add a Connection" => {
+                            CompanyOption::AddAConnection => {
                                 clear_console();
                                 println!("Create a new connection at {}", company);
 
@@ -425,7 +425,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     data.mark_job_seen(&selected_job.job.id);
 
-                    match prompt_user_for_job_option(&selected_job.job).0 {
+                    match prompt_user_for_job_option(&selected_job.job) {
                         JobOption::OpenJobInBrowser => {
                             webbrowser::open(&selected_job.job.link)?;
                             let did_apply = prompt_user_did_apply();
@@ -741,4 +741,3 @@ pub async fn scan_for_new_jobs_across_network(
 
     Ok(new_jobs)
 }
-
