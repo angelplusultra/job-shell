@@ -8,10 +8,11 @@ use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::{
     default_scrape_jobs_handler, handle_craft_a_message, handle_open_job_in_browser,
-    handle_reach_out_to_a_connection, prompt_user_for_company_option,
-    prompt_user_for_company_selection, prompt_user_for_connection_option,
-    prompt_user_for_connection_selection, prompt_user_for_job_option,
-    prompt_user_for_job_selection, CompanyOption, JobOption,
+    handle_reach_out_to_a_connection, handle_scan_new_jobs_across_network,
+    prompt_user_for_company_option, prompt_user_for_company_selection,
+    prompt_user_for_connection_option, prompt_user_for_connection_selection,
+    prompt_user_for_job_option, prompt_user_for_job_selection, prompt_user_for_main_menu_selection,
+    CompanyOption, JobOption, MainMenuOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -76,6 +77,7 @@ const COMPANYKEYS: [&str; 19] = [
 
 mod cron;
 mod handlers;
+mod reports;
 mod scrapers;
 
 // mod links
@@ -163,40 +165,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // println!("{:#?}", counts);
         // sleep(Duration::from_secs(10));
 
-        enum MainMenuOptions {
-            SelectACompany,
-            ScanForNewJobsAcrossNetwork,
-            MyConnections,
-            Exit,
-        }
-
-        trait IOptions {
-            fn display_strings(&self) -> Vec<&str>;
-        }
-
-        impl IOptions for [(MainMenuOptions, &str)] {
-            fn display_strings(&self) -> Vec<&str> {
-                self.iter().map(|o| o.1).collect()
-            }
-        }
-        let main_menu_options = [
-            (MainMenuOptions::SelectACompany, "Select a Company"),
-            (
-                MainMenuOptions::ScanForNewJobsAcrossNetwork,
-                "Scan For New Jobs Across Network",
-            ),
-            (MainMenuOptions::MyConnections, "My Connections"),
-            (MainMenuOptions::Exit, "Exit"),
-        ];
-
-        let main_menu_selection = &main_menu_options[Select::with_theme(&dialoguer_styles)
-            .with_prompt("Select an option")
-            .items(&main_menu_options.display_strings())
-            .interact()
-            .unwrap()];
-
-        match main_menu_selection.0 {
-            MainMenuOptions::SelectACompany => {
+        match prompt_user_for_main_menu_selection() {
+            MainMenuOption::SelectACompany => {
                 loop {
                     let company_selection = prompt_user_for_company_selection();
 
@@ -224,24 +194,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     Some(selected_job) => {
                                         data.mark_job_seen(&selected_job.id);
 
-                                        loop {
-                                            match prompt_user_for_job_option(&selected_job) {
-                                                JobOption::OpenJobInBrowser => {
-                                                    handle_open_job_in_browser(
-                                                        &selected_job,
-                                                        &mut data,
-                                                    )?
-                                                }
-                                                JobOption::ReachOut => {
-                                                    handle_reach_out_to_a_connection(
-                                                        &data.data[company].connections,
-                                                        &selected_job,
-                                                    )?
-                                                }
-                                                JobOption::Bookmark => {}
-                                                JobOption::GenerateJobDetails => todo!(),
-                                                JobOption::Back => break,
-                                            }
+                                        match handle_job_option(&selected_job, &mut data, company)
+                                            .await
+                                        {
+                                            Ok(()) => {}
+                                            Err(e) => eprintln!("Error: {}", e),
                                         }
                                     }
                                     None => break,
@@ -324,41 +281,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         Some(selected_job) => {
                                             data.mark_job_seen(&selected_job.id);
 
-                                            loop {
-                                                match prompt_user_for_job_option(&selected_job) {
-                                                    JobOption::OpenJobInBrowser => {
-                                                        handle_open_job_in_browser(
-                                                            &selected_job,
-                                                            &mut data,
-                                                        )?
-                                                    }
-                                                    JobOption::ReachOut => {
-                                                        handle_reach_out_to_a_connection(
-                                                            &data.data[company].connections,
-                                                            &selected_job,
-                                                        )?;
-                                                    }
-                                                    JobOption::GenerateJobDetails => {
-                                                        let job_details = match company {
-                            // "Weedmaps" => get_weedmaps_jod_details(&selected_job).await?,
-                            "1Password" => default_get_job_details(&selected_job, true, "body").await?,
-                            "Tarro" => {
-                                default_get_job_details(&selected_job, true, "._content_ud4nd_71").await?
-                            }
-                            "Discord" => default_get_job_details(&selected_job, true, "body").await?,
-                            "Palantir" => default_get_job_details(&selected_job, true, ".content").await?,
-                            "Anduril" => default_get_job_details(&selected_job, true, "main").await?,
-                            "Coinbase" => default_get_job_details(&selected_job, false, ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU").await?,
-                            _ => default_get_job_details(&selected_job, true, "body").await?,
-                        };
-
-                                                        // Print details
-                                                        // clear_console();
-                                                        job_details.print_job();
-                                                    }
-                                                    JobOption::Bookmark => todo!(),
-                                                    JobOption::Back => break,
-                                                }
+                                            match handle_job_option(
+                                                &selected_job,
+                                                &mut data,
+                                                company,
+                                            )
+                                            .await
+                                            {
+                                                Err(e) => eprintln!("Error: {}", e),
+                                                Ok(()) => {}
                                             }
                                         }
                                         None => break,
@@ -395,13 +326,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     data.save();
                                 }
                             }
-                            _ => {}
                         }
                     }
                 }
             }
-            MainMenuOptions::ScanForNewJobsAcrossNetwork => {
-                let new_jobs = scan_for_new_jobs_across_network(&mut data).await?;
+            MainMenuOption::ScanForNewJobsAcrossNetwork => {
+                let new_jobs = handle_scan_new_jobs_across_network(&mut data).await?;
                 loop {
                     let options = new_jobs
                         .iter()
@@ -425,23 +355,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     data.mark_job_seen(&selected_job.job.id);
 
-                    match prompt_user_for_job_option(&selected_job.job) {
-                        JobOption::OpenJobInBrowser => {
-                            webbrowser::open(&selected_job.job.link)?;
-                            let did_apply = prompt_user_did_apply();
-
-                            if did_apply {
-                                data.mark_job_applied(&selected_job.job.id);
-                            }
-                        }
-                        JobOption::ReachOut => todo!(),
-                        JobOption::Bookmark => todo!(),
-                        JobOption::GenerateJobDetails => todo!(),
-                        JobOption::Back => continue,
-                    }
+                    handle_job_option(&selected_job.job, &mut data, &selected_job.company).await?;
                 }
             }
-            MainMenuOptions::MyConnections => {
+            MainMenuOption::ViewNewJobsReports => handle_view_new_jobs_reports()?,
+            MainMenuOption::MyConnections => {
                 let all_connections: Vec<&Connection> = data
                     .data
                     .iter()
@@ -523,221 +441,107 @@ fn prompt_user_did_apply() -> bool {
 }
 
 // TODO: Use 1 FormattedJob struct
-struct FormattedJob {
-    company: String,
-    display_name: String,
-    job: Job,
-}
-fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> Result<(), Box<dyn Error>> {
-    let today = Utc::now().naive_utc().date().to_string();
 
-    let mut path = PathBuf::new();
-
-    if cfg!(test) {
-        path.push("tests");
-        if !fs::exists(&path)? {
-            fs::create_dir(&path)?;
-        }
-    }
-    path.push("reports");
-
-    if !fs::exists(&path)? {
-        fs::create_dir(&path)?;
-    }
-    match mode {
-        ReportMode::CSV => {
-            let names_row = "Company,Title,Location,Link\n";
-            let entries = new_jobs
-                .iter()
-                .map(|j| {
-                    format!(
-                        "{},{},{},{}\n",
-                        j.company,
-                        j.job.title,
-                        j.job.location.replace(",", ""),
-                        j.job.link
-                    )
-                })
-                .collect::<String>();
-            let csv = format!("{}{}", names_row, entries);
-            // check if the root path exists
-            path.push(today + ".csv");
-
-            if fs::exists(&path)? {
-                let mut file = OpenOptions::new().append(true).open(&path)?;
-
-                write!(file, "{}", entries)?;
-            } else {
-                fs::write(&path, format!("{}", csv))?;
+async fn handle_job_option(
+    selected_job: &Job,
+    data: &mut Data,
+    company: &str,
+) -> Result<(), Box<dyn Error>> {
+    loop {
+        match prompt_user_for_job_option(&selected_job) {
+            JobOption::OpenJobInBrowser => handle_open_job_in_browser(&selected_job, data)?,
+            JobOption::ReachOut => {
+                handle_reach_out_to_a_connection(&data.data[company].connections, &selected_job)?;
             }
-        }
-        ReportMode::HTML => {
-            let html = format!(
-                r#"
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title></title>
-  </head>
-
-  <body>
-    <h1>{}</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>Company</th>
-          <th>Title</th>
-          <th>Location</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {}
-      </tbody>
-    </table>
-  </body>
-</html>
-"#,
-                format!("New Jobs: {}", today),
-                new_jobs
-                    .iter()
-                    .map(|fj| {
-                        format!(
-                            r#"<tr><td>{}</td> <td>{}</td> <td>{}</td> <td><a href="{}">Apply</a></td></tr>"#,
-                            fj.company, fj.job.title, fj.job.location, fj.job.link
+            JobOption::GenerateJobDetails => {
+                let job_details = match company {
+                    // "Weedmaps" => get_weedmaps_jod_details(&selected_job).await?,
+                    "1Password" => default_get_job_details(&selected_job, true, "body").await?,
+                    "Tarro" => {
+                        default_get_job_details(&selected_job, true, "._content_ud4nd_71").await?
+                    }
+                    "Discord" => default_get_job_details(&selected_job, true, "body").await?,
+                    "Palantir" => default_get_job_details(&selected_job, true, ".content").await?,
+                    "Anduril" => default_get_job_details(&selected_job, true, "main").await?,
+                    "Coinbase" => {
+                        default_get_job_details(
+                            &selected_job,
+                            false,
+                            ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU",
                         )
-                    })
-                    .collect::<String>()
-            );
+                        .await?
+                    }
+                    _ => default_get_job_details(&selected_job, true, "body").await?,
+                };
 
-            path.push(today + ".html");
-
-            fs::write(&path, html)?;
+                // Print details
+                // clear_console();
+                job_details.print_job();
+            }
+            JobOption::Bookmark => todo!(),
+            JobOption::Back => break,
         }
     }
-
     Ok(())
 }
 
-enum ReportMode {
-    HTML,
-    CSV,
-}
+pub fn get_directory_files(dir_path: &str) -> Result<Vec<String>, Box<dyn Error>> {
+    let paths = fs::read_dir(dir_path)?;
 
-#[cfg(test)]
-mod test {
-    use uuid::Uuid;
+    let mut files: Vec<String> = paths
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
 
-    use super::*;
-
-    #[test]
-    fn test_create_report() {
-        let v = create_report(
-            &vec![FormattedJob {
-                display_name: "SWE".to_string(),
-                company: "Disney".to_string(),
-                job: Job {
-                    title: "Software Engineer".to_string(),
-                    link: "https://somelinktoapply.com".to_string(),
-                    location: "Anaheim, CA".to_string(),
-                    id: Uuid::new_v4(),
-                    is_seen: false,
-                    applied: false,
-                    is_bookmarked: false,
-                },
-            }],
-            ReportMode::HTML,
-        );
-
-        assert_eq!(v.is_ok(), true);
-    }
-}
-
-pub async fn scan_for_new_jobs_across_network(
-    data: &mut Data,
-) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
-    let companies_to_scrape: Vec<String> = data
-        .data
-        .iter()
-        .filter(|(_, c)| !c.connections.is_empty())
-        .map(|(k, _)| k.clone())
+            // Skip directories, only include files
+            if path.is_file() {
+                path.file_name()?
+                    .to_str()
+                    .map(|s| s.replace(".html", ""))
+            } else {
+                None
+            }
+        })
         .collect();
 
-    if companies_to_scrape.is_empty() {
-        println!("You must have at least 1 connection to a company to do this.");
-        sleep(Duration::from_secs(3));
-        return Err("You must have at least 1 connection to a company to do this.".into());
-    }
+    
 
-    let pb = ProgressBar::new(companies_to_scrape.len() as u64);
-    pb.set_style(
-    ProgressStyle::default_bar()
-        .template("{spinner:.green} [{elapsed_precise}] {bar:60.cyan/blue} {pos}/{len} ({percent}%) {msg}")
-        .unwrap()
-        .progress_chars("=>-"),
-);
+    files.sort_by(|a, b| b.cmp(a));
 
-    let mut new_jobs: Vec<FormattedJob> = vec![];
 
-    // Enable steady ticks for animation
-    pb.enable_steady_tick(Duration::from_millis(100));
+    Ok(files)
+}
 
-    for company_key in companies_to_scrape {
-        clear_console();
+pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
+    let v = get_directory_files("./reports");
 
-        // Set a message to show current activity
-        pb.set_message(format!("Scraping {}", company_key));
+    match v {
+        Ok(reports) => loop {
+            let mut options = Vec::from_iter(reports.clone());
+            options.push("Back".to_string());
 
-        // Start timing the operation
-        let start = Instant::now();
+            let idx = FuzzySelect::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select a new jobs report")
+                .items(&options)
+                .interact()
+                .unwrap();
 
-        // Perform the scraping
-        let jobs_payload = match scrape_jobs(data, &company_key).await {
-            Ok(jb) => jb,
-            Err(e) => {
-                eprintln!("{}", format!("Error: {}", e).red());
-                continue;
+            let selected_report = options[idx].as_str();
+
+            if selected_report == "Back" {
+                break;
             }
-        };
 
-        // Update progress and message
-        pb.inc(1);
+            // Convert the relative path to absolute path
+            let absolute_path = std::fs::canonicalize(format!("./reports/{}.html", selected_report))?;
 
-        if jobs_payload.are_new_jobs {
-            let new_jobs_count = jobs_payload.new_jobs.len();
-            pb.println(format!(
-                "✨ Found {} new jobs for {}!",
-                new_jobs_count, company_key
-            ));
+            // Convert the path to a URL format with file:// protocol
+            let url = format!("file://{}", absolute_path.display());
 
-            for j in jobs_payload.new_jobs {
-                new_jobs.push(FormattedJob {
-                    display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
-                    job: j,
-                    company: company_key.clone(),
-                });
-            }
-        }
-
-        // Optional: Show time taken for each company
-        let elapsed = start.elapsed();
-        pb.set_message(format!("Done in {:.2}s", elapsed.as_secs_f64()));
+            webbrowser::open(&url)?;
+        },
+        Err(e) => eprintln!("Error: {}", e),
     }
 
-    // Finish the progress bar
-    pb.finish_with_message("Scraping completed!");
-
-    if new_jobs.is_empty() {
-        clear_console();
-        println!("No new jobs have been detected :(");
-        sleep(Duration::from_secs(3));
-        return Err("No new jobs have been detcted".into());
-    }
-
-    create_report(&new_jobs, ReportMode::HTML)?;
-
-    Ok(new_jobs)
+    Ok(())
 }
