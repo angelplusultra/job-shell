@@ -1,9 +1,10 @@
-use std::{collections::HashSet, error::Error};
+use std::{collections::HashSet, error::Error, fmt::Display};
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Select};
 use headless_chrome::{Browser, LaunchOptions};
+use strum::IntoEnumIterator;
 use tabled::Table;
 
 use crate::{
@@ -15,6 +16,16 @@ use crate::{
 };
 
 use super::scrape_options::DefaultJobScraperOptions;
+use strum_macros::{Display, EnumIter};
+
+// INFO: Display string fn for all enums that derive EnumIter
+trait EnumVariantsDisplayStrings: IntoEnumIterator + Display {
+    fn display_strings() -> Vec<String> {
+        Self::iter().map(|v| v.to_string()).collect()
+    }
+}
+
+impl<T: IntoEnumIterator + Display> EnumVariantsDisplayStrings for T {}
 
 pub async fn default_scrape_jobs_handler(
     data: &mut Data,
@@ -67,15 +78,25 @@ pub fn prompt_user_for_company_selection() -> &'static str {
     return company_options[selection];
 }
 
-pub fn prompt_user_for_company_option(company: &'static str) -> &'static str {
+// INFO: Company Options Prompt
+#[derive(Display, EnumIter)]
+pub enum CompanyOption {
+    #[strum(to_string = "Scrape and Update Jobs")]
+    ScrapeAndUpdateJobs,
+    #[strum(to_string = "View Jobs")]
+    ViewJobs,
+    #[strum(to_string = "Add a Connection")]
+    AddAConnection,
+    #[strum(to_string = "View or Edit Connections")]
+    ViewOrEditConnections,
+    #[strum(to_string = "Back")]
+    Back,
+}
+
+pub fn prompt_user_for_company_option(company: &'static str) -> CompanyOption {
     let dialoguer_styles = ColorfulTheme::default();
-    let options = [
-        "Scrape Jobs",
-        "Add a Connection",
-        "View/Edit Connections",
-        "View Jobs",
-        "Back",
-    ];
+
+    let options = CompanyOption::display_strings();
 
     let selection = Select::with_theme(&dialoguer_styles)
         .with_prompt(&format!("Select an option for {}", company))
@@ -83,43 +104,43 @@ pub fn prompt_user_for_company_option(company: &'static str) -> &'static str {
         .interact()
         .unwrap();
 
-    return options[selection];
+    CompanyOption::iter().nth(selection).unwrap()
 }
 
-#[derive(Clone, Copy)]
+// INFO: Job Option Prompt
+#[derive(Display, EnumIter)]
 pub enum JobOption {
+    #[strum(to_string = "Open Job in Browser")]
     OpenJobInBrowser,
+    #[strum(to_string = "Reach Out to a Connection")]
     ReachOut,
+    #[strum(to_string = "Bookmark Job")]
     Bookmark,
+    #[strum(to_string = "Generate Job Details with AI")]
     GenerateJobDetails,
+    #[strum(to_string = "Back")]
     Back,
 }
 
-pub fn prompt_user_for_job_option(job: &Job) -> (JobOption, &'static str) {
+pub fn prompt_user_for_job_option(job: &Job) -> JobOption {
     let prompt = format!("Select an option for {}", job.title);
 
     let dialoguer_styles = ColorfulTheme::default();
 
-    let job_options = [
-        (JobOption::OpenJobInBrowser, "Open Job in Browser"),
-        (JobOption::ReachOut, "Reach Out to a Connection"),
-        (JobOption::Bookmark, "Bookmark Job"),
-        (
-            JobOption::GenerateJobDetails,
-            "Generate Job Details with AI",
-        ),
-        (JobOption::Back, "Back"),
-    ];
-    let job_options_selection = job_options[Select::with_theme(&dialoguer_styles)
-        .with_prompt(prompt)
-        .items(&job_options.iter().map(|j| j.1).collect::<Vec<&str>>())
-        .interact()
-        .unwrap()];
+    let options = JobOption::display_strings();
 
-    job_options_selection
+    let job_options_selection = Select::with_theme(&dialoguer_styles)
+        .with_prompt(prompt)
+        .items(&options)
+        .interact()
+        .unwrap();
+
+    JobOption::iter().nth(job_options_selection).unwrap()
 }
 
-pub fn handle_view_edit_connections() {}
+// pub fn handle_view_edit_connections() {}
+
+// INFO: Open Job in Browser
 pub fn handle_open_job_in_browser(job: &Job, data: &mut Data) -> Result<(), Box<dyn Error>> {
     webbrowser::open(&job.link)?;
 
@@ -135,6 +156,8 @@ pub fn handle_open_job_in_browser(job: &Job, data: &mut Data) -> Result<(), Box<
 
     Ok(())
 }
+
+// INFO: Craft a Message
 pub fn handle_craft_a_message(job: &Job, connection: &Connection) {
     let dialoguer_styles = ColorfulTheme::default();
     let mut message = Editor::new().edit("Craft your message").unwrap().unwrap();
@@ -154,13 +177,6 @@ pub fn handle_craft_a_message(job: &Job, connection: &Connection) {
             let _ = webbrowser::open(&connection.linkedin.as_ref().unwrap());
         }
     }
-}
-
-#[derive(Clone, Copy)]
-pub enum ReachOutToAConnectionOption {
-    CraftAMessage,
-    OpenLinkedIn,
-    Back,
 }
 
 pub fn prompt_user_for_connection_selection(connections: &Vec<Connection>) -> &Connection {
@@ -187,38 +203,33 @@ pub fn prompt_user_for_connection_selection(connections: &Vec<Connection>) -> &C
 
     selected_connection
 }
-pub fn prompt_user_for_connection_option(
-    selected_connection: &Connection,
-) -> ReachOutToAConnectionOption {
+
+// INFO: Prompt for Connection Option
+#[derive(Display, EnumIter)]
+pub enum ConnectionOption {
+    #[strum(to_string = "Craft a Message")]
+    CraftAMessage,
+    #[strum(to_string = "Open LinkedIn")]
+    OpenLinkedIn,
+    #[strum(to_string = "Back")]
+    Back,
+}
+pub fn prompt_user_for_connection_option(selected_connection: &Connection) -> ConnectionOption {
     let dialoguer_styles = ColorfulTheme::default();
 
-    let mut connections_options = vec![
-        (
-            ReachOutToAConnectionOption::CraftAMessage,
-            "Craft a Message",
-        ),
-        (ReachOutToAConnectionOption::Back, "Back"),
-    ];
+    let mut options = ConnectionOption::display_strings();
 
-    if selected_connection.linkedin.is_some() {
-        connections_options.insert(
-            0,
-            (ReachOutToAConnectionOption::OpenLinkedIn, "Open LinkedIn"),
-        )
+    if selected_connection.linkedin.is_none() {
+        options.retain(|opt| opt != "Open LinkedIn");
     }
 
-    let selected_connection_option = connections_options[Select::with_theme(&dialoguer_styles)
+    let idx = Select::with_theme(&dialoguer_styles)
         .with_prompt("Select an option")
-        .items(
-            &connections_options
-                .iter()
-                .map(|o| o.1)
-                .collect::<Vec<&str>>(),
-        )
+        .items(&options)
         .interact()
-        .unwrap()];
+        .unwrap();
 
-    selected_connection_option.0
+    ConnectionOption::iter().nth(idx).unwrap()
 }
 
 pub fn handle_reach_out_to_a_connection(
@@ -230,16 +241,16 @@ pub fn handle_reach_out_to_a_connection(
     let reach_out_to_a_connection_option = prompt_user_for_connection_option(selected_connection);
 
     match reach_out_to_a_connection_option {
-        ReachOutToAConnectionOption::OpenLinkedIn => {
+        ConnectionOption::OpenLinkedIn => {
             let linkedin_url = selected_connection.linkedin.as_ref().unwrap();
 
             webbrowser::open(linkedin_url)?;
         }
-        ReachOutToAConnectionOption::CraftAMessage => {
+        ConnectionOption::CraftAMessage => {
             handle_craft_a_message(selected_job, &selected_connection);
         }
 
-        ReachOutToAConnectionOption::Back => {}
+        ConnectionOption::Back => {}
     }
 
     Ok(())
