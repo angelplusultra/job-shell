@@ -1,9 +1,16 @@
-use std::{collections::HashSet, error::Error, fmt::Display};
+use std::{
+    collections::HashSet,
+    error::Error,
+    fmt::Display,
+    thread::sleep,
+    time::{Duration, Instant},
+};
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
 use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Select};
 use headless_chrome::{Browser, LaunchOptions};
+use indicatif::{ProgressBar, ProgressStyle};
 use strum::IntoEnumIterator;
 use tabled::Table;
 
@@ -12,6 +19,9 @@ use crate::{
         data::{Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
     },
+    reports::{create_report, ReportMode},
+    scrape_jobs,
+    utils::clear_console,
     COMPANYKEYS,
 };
 
@@ -334,4 +344,123 @@ pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>)
     let job = formatted_options[selected_job].original_job;
 
     Some(job.clone())
+}
+
+pub struct FormattedJob {
+    pub company: String,
+    pub display_name: String,
+    pub job: Job,
+}
+pub async fn handle_scan_new_jobs_across_network(
+    data: &mut Data,
+) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
+    let companies_to_scrape: Vec<String> = data
+        .data
+        .iter()
+        .filter(|(_, c)| !c.connections.is_empty())
+        .map(|(k, _)| k.clone())
+        .collect();
+
+    if companies_to_scrape.is_empty() {
+        println!("You must have at least 1 connection to a company to do this.");
+        sleep(Duration::from_secs(3));
+        return Err("You must have at least 1 connection to a company to do this.".into());
+    }
+
+    let pb = ProgressBar::new(companies_to_scrape.len() as u64);
+    pb.set_style(
+    ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] {bar:60.cyan/blue} {pos}/{len} ({percent}%) {msg}")
+        .unwrap()
+        .progress_chars("=>-"),
+);
+
+    let mut new_jobs: Vec<FormattedJob> = vec![];
+
+    // Enable steady ticks for animation
+    pb.enable_steady_tick(Duration::from_millis(100));
+
+    for company_key in companies_to_scrape {
+        clear_console();
+
+        // Set a message to show current activity
+        pb.set_message(format!("Scraping {}", company_key));
+
+        // Start timing the operation
+        let start = Instant::now();
+
+        // Perform the scraping
+        let jobs_payload = match scrape_jobs(data, &company_key).await {
+            Ok(jb) => jb,
+            Err(e) => {
+                eprintln!("{}", format!("Error: {}", e).red());
+                continue;
+            }
+        };
+
+        // Update progress and message
+        pb.inc(1);
+
+        if jobs_payload.are_new_jobs {
+            let new_jobs_count = jobs_payload.new_jobs.len();
+            pb.println(format!(
+                "✨ Found {} new jobs for {}!",
+                new_jobs_count, company_key
+            ));
+
+            for j in jobs_payload.new_jobs {
+                new_jobs.push(FormattedJob {
+                    display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                    job: j,
+                    company: company_key.clone(),
+                });
+            }
+        }
+
+        // Optional: Show time taken for each company
+        let elapsed = start.elapsed();
+        pb.set_message(format!("Done in {:.2}s", elapsed.as_secs_f64()));
+    }
+
+    // Finish the progress bar
+    pb.finish_with_message("Scraping completed!");
+
+    if new_jobs.is_empty() {
+        clear_console();
+        println!("No new jobs have been detected :(");
+        sleep(Duration::from_secs(3));
+        return Err("No new jobs have been detcted".into());
+    }
+
+    create_report(&new_jobs, ReportMode::HTML)?;
+
+    Ok(new_jobs)
+}
+
+#[derive(Display, EnumIter)]
+pub enum MainMenuOption {
+    #[strum(to_string = "Select a Company")]
+    SelectACompany,
+    #[strum(to_string = "Scan for New Jobs Across Network")]
+    ScanForNewJobsAcrossNetwork,
+    #[strum(to_string = "View Bookmarked Jobs")]
+    ViewBookmarkedJobs,
+    #[strum(to_string = "My Connections")]
+    MyConnections,
+    #[strum(to_string = "View New Jobs Reports")]
+    ViewNewJobsReports,
+    #[strum(to_string = "Exit")]
+    Exit,
+}
+pub fn prompt_user_for_main_menu_selection() -> MainMenuOption {
+    let dialoguer_styles = ColorfulTheme::default();
+    let options = MainMenuOption::display_strings();
+
+    let idx = Select::with_theme(&dialoguer_styles)
+        .with_prompt("Select an option")
+        .items(&options)
+        .interact()
+        .unwrap();
+
+    return MainMenuOption::iter().nth(idx).unwrap();
 }
