@@ -16,7 +16,7 @@ use tabled::Table;
 
 use crate::{
     models::{
-        data::{Connection, Data},
+        data::{Company, Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
     },
     reports::{create_report, ReportMode},
@@ -124,7 +124,7 @@ pub enum JobOption {
     OpenJobInBrowser,
     #[strum(to_string = "Reach Out to a Connection")]
     ReachOut,
-    #[strum(to_string = "Bookmark Job")]
+    #[strum(to_string = "Bookmark Job [ ]")]
     Bookmark,
     #[strum(to_string = "Generate Job Details with AI")]
     GenerateJobDetails,
@@ -137,7 +137,14 @@ pub fn prompt_user_for_job_option(job: &Job) -> JobOption {
 
     let dialoguer_styles = ColorfulTheme::default();
 
-    let options = JobOption::display_strings();
+    let mut options = JobOption::display_strings();
+
+    if job.is_bookmarked {
+    let idx = JobOption::iter()
+        .position(|o| matches!(o, JobOption::Bookmark))
+        .unwrap();
+        options[idx] = format!("Bookmark Job [x]")
+    }
 
     let job_options_selection = Select::with_theme(&dialoguer_styles)
         .with_prompt(prompt)
@@ -427,9 +434,8 @@ pub async fn handle_scan_new_jobs_across_network(
 
     if new_jobs.is_empty() {
         clear_console();
-        println!("No new jobs have been detected :(");
         sleep(Duration::from_secs(3));
-        return Err("No new jobs have been detcted".into());
+        return Err("No new jobs have been detcted :(".into());
     }
 
     create_report(&new_jobs, ReportMode::HTML)?;
