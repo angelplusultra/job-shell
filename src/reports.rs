@@ -7,6 +7,7 @@ use std::{
 
 use chrono::Utc;
 
+use crate::models::data::Data;
 use crate::{handlers::handlers::FormattedJob, models::scraper::Job};
 
 pub enum ReportMode {
@@ -43,7 +44,9 @@ fn append_jobs_to_html(jobs: &Vec<FormattedJob>, html: String) -> String {
 pub fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> Result<(), Box<dyn Error>> {
     let today = Utc::now().naive_utc().date().to_string();
 
-    let mut path = PathBuf::new();
+    let mut path = Data::get_data_dir();
+
+    dbg!(&path);
 
     if cfg!(test) {
         path.push("tests");
@@ -132,8 +135,6 @@ pub fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> Result<(
                     .collect::<String>()
             );
 
-                path.push(today + ".html");
-
                 fs::write(&path, html)?;
             }
         }
@@ -168,6 +169,9 @@ mod test {
             ReportMode::HTML,
         );
 
+        if let Err(e) = &v {
+            println!("Error: {}", e);
+        }
         assert_eq!(v.is_ok(), true);
     }
 }
