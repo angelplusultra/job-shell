@@ -45,6 +45,7 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, fs};
+use tabled::Tabled;
 use tabled::{settings::Style, Table};
 
 use tokio::time::Instant;
@@ -166,6 +167,48 @@ async fn main() -> Result<(), Box<dyn Error>> {
         // sleep(Duration::from_secs(10));
 
         match prompt_user_for_main_menu_selection() {
+            MainMenuOption::ViewBookmarkedJobs => {
+                #[derive(Tabled, Debug)]
+                struct DisplayJob {
+                    company: String,
+                    title: String,
+                    location: String,
+                    link: String,
+                }
+
+                let bookmarked_jobs: Vec<DisplayJob> =
+                    data.data
+                        .iter()
+                        .fold(Vec::new(), |mut v, (company_name, c)| {
+                            let display_jobs: Vec<DisplayJob> = c
+                                .jobs
+                                .iter()
+                                .filter(|j| j.is_bookmarked)
+                                .map(|j| DisplayJob {
+                                    title: j.title.to_string(),
+                                    link: j.link.to_string(),
+                                    company: company_name.to_string(),
+                                    location: j.location.to_string(),
+                                })
+                                .collect();
+
+                            v.extend(display_jobs);
+
+                            v
+                        });
+
+                let mut table = Table::new(bookmarked_jobs);
+
+                table.with(Style::modern());
+
+                println!("{table}");
+
+                Input::<String>::new()
+                    .with_prompt("Press enter to continue")
+                    .allow_empty(true)
+                    .interact()
+                    .unwrap();
+            }
             MainMenuOption::SelectACompany => {
                 loop {
                     let company_selection = prompt_user_for_company_selection();
@@ -331,31 +374,34 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
             MainMenuOption::ScanForNewJobsAcrossNetwork => {
-                let new_jobs = handle_scan_new_jobs_across_network(&mut data).await?;
-                loop {
-                    let options = new_jobs
-                        .iter()
-                        .map(|fj| fj.display_name.clone())
-                        .chain(vec!["Exit".to_string()])
-                        .collect::<Vec<String>>();
+                match handle_scan_new_jobs_across_network(&mut data).await {
+                    Ok(new_jobs) => loop {
+                        let options = new_jobs
+                            .iter()
+                            .map(|fj| fj.display_name.clone())
+                            .chain(vec!["Exit".to_string()])
+                            .collect::<Vec<String>>();
 
-                    let selection = FuzzySelect::new()
-                        .with_prompt("Select a job")
-                        .items(&options)
-                        .interact()
-                        .unwrap();
+                        let selection = FuzzySelect::new()
+                            .with_prompt("Select a job")
+                            .items(&options)
+                            .interact()
+                            .unwrap();
 
-                    let selected_job = &options[selection];
+                        let selected_job = &options[selection];
 
-                    if selected_job == "Exit" {
-                        break;
-                    }
+                        if selected_job == "Exit" {
+                            break;
+                        }
 
-                    let selected_job = &new_jobs[selection];
+                        let selected_job = &new_jobs[selection];
 
-                    data.mark_job_seen(&selected_job.job.id);
+                        data.mark_job_seen(&selected_job.job.id);
 
-                    handle_job_option(&selected_job.job, &mut data, &selected_job.company).await?;
+                        handle_job_option(&selected_job.job, &mut data, &selected_job.company)
+                            .await?;
+                    },
+                    Err(e) => eprintln!("{}", e),
                 }
             }
             MainMenuOption::ViewNewJobsReports => handle_view_new_jobs_reports()?,
@@ -448,7 +494,13 @@ async fn handle_job_option(
     company: &str,
 ) -> Result<(), Box<dyn Error>> {
     loop {
-        match prompt_user_for_job_option(&selected_job) {
+        let data_job = data.data[company]
+            .jobs
+            .iter()
+            .find(|j| j.id == selected_job.id)
+            .unwrap();
+        let answer = prompt_user_for_job_option(&data_job);
+        match answer {
             JobOption::OpenJobInBrowser => handle_open_job_in_browser(&selected_job, data)?,
             JobOption::ReachOut => {
                 handle_reach_out_to_a_connection(&data.data[company].connections, &selected_job)?;
@@ -478,15 +530,16 @@ async fn handle_job_option(
                 // clear_console();
                 job_details.print_job();
             }
-            JobOption::Bookmark => todo!(),
+            JobOption::Bookmark => data.toggle_job_bookmark(&selected_job.id),
             JobOption::Back => break,
         }
     }
     Ok(())
 }
 
-pub fn get_directory_files(dir_path: &str) -> Result<Vec<String>, Box<dyn Error>> {
-    let paths = fs::read_dir(dir_path)?;
+pub fn get_new_jobs_report_files() -> Result<Vec<String>, Box<dyn Error>> {
+    let reports_dir = Data::get_data_dir().join("reports");
+    let paths = fs::read_dir(reports_dir)?;
 
     let mut files: Vec<String> = paths
         .filter_map(|entry| {
@@ -495,25 +548,23 @@ pub fn get_directory_files(dir_path: &str) -> Result<Vec<String>, Box<dyn Error>
 
             // Skip directories, only include files
             if path.is_file() {
-                path.file_name()?
-                    .to_str()
-                    .map(|s| s.replace(".html", ""))
+                path.file_name()?.to_str().map(|s| s.replace(".html", ""))
             } else {
                 None
             }
         })
         .collect();
 
-    
-
     files.sort_by(|a, b| b.cmp(a));
-
 
     Ok(files)
 }
 
 pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
-    let v = get_directory_files("./reports");
+    let v = get_new_jobs_report_files();
+    let data_path = Data::get_data_dir();
+
+    let reports_path = data_path.join("reports");
 
     match v {
         Ok(reports) => loop {
@@ -532,11 +583,9 @@ pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
                 break;
             }
 
-            // Convert the relative path to absolute path
-            let absolute_path = std::fs::canonicalize(format!("./reports/{}.html", selected_report))?;
-
+            let report_path = reports_path.join(format!("{}.html", selected_report));
             // Convert the path to a URL format with file:// protocol
-            let url = format!("file://{}", absolute_path.display());
+            let url = format!("file://{}", report_path.display());
 
             webbrowser::open(&url)?;
         },
