@@ -2,9 +2,11 @@ use std::{
     collections::{HashMap, HashSet},
     error::Error,
     fs,
+    path::PathBuf,
 };
 
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
+use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tabled::Tabled;
@@ -142,8 +144,17 @@ pub trait AnalyzeData {
 impl AnalyzeData for Data {
     fn get_job_counts(&self) -> JobCounts {
         let intern_tokens: HashSet<&str> = HashSet::from_iter(vec!["intern", "internship"]);
-        let junior_tokens: HashSet<&str> =
-            HashSet::from_iter(vec!["junior", "i", "new grad", "new graduate", "newgrad", "entry", "jr", "jr.", "entry"]);
+        let junior_tokens: HashSet<&str> = HashSet::from_iter(vec![
+            "junior",
+            "i",
+            "new grad",
+            "new graduate",
+            "newgrad",
+            "entry",
+            "jr",
+            "jr.",
+            "entry",
+        ]);
 
         let mid_tokens: HashSet<&str> = HashSet::from_iter(vec!["mid", "ii"]);
         let senior_tokens: HashSet<&str> = HashSet::from_iter(vec!["senior", "iii", "sr", "sr."]);
@@ -223,13 +234,27 @@ impl Data {
             "data": self.data
         });
 
-        fs::write("data.json", serde_json::to_string_pretty(&data).unwrap())
+        let data_file_path = Self::get_data_dir().join("data.json");
+        fs::write(data_file_path, serde_json::to_string_pretty(&data).unwrap())
             .expect("Error writing to data.json");
     }
 
+    pub fn get_data_dir() -> PathBuf {
+        let project_dir = ProjectDirs::from("org", "jobshell", "jobshell")
+            .expect("Problem configuring the project directory");
+
+        project_dir.data_dir().to_path_buf()
+    }
     fn process_data() -> Result<Data, Box<dyn Error>> {
+        let data_dir = Data::get_data_dir();
+
+        if !fs::exists(&data_dir)? {
+            fs::create_dir_all(&data_dir)?;
+        }
+
+        let data_file = data_dir.join("data.json");
         // Read and parse the file
-        let content = fs::read_to_string("data.json")?;
+        let content = fs::read_to_string(&data_file)?;
         let mut json_value: Value = serde_json::from_str(&content)?;
 
         // Get mutable reference to the data object
@@ -258,7 +283,7 @@ impl Data {
 
         // If we made changes, save the updated data
         if made_changes {
-            fs::write("data.json", serde_json::to_string_pretty(&json_value)?)?;
+            fs::write(&data_file, serde_json::to_string_pretty(&json_value)?)?;
         }
 
         // Convert to your Data type
@@ -272,6 +297,7 @@ impl Data {
             Ok(data) => data,
             Err(e) => {
                 eprintln!("{}", e);
+
                 let default = default_data;
                 default.save();
                 default
@@ -305,6 +331,24 @@ impl Data {
             .any(|j| {
                 if j.id == *id {
                     j.applied = true;
+                    true
+                } else {
+                    false
+                }
+            })
+        {
+            self.save();
+        }
+    }
+
+    pub fn toggle_job_bookmark(&mut self, id: &uuid::Uuid) {
+        if self
+            .data
+            .iter_mut()
+            .flat_map(|(_, c)| &mut c.jobs)
+            .any(|j| {
+                if j.id == *id {
+                    j.is_bookmarked = !j.is_bookmarked;
                     true
                 } else {
                     false
