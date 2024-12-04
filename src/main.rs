@@ -12,7 +12,7 @@ use handlers::handlers::{
     prompt_user_for_company_option, prompt_user_for_company_selection,
     prompt_user_for_connection_option, prompt_user_for_connection_selection,
     prompt_user_for_job_option, prompt_user_for_job_selection, prompt_user_for_main_menu_selection,
-    CompanyOption, JobOption, MainMenuOption,
+    CompanyOption, FormattedJob, JobOption, MainMenuOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -176,38 +176,79 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     link: String,
                 }
 
-                let bookmarked_jobs: Vec<DisplayJob> =
-                    data.data
+                loop {
+                    clear_console();
+                    let (display_jobs, formatted_jobs): (Vec<DisplayJob>, Vec<FormattedJob>) =
+                        data.data.iter().fold(
+                            (Vec::new(), Vec::new()),
+                            |(mut display_jobs, mut formatted_jobs), (company_name, c)| {
+                                let (company_dbj, company_bj) = c
+                                    .jobs
+                                    .iter()
+                                    .filter(|j| j.is_bookmarked)
+                                    .map(|j| {
+                                        (
+                                            DisplayJob {
+                                                title: j.title.to_string(),
+                                                link: j.link.to_string(),
+                                                company: company_name.to_string(),
+                                                location: j.location.to_string(),
+                                            },
+                                            FormattedJob {
+                                                job: j.clone(),
+                                                company: company_name.clone(),
+                                                display_name: format!(
+                                                    "{} | {} | {}",
+                                                    j.title, j.location, company_name
+                                                ),
+                                            },
+                                        )
+                                    })
+                                    .collect::<(Vec<DisplayJob>, Vec<FormattedJob>)>();
+
+                                display_jobs.extend(company_dbj);
+                                formatted_jobs.extend(company_bj);
+
+                                (display_jobs, formatted_jobs)
+                            },
+                        );
+
+                    let mut table = Table::new(display_jobs);
+
+                    table.with(Style::modern());
+
+                    println!("{table}");
+                    let mut titles = formatted_jobs
                         .iter()
-                        .fold(Vec::new(), |mut v, (company_name, c)| {
-                            let display_jobs: Vec<DisplayJob> = c
-                                .jobs
-                                .iter()
-                                .filter(|j| j.is_bookmarked)
-                                .map(|j| DisplayJob {
-                                    title: j.title.to_string(),
-                                    link: j.link.to_string(),
-                                    company: company_name.to_string(),
-                                    location: j.location.to_string(),
-                                })
-                                .collect();
+                        .map(|job| job.display_name.clone())
+                        .collect::<Vec<String>>();
 
-                            v.extend(display_jobs);
+                    titles.push("Exit".to_string());
 
-                            v
-                        });
+                    let idx = FuzzySelect::with_theme(&ColorfulTheme::default())
+                        .items(&titles)
+                        .with_prompt("Select a job")
+                        .interact()
+                        .unwrap();
 
-                let mut table = Table::new(bookmarked_jobs);
+                    if titles[idx] == "Exit" {
+                        break;
+                    }
 
-                table.with(Style::modern());
+                    let selected_formatted_job = &formatted_jobs[idx];
 
-                println!("{table}");
-
-                Input::<String>::new()
-                    .with_prompt("Press enter to continue")
-                    .allow_empty(true)
-                    .interact()
-                    .unwrap();
+                    if let Err(e) = handle_job_option(
+                        &selected_formatted_job.job,
+                        &mut data,
+                        selected_formatted_job.company.as_str(),
+                    )
+                    .await
+                    {
+                        eprintln!("Error handling job option: {}", e);
+                        // Optional: add a small delay so user can read the error
+                        sleep(Duration::from_secs(2));
+                    }
+                }
             }
             MainMenuOption::SelectACompany => {
                 loop {
