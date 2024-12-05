@@ -7,12 +7,13 @@ use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use dotenv::dotenv;
 use handlers::handlers::{
-    default_scrape_jobs_handler, handle_craft_a_message, handle_open_job_in_browser,
-    handle_reach_out_to_a_connection, handle_scan_new_jobs_across_network,
-    prompt_user_for_company_option, prompt_user_for_company_selection,
-    prompt_user_for_connection_option, prompt_user_for_connection_selection,
-    prompt_user_for_job_option, prompt_user_for_job_selection, prompt_user_for_main_menu_selection,
-    CompanyOption, FormattedJob, JobOption, MainMenuOption,
+    default_scrape_jobs_handler, handle_craft_a_message, handle_manage_connection,
+    handle_open_job_in_browser, handle_reach_out_to_a_connection,
+    handle_scan_new_jobs_across_network, prompt_user_for_company_option,
+    prompt_user_for_company_selection, prompt_user_for_connection_option,
+    prompt_user_for_connection_selection, prompt_user_for_job_option,
+    prompt_user_for_job_selection, prompt_user_for_main_menu_selection, CompanyOption,
+    FormattedJob, JobOption, MainMenuOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -45,6 +46,7 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, fs};
+use strum_macros::{Display, EnumIter};
 use tabled::Tabled;
 use tabled::{settings::Style, Table};
 
@@ -289,7 +291,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                             }
                             CompanyOption::ViewOrEditConnections => {
-                                let connects = &data.data[company].connections;
+                                let company_data = data.data.get(company).unwrap();
+                                let connects: Vec<Connection> = company_data.connections.clone();
 
                                 if connects.is_empty() {
                                     println!("You do not have any connections in this company");
@@ -318,22 +321,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 println!("{}", connection_table);
 
-                                let connections_options =
-                                    ["Edit", "Open LinkedIn", "Delete", "Back"];
-                                let selected_connection_option = connections_options
-                                    [Select::with_theme(&dialoguer_styles)
-                                        .with_prompt("Select an option")
-                                        .items(&connections_options)
-                                        .interact()
-                                        .unwrap()];
-
-                                match selected_connection_option {
-                                    "Edit" => todo!(),
-                                    "Open LinkedIn" => todo!(),
-                                    "Delete" => todo!(),
-                                    "Back" => continue,
-                                    _ => panic!(),
-                                }
+                                handle_manage_connection(selected_connection, &mut data, company)
+                                    .await?;
                             }
                             // INFO: Scrape Jobs
                             CompanyOption::ScrapeAndUpdateJobs => {
