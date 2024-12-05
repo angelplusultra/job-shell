@@ -140,9 +140,9 @@ pub fn prompt_user_for_job_option(job: &Job) -> JobOption {
     let mut options = JobOption::display_strings();
 
     if job.is_bookmarked {
-    let idx = JobOption::iter()
-        .position(|o| matches!(o, JobOption::Bookmark))
-        .unwrap();
+        let idx = JobOption::iter()
+            .position(|o| matches!(o, JobOption::Bookmark))
+            .unwrap();
         options[idx] = format!("Bookmark Job [x]")
     }
 
@@ -469,4 +469,70 @@ pub fn prompt_user_for_main_menu_selection() -> MainMenuOption {
         .unwrap();
 
     return MainMenuOption::iter().nth(idx).unwrap();
+}
+
+pub async fn handle_manage_connection(
+    connection: &Connection,
+    data: &mut Data,
+    company_name: &str,
+) -> Result<(), Box<dyn Error>> {
+    let dialoguer_styles = ColorfulTheme::default();
+    #[derive(EnumIter, Display)]
+    enum ManageConnectionOption {
+        #[strum(to_string = "Open LinkedIn")]
+        OpenLinkedIn,
+        #[strum(to_string = "Delete")]
+        Delete,
+        #[strum(to_string = "Back")]
+        Back,
+    }
+
+    loop {
+        let idx = FuzzySelect::with_theme(&dialoguer_styles)
+            .with_prompt("Select an option")
+            .items(&ManageConnectionOption::display_strings())
+            .interact()
+            .unwrap();
+
+        let selected_option = ManageConnectionOption::iter().nth(idx).unwrap();
+
+        match selected_option {
+            ManageConnectionOption::OpenLinkedIn => {
+                if let Some(linkedin_url) = &connection.linkedin {
+                    webbrowser::open(linkedin_url)?
+                } else {
+                    println!("Connection does not have a LinkedIn URL set");
+                }
+            }
+            ManageConnectionOption::Back => {
+                break;
+            }
+            ManageConnectionOption::Delete => {
+                let confirm = Confirm::with_theme(&dialoguer_styles)
+                    .with_prompt(format!(
+                        "Are you sure you want to delete {} {}?",
+                        connection.first_name, connection.last_name
+                    ))
+                    .interact()?;
+
+                if confirm {
+                    // Filter out the connection from all companies
+                    if let Some(company) = data.data.get_mut(company_name) {
+                        company.connections.retain(|c| {
+                            c.first_name != connection.first_name
+                                || c.last_name != connection.last_name
+                        });
+                        data.save();
+                        println!("Connection deleted successfully!");
+                    } else {
+                        println!("Something went wrong")
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
