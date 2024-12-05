@@ -30,7 +30,7 @@ impl Company {
     }
 }
 
-#[derive(Debug, Default, Deserialize, Serialize, Tabled)]
+#[derive(Debug, Default, Deserialize, Serialize, Tabled, Clone)]
 pub struct Connection {
     pub first_name: String,
     pub last_name: String,
