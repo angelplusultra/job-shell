@@ -32,3 +32,6 @@ pub mod ibm {
 pub mod cisco {
 	pub mod scraper;
 }
+pub mod costar_group {
+	pub mod scraper;
+}
