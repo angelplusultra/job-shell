@@ -90,8 +90,11 @@ pub async fn initialize_discord_mode(
     Ok(())
 }
 
-fn calculate_messages_and_embeds(total_entries: usize, entries_per_embed: usize, embeds_per_message: usize) -> (usize, usize) {
-
+fn calculate_messages_and_embeds(
+    total_entries: usize,
+    entries_per_embed: usize,
+    embeds_per_message: usize,
+) -> (usize, usize) {
     // Calculate total embeds needed (rounding up)
     let total_embeds = (total_entries + entries_per_embed - 1) / entries_per_embed;
 
@@ -136,7 +139,10 @@ async fn scan_for_new_jobs() -> Vec<FormattedJob> {
 }
 
 async fn deploy_messages_to_discord(total_new_jobs: Vec<FormattedJob>, webhook_url: String) {
-    let (total_messages, total_embeds) = calculate_messages_and_embeds(total_new_jobs.len(), 15, 10);
+    let entries_per_embed = 15;
+    let embeds_per_message = 10;
+    let (total_messages, total_embeds) =
+        calculate_messages_and_embeds(total_new_jobs.len(), entries_per_embed, embeds_per_message);
 
     println!(
         "Total Messages: {}\nTotal Embeds: {}\nTotal New Jobs: {}",
@@ -144,56 +150,80 @@ async fn deploy_messages_to_discord(total_new_jobs: Vec<FormattedJob>, webhook_u
         total_embeds,
         total_new_jobs.len()
     );
-    let mut current_job_index = 0;
+
     for _ in 0..total_messages {
         let mut message = Message {
                     username: "JobShell".to_string(),
                     avatar_url: "https://cdn.discordapp.com/attachments/917180495849197568/1305854030899314688/jobshell_icon.png?ex=67538616&is=67523496&hm=a7dfa93aaf187bc3c791ed5a8622fa4769b5cfef186524f174cc0cf6e8b3498c&".to_string(),
                     embeds: Vec::new(),
                 };
-
-        let mut char_count = 0;
-        for _ in 0..10 {
-            if current_job_index >= total_new_jobs.len() {
-                break;
-            }
-
+        for embed_set in total_new_jobs.chunks(15) {
             let mut embed = Embed {
-                title: "Jobs Update".to_string(),
+                title: "New Jobs".to_string(),
                 fields: Vec::new(),
             };
-
-            for _ in 0..15 {
-                if current_job_index >= total_new_jobs.len() {
-                    break;
-                }
-
-                let job = &total_new_jobs[current_job_index];
-
-                embed.fields.push(Field {
+            for job in embed_set {
+                let field = Field {
                     name: format!("{} at {}", job.title, job.company),
                     value: format!("Location: {}\n[Apply here]({})", job.location, job.link),
                     inline: false,
-                });
+                };
 
-                current_job_index += 1;
+                embed.fields.push(field);
             }
-
             message.embeds.push(embed);
         }
-
-        let res = Client::new().post(&webhook_url).json(&message).send().await;
-
-        match res {
-            Ok(res) => match res.text().await {
-                Err(e) => {
-                    eprintln!("An error occured streaming the response to text: {e}")
-                }
-                Ok(text) => println!("Success!\n{text}"),
-            },
-            Err(e) => {
-                eprintln!("An error occured sedning the POST to request to the webhook URL: {e}")
-            }
-        }
     }
+
+    // for _ in 0..total_messages {
+    //     let mut message = Message {
+    //                 username: "JobShell".to_string(),
+    //                 avatar_url: "https://cdn.discordapp.com/attachments/917180495849197568/1305854030899314688/jobshell_icon.png?ex=67538616&is=67523496&hm=a7dfa93aaf187bc3c791ed5a8622fa4769b5cfef186524f174cc0cf6e8b3498c&".to_string(),
+    //                 embeds: Vec::new(),
+    //             };
+    //
+    //     let mut char_count = 0;
+    //     for _ in 0..embeds_per_message {
+    //         if current_job_index >= total_new_jobs.len() {
+    //             break;
+    //         }
+    //
+    //         let mut embed = Embed {
+    //             title: "Jobs Update".to_string(),
+    //             fields: Vec::new(),
+    //         };
+    //
+    //         for _ in 0..entries_per_embed {
+    //             if current_job_index >= total_new_jobs.len() {
+    //                 break;
+    //             }
+    //
+    //             let job = &total_new_jobs[current_job_index];
+    //
+    //             embed.fields.push(Field {
+    //                 name: format!("{} at {}", job.title, job.company),
+    //                 value: format!("Location: {}\n[Apply here]({})", job.location, job.link),
+    //                 inline: false,
+    //             });
+    //
+    //             current_job_index += 1;
+    //         }
+    //
+    //         message.embeds.push(embed);
+    //     }
+    //
+    //     let res = Client::new().post(&webhook_url).json(&message).send().await;
+    //
+    //     match res {
+    //         Ok(res) => match res.text().await {
+    //             Err(e) => {
+    //                 eprintln!("An error occured streaming the response to text: {e}")
+    //             }
+    //             Ok(text) => println!("Success!\n{text}"),
+    //         },
+    //         Err(e) => {
+    //             eprintln!("An error occured sedning the POST to request to the webhook URL: {e}")
+    //         }
+    //     }
+    // }
 }
