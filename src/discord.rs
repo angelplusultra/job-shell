@@ -2,14 +2,9 @@ use std::error::Error;
 
 use reqwest::Client;
 use serde::Serialize;
-use serde_json::{json, Value};
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
 
-use crate::{
-    models::{data::Data, scraper::JobsPayload},
-    scrape_jobs,
-    utils::clear_console,
-};
+use crate::{models::data::Data, scrape_jobs, utils::clear_console};
 
 #[derive(Serialize, Debug)]
 struct FormattedJob {
@@ -46,7 +41,7 @@ pub async fn initialize_discord_mode(
     let scheduler = JobScheduler::new().await?;
 
     let every_interval_by_hours = format!("0 0 */{} * * *", cron_interval);
-    let every_interval_by_minutes = format!("0 */{} * * * *", cron_interval);
+    let _every_interval_by_minutes = format!("0 */{} * * * *", cron_interval);
     // Create a job that runs every 5 minutes
     let job1 = CronJob::new_async(every_interval_by_hours, move |uuid, mut lock| {
         let webhook_url = webhook_url.clone();
@@ -147,8 +142,8 @@ async fn deploy_messages_to_discord(
             };
             for job in embed.iter() {
                 let field = Field {
-                    name: job.title.clone(),
-                    value: format!("{} | {}", job.location, job.link),
+                    name: format!("{} @ {}", job.title, job.company),
+                    value: format!("{}\n[Apply Here]({})", job.location, job.link),
                     inline: false,
                 };
 
