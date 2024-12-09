@@ -1,7 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::costar_group::scraper::scrape_costar_group;
+use discord::initialize_discord_mode;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -27,10 +27,12 @@ use indicatif::{ProgressBar, ProgressStyle};
 use models::data::{AnalyzeData, Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
+use reqwest::Client;
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::chase::scraper::scrape_chase;
 use scrapers::cisco::scraper::scrape_cisco;
 use scrapers::coinbase::scraper::scrape_coinbase;
+use scrapers::costar_group::scraper::scrape_costar_group;
 use scrapers::disney::scraper::scrape_disney;
 use scrapers::gen::scraper::scrape_gen;
 use scrapers::ibm::scraper::scrape_ibm;
@@ -38,6 +40,7 @@ use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
 use scrapers::square::scraper::scrape_square;
+use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::OpenOptions;
@@ -84,6 +87,7 @@ mod cron;
 mod handlers;
 mod reports;
 mod scrapers;
+mod discord;
 
 // mod links
 mod utils;
@@ -135,21 +139,48 @@ use clap::Parser;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Run in cron mode
-    #[arg(long)]
-    cron: bool,
+    #[arg(long, value_name = "HOURS")]
+    cron: Option<u64>,
+
+    /// Discord cron mode
+    #[arg(long, value_names = &["WEBHOOK_URL", "HOURS"])]
+    discord: Option<Vec<String>>,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    clear_console();
+    dotenv().ok();
     let args = Args::parse();
 
-    if args.cron {
+    // Check if running in cron mode
+    if let Some(interval) = args.cron {
         println!("Running in Cron mode!");
         initialize_cron().await?;
         return Ok(());
     }
-    clear_console();
-    dotenv().ok();
+
+    if let Some(discord_args) = args.discord {
+        if discord_args.len() != 2 {
+            eprintln!("Discord integration requires both webhook URL and interval hours");
+            std::process::exit(1);
+        }
+
+        let webhook_url = discord_args[0].clone();
+        let interval: u64 = discord_args[1]
+            .as_str()
+            .parse()
+            .expect("Invalid interval value provide, must be an integer");
+
+        println!("Running in Discord mode!");
+
+        println!("Webhook URL: {webhook_url}");
+        println!("Interval: Every {interval} hours");
+
+        initialize_discord_mode(webhook_url, interval).await?;
+
+        return Ok(());
+    }
 
     let dialoguer_styles = ColorfulTheme::default();
 
@@ -627,3 +658,6 @@ pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+
+
