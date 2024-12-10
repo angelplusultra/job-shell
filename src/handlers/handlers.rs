@@ -302,7 +302,7 @@ pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>)
         .collect::<Vec<FormattedJob>>();
 
     // INFO: Filter jobs down by locations if data set too large
-    if jobs.len() > 99 {
+    if jobs.len() > 199 {
         let locations = jobs
             .iter()
             .fold(HashSet::new(), |mut hash, job| {
