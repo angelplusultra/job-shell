@@ -1,11 +1,11 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use discord::initialize_discord_mode;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
+use discord::initialize_discord_mode;
 use dotenv::dotenv;
 use handlers::handlers::{
     default_scrape_jobs_handler, handle_craft_a_message, handle_manage_connection,
@@ -34,6 +34,7 @@ use scrapers::cisco::scraper::scrape_cisco;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::costar_group::scraper::scrape_costar_group;
 use scrapers::disney::scraper::scrape_disney;
+use scrapers::experian::scraper::scrape_experian;
 use scrapers::gen::scraper::scrape_gen;
 use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
@@ -60,11 +61,12 @@ use utils::clear_console;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 20] = [
+const COMPANYKEYS: [&str; 21] = [
     "Anduril",
     "Blizzard",
     "Cisco",
     "CoStar Group",
+    "Experian",
     "1Password",
     "Weedmaps",
     "Discord",
@@ -84,10 +86,10 @@ const COMPANYKEYS: [&str; 20] = [
 ];
 
 mod cron;
+mod discord;
 mod handlers;
 mod reports;
 mod scrapers;
-mod discord;
 
 // mod links
 mod utils;
@@ -515,7 +517,7 @@ pub async fn scrape_jobs(
         "Coinbase" => scrape_coinbase(data).await,
         "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
         "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
-
+        "Experian" => scrape_experian(data).await,
         "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
         "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
         "Reddit" => scrape_reddit(data).await,
@@ -658,6 +660,3 @@ pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-
-
-
