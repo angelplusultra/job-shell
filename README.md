@@ -70,14 +70,16 @@ Once JobShell is running:
 4. **Apply or Continue Browsing**  
    When you’re ready, you can apply to roles or continue exploring other opportunities.
    
-## Companies Currently Supported
+## Companies Currently Supported (21)
 - 1Password
 - Anduril
 - Blizzard
 - Chase
 - Cisco
 - Coinbase
+- CoStar Group
 - Discord
+- Experian
 - Disney
 - Gen
 - GitHub
