@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use scrapers::salesforce::scraper::scrape_salesforce;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -61,7 +62,7 @@ use utils::clear_console;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
-const COMPANYKEYS: [&str; 21] = [
+const COMPANYKEYS: [&str; 22] = [
     "Anduril",
     "Blizzard",
     "Cisco",
@@ -83,6 +84,7 @@ const COMPANYKEYS: [&str; 21] = [
     "Meta",
     "Chase",
     "Square",
+    "Salesforce"
 ];
 
 mod cron;
@@ -527,6 +529,7 @@ pub async fn scrape_jobs(
         "Meta" => scrape_meta(data).await,
         "Netflix" => scrape_netflix(data).await,
         "Square" => scrape_square(data).await,
+        "Salesforce" => scrape_salesforce(data).await,
 
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
