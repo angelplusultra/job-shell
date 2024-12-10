@@ -70,7 +70,7 @@ Once JobShell is running:
 4. **Apply or Continue Browsing**  
    When you’re ready, you can apply to roles or continue exploring other opportunities.
    
-## Companies Currently Supported (21)
+## Companies Currently Supported (22)
 - 1Password
 - Anduril
 - Blizzard
@@ -89,6 +89,7 @@ Once JobShell is running:
 - Netflix
 - Palantir
 - Reddit
+- Salesforce
 - Square
 - The Browser Company
 - Weedmaps
