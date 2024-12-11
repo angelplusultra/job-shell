@@ -188,9 +188,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let dialoguer_styles = ColorfulTheme::default();
 
-    let welcome = figlet_rs::FIGfont::from_file("src/fonts/slant.flf").unwrap();
+    let font_data = include_str!("fonts/slant.flf");
+    let welcome = figlet_rs::FIGfont::from_content(font_data)
+        .expect("Failed to parse embedded font data");
 
-    let logo = welcome.convert("JobShell").unwrap();
+    let logo = welcome.convert("JobShell")
+        .expect("Failed to convert text to ASCII art");
 
     println!("{logo}");
     sleep(Duration::from_secs(3));
