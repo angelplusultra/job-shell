@@ -65,6 +65,8 @@ Before running JobShell, ensure you have the following:
 
 ---
 ## Installation
+### Build from Source
+
 1. **Install Rust:**  
    If not already installed on your system, [Install Rust](https://www.rust-lang.org/tools/install).
 
@@ -88,6 +90,7 @@ Before running JobShell, ensure you have the following:
    ```
    mv ./target/release/jobshell /usr/bin/jobshell 
    ```
+### Install from Release
 1. **Download a Binary from Releases:**  
    Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
 
