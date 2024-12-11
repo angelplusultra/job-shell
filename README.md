@@ -115,7 +115,7 @@ Before running JobShell, ensure you have the following:
 
 ---
 
-## 🤖 Setting Up AI Integration (Optional)
+## ✨ Setting Up AI Integration (Optional)
 
 If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
 
@@ -134,7 +134,7 @@ After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load 
 
 ## 🚀 Usage
 
-### CLI Mode
+### ⌨️ CLI Mode
 
 **Basic Command:**  
 Run JobShell in interactive CLI mode:
@@ -169,7 +169,7 @@ Once you discover a job that interests you and have a connection at the company,
 <!-- 4. Bookmark a listing or generate an outreach message for a connection at that company. -->
 <!-- 5. Exit when done. -->
 
-### Discord Mode
+### 🤖 Discord Mode
 
 **Command Format:**  
 ```bash
