@@ -64,9 +64,30 @@ Before running JobShell, ensure you have the following:
    If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
 
 ---
+## Installation
+1. **Install Rust:**  
+   If not already installed on your system, [Install Rust](https://www.rust-lang.org/tools/install).
 
-### Installation from a Pre-Compiled Binary
+2. **Clone the Repo:**  
+   Clone the repo to your system and `cd` into it
 
+    ```
+   git clone https://github.com/angelplusultra/job-shell && cd job-shell
+   ```
+
+3. **Create a Release Build:**  
+   Compile the JobShell binary for your platform
+   ```
+   cargo build --release
+   ```
+
+4. **Add the Binary to Your `$PATH`:**  
+   Move or copy the compiled binary to a directory on your `$PATH`.
+   
+   An example: 
+   ```
+   mv ./target/release/jobshell /usr/bin/jobshell 
+   ```
 1. **Download a Binary from Releases:**  
    Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
 
