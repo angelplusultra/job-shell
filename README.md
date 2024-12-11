@@ -4,7 +4,7 @@
 
 ---
 
-## Key Features
+## 🗝️ Key Features 
 
 1. **CLI Mode**  
    - **Interactive Navigation:** Run `jobshell` for a terminal-based menu. Scrape jobs from individual companies, view new postings, and manage your professional network from a single interface.
@@ -18,7 +18,7 @@
 
 ---
 
-## Supported Companies (22)
+## 🏢 Supported Companies (22)
 
 JobShell currently supports scraping the following companies:
 
@@ -47,7 +47,7 @@ JobShell currently supports scraping the following companies:
 
 ---
 
-## Prerequisites
+## 📋 Prerequisites
 
 Before running JobShell, ensure you have the following:
 
@@ -64,8 +64,8 @@ Before running JobShell, ensure you have the following:
    If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
 
 ---
-## Installation
-### Build from Source
+## 📦 Installation
+### 🛠️ Build from Source
 
 1. **Install Rust:**  
    If not already installed on your system, [Install Rust](https://www.rust-lang.org/tools/install).
@@ -90,7 +90,7 @@ Before running JobShell, ensure you have the following:
    ```
    mv ./target/release/jobshell /usr/bin/jobshell 
    ```
-### Install from Release
+### 📥 Install from Release
 1. **Download a Binary from Releases:**  
    Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
 
@@ -115,7 +115,7 @@ Before running JobShell, ensure you have the following:
 
 ---
 
-## Setting Up AI Integration (Optional)
+## 🤖 Setting Up AI Integration (Optional)
 
 If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
 
@@ -132,7 +132,7 @@ After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load 
 
 ---
 
-## Usage
+## 🚀 Usage
 
 ### CLI Mode
 
