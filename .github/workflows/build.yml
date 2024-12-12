@@ -1,18 +1,56 @@
+# name: Cross Build
+#
+# on:
+#   workflow_dispatch: # Enables manual triggering
+#
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest # Uses an Ubuntu runner
+#
+#     steps:
+#       # Checkout the code
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+#
+#       # Install Rust (if not already available on the runner)
+#       - name: Install Rust
+#         uses: actions-rs/toolchain@v1
+#         with:
+#           profile: minimal
+#           override: true # Set as the default Rust version
+#           toolchain: stable
+#
+#       # Install `cross` using cargo
+#       - name: Install cross
+#         run: cargo install cross --git https://github.com/cross-rs/cross
+#
+#       # Build for macOS
+#       - name: Build for macOS (x86_64-apple-darwin)
+#         run: cross build --release --target x86_64-apple-darwin
+#
+#       # Build for Windows
+#       - name: Build for Windows (x86_64-pc-windows-gnu)
+#         run: cross build --release --target x86_64-pc-windows-gnu
+#
+#       # Build for Linux
+#       - name: Build for Linux (x86_64-unknown-linux-gnu)
+#         run: cross build --release --target x86_64-unknown-linux-gnu
+
 name: Cross Build
 
 on:
   workflow_dispatch: # Enables manual triggering
 
 jobs:
-  build:
-    runs-on: ubuntu-latest # Uses an Ubuntu runner
+  build-linux-and-windows:
+    runs-on: ubuntu-latest # Ubuntu runner for Linux and Windows builds
 
     steps:
       # Checkout the code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Install Rust (if not already available on the runner)
+      # Install Rust
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -20,13 +58,9 @@ jobs:
           override: true # Set as the default Rust version
           toolchain: stable
 
-      # Install `cross` using cargo
+      # Install `cross`
       - name: Install cross
         run: cargo install cross --git https://github.com/cross-rs/cross
-
-      # Build for macOS
-      - name: Build for macOS (x86_64-apple-darwin)
-        run: cross build --release --target x86_64-apple-darwin
 
       # Build for Windows
       - name: Build for Windows (x86_64-pc-windows-gnu)
@@ -35,3 +69,27 @@ jobs:
       # Build for Linux
       - name: Build for Linux (x86_64-unknown-linux-gnu)
         run: cross build --release --target x86_64-unknown-linux-gnu
+
+  build-macos:
+    runs-on: macos-latest # macOS runner for macOS builds
+
+    steps:
+      # Checkout the code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Install Rust
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true # Set as the default Rust version
+          toolchain: stable
+
+      # Build for macOS (x86_64)
+      - name: Build for macOS (x86_64-apple-darwin)
+        run: cargo build --release --target x86_64-apple-darwin
+
+      # Build for macOS (aarch64)
+      - name: Build for macOS (aarch64-apple-darwin)
+        run: cargo build --release --target aarch64-apple-darwin
