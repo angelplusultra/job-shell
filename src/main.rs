@@ -1,7 +1,6 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::salesforce::scraper::scrape_salesforce;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -41,6 +40,7 @@ use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
+use scrapers::salesforce::scraper::scrape_salesforce;
 use scrapers::square::scraper::scrape_square;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
@@ -84,7 +84,7 @@ const COMPANYKEYS: [&str; 22] = [
     "Meta",
     "Chase",
     "Square",
-    "Salesforce"
+    "Salesforce",
 ];
 
 mod cron;
@@ -189,10 +189,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let dialoguer_styles = ColorfulTheme::default();
 
     let font_data = include_str!("fonts/slant.flf");
-    let welcome = figlet_rs::FIGfont::from_content(font_data)
-        .expect("Failed to parse embedded font data");
+    let welcome =
+        figlet_rs::FIGfont::from_content(font_data).expect("Failed to parse embedded font data");
 
-    let logo = welcome.convert("JobShell")
+    let logo = welcome
+        .convert("JobShell")
         .expect("Failed to convert text to ASCII art");
 
     println!("{logo}");
@@ -294,6 +295,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
             MainMenuOption::SelectACompany => {
                 loop {
+                    clear_console();
                     let company_selection = prompt_user_for_company_selection();
 
                     if company_selection == "Back" {
@@ -304,6 +306,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                     //INFO: Company Loop
                     loop {
+                        clear_console();
                         let selected_company_option = prompt_user_for_company_option(company);
 
                         match selected_company_option {
@@ -313,24 +316,31 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     eprintln!("Error: No jobs");
                                     continue;
                                 }
-                                let jobs = data.data.get(company).unwrap().jobs.clone();
-                                //
+                                loop {
+                                    clear_console();
+                                    let jobs = data.data.get(company).unwrap().jobs.clone();
 
-                                match prompt_user_for_job_selection(jobs, None) {
-                                    Some(selected_job) => {
-                                        data.mark_job_seen(&selected_job.id);
+                                    match prompt_user_for_job_selection(jobs, None, company) {
+                                        Some(selected_job) => {
+                                            data.mark_job_seen(&selected_job.id);
 
-                                        match handle_job_option(&selected_job, &mut data, company)
+                                            match handle_job_option(
+                                                &selected_job,
+                                                &mut data,
+                                                company,
+                                            )
                                             .await
-                                        {
-                                            Ok(()) => {}
-                                            Err(e) => eprintln!("Error: {}", e),
+                                            {
+                                                Ok(()) => {}
+                                                Err(e) => eprintln!("Error: {}", e),
+                                            }
                                         }
+                                        None => break,
                                     }
-                                    None => break,
                                 }
                             }
                             CompanyOption::ViewOrEditConnections => {
+                                clear_console();
                                 let company_data = data.data.get(company).unwrap();
                                 let connects: Vec<Connection> = company_data.connections.clone();
 
@@ -366,6 +376,28 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                             // INFO: Scrape Jobs
                             CompanyOption::ScrapeAndUpdateJobs => {
+                                clear_console();
+
+                                let spinner = ProgressBar::new_spinner();
+
+                                // Set a custom style (optional)
+                                spinner.set_style(
+                                    ProgressStyle::default_spinner()
+                                        .template("{spinner:.green} {msg}")
+                                        .unwrap()
+                                        .tick_strings(&["-", "\\", "|", "/"]),
+                                );
+
+                                // Set a message
+                                spinner.set_message("Loading...");
+
+                                // Start the spinner
+                                spinner.enable_steady_tick(Duration::from_millis(120));
+
+                                // Simulate some work
+                                // sleep(Duration::from_secs(3));
+
+                                // Stop the spinner with success message
                                 let JobsPayload {
                                     all_jobs,
                                     new_jobs,
@@ -378,6 +410,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         continue;
                                     }
                                 };
+                                spinner.finish_with_message("Done! >:)");
 
                                 // TODO: Use 1 FormattedJob struct
                                 struct FormattedJob<'a> {
@@ -387,9 +420,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 // INFO: Job Selection Loop
                                 loop {
+                                    clear_console();
                                     match prompt_user_for_job_selection(
                                         all_jobs.clone(),
                                         Some(new_jobs.clone()),
+                                        company,
                                     ) {
                                         Some(selected_job) => {
                                             data.mark_job_seen(&selected_job.id);
@@ -476,6 +511,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             }
             MainMenuOption::ViewNewJobsReports => handle_view_new_jobs_reports()?,
             MainMenuOption::MyConnections => {
+                clear_console();
                 let all_connections: Vec<&Connection> = data
                     .data
                     .iter()
@@ -566,6 +602,7 @@ async fn handle_job_option(
     company: &str,
 ) -> Result<(), Box<dyn Error>> {
     loop {
+        clear_console();
         let data_job = data.data[company]
             .jobs
             .iter()
@@ -640,6 +677,7 @@ pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
 
     match v {
         Ok(reports) => loop {
+            clear_console();
             let mut options = Vec::from_iter(reports.clone());
             options.push("Back".to_string());
 

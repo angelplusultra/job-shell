@@ -253,6 +253,7 @@ pub fn handle_reach_out_to_a_connection(
     connections: &Vec<Connection>,
     selected_job: &Job,
 ) -> Result<(), Box<dyn Error>> {
+    clear_console();
     let selected_connection = prompt_user_for_connection_selection(connections);
 
     let reach_out_to_a_connection_option = prompt_user_for_connection_option(selected_connection);
@@ -273,7 +274,7 @@ pub fn handle_reach_out_to_a_connection(
     Ok(())
 }
 
-pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>) -> Option<Job> {
+pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>, company_name: &'static str) -> Option<Job> {
     struct FormattedJob<'a> {
         display_string: String,
         original_job: &'a Job,
@@ -331,7 +332,8 @@ pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>)
         .collect::<Vec<&str>>();
 
     let prompt = format!(
-        "Select a job ({}, 👀: Unseen, ❗: New Listing)",
+        "Select a job @ {} ({}, 👀: Unseen, ❗: New Listing)",
+        company_name,
         display_options.len()
     );
     // Pushing Exit option
