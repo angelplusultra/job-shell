@@ -10,7 +10,7 @@ use dotenv::dotenv;
 use handlers::handlers::{
     default_scrape_jobs_handler, handle_craft_a_message, handle_manage_connection,
     handle_open_job_in_browser, handle_reach_out_to_a_connection,
-    handle_scan_new_jobs_across_network, prompt_user_for_company_option,
+    handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
     prompt_user_for_company_selection, prompt_user_for_connection_option,
     prompt_user_for_connection_selection, prompt_user_for_job_option,
     prompt_user_for_job_selection, prompt_user_for_main_menu_selection, CompanyOption,
@@ -350,7 +350,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 if connects.is_empty() {
                                     clear_console();
-                                    stall_and_present_countdown(3, Some("You do not have any connections in this company"));
+                                    stall_and_present_countdown(
+                                        3,
+                                        Some("You do not have any connections in this company"),
+                                    );
                                     continue;
                                 }
 
@@ -486,8 +489,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                 }
             }
-            MainMenuOption::ScanForNewJobsAcrossNetwork => {
-                match handle_scan_new_jobs_across_network(&mut data).await {
+            MainMenuOption::ScanForNewJobsAcrossNetworkAndFollowedCompanies => {
+                match handle_scan_new_jobs_across_network_and_followed_companies(&mut data).await {
                     Ok(new_jobs) => loop {
                         let options = new_jobs
                             .iter()

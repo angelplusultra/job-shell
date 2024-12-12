@@ -381,20 +381,26 @@ pub struct FormattedJob {
     pub display_name: String,
     pub job: Job,
 }
-pub async fn handle_scan_new_jobs_across_network(
+pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     data: &mut Data,
 ) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
+    clear_console();
     let companies_to_scrape: Vec<String> = data
         .data
         .iter()
-        .filter(|(_, c)| !c.connections.is_empty())
+        // Filter out companies where connections.len() > 0 or company.is_following equals true
+        .filter(|(_, c)| {
+            if !c.connections.is_empty() || c.is_following {
+                return true;
+            } else {
+                return false;
+            }
+        })
         .map(|(k, _)| k.clone())
         .collect();
 
     if companies_to_scrape.is_empty() {
-        println!("You must have at least 1 connection to a company to do this.");
-        sleep(Duration::from_secs(3));
-        return Err("You must have at least 1 connection to a company to do this.".into());
+        return Err("Oops! Looks like you’re not connected with any companies yet or following any. Start building your network by adding connections or following companies you’re interested in!".into());
     }
 
     let pb = ProgressBar::new(companies_to_scrape.len() as u64);
@@ -469,8 +475,8 @@ pub async fn handle_scan_new_jobs_across_network(
 pub enum MainMenuOption {
     #[strum(to_string = "Select a Company")]
     SelectACompany,
-    #[strum(to_string = "Scan for New Jobs Across Network")]
-    ScanForNewJobsAcrossNetwork,
+    #[strum(to_string = "Scan for New Jobs Across Network and Followed Companies")]
+    ScanForNewJobsAcrossNetworkAndFollowedCompanies,
     #[strum(to_string = "View Bookmarked Jobs")]
     ViewBookmarkedJobs,
     #[strum(to_string = "My Connections")]
