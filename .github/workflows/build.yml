@@ -42,7 +42,7 @@ on:
   workflow_dispatch: # Enables manual triggering
 
 jobs:
-  build-linux-and-windows:
+  build-windows:
     runs-on: ubuntu-latest # Ubuntu runner for Linux and Windows builds
 
     steps:
@@ -66,9 +66,12 @@ jobs:
       - name: Build for Windows (x86_64-pc-windows-gnu)
         run: cross build --release --target x86_64-pc-windows-gnu
 
-      # Build for Linux
-      # - name: Build for Linux (x86_64-unknown-linux-gnu)
-      #   run: cross build --release --target x86_64-unknown-linux-gnu
+      # Upload Windows binary as artifact
+      - name: Upload Windows binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-binary
+          path: target/x86_64-pc-windows-gnu/release/*
 
   build-macos:
     runs-on: macos-latest # macOS runner for macOS builds
@@ -96,6 +99,20 @@ jobs:
       - name: Build for macOS (x86_64-apple-darwin)
         run: cargo build --release --target x86_64-apple-darwin
 
+      # Upload macOS (x86_64) binary as artifact
+      - name: Upload macOS (x86_64) binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-x86_64-binary
+          path: target/x86_64-apple-darwin/release/*
+
       # Build for macOS (aarch64)
       - name: Build for macOS (aarch64-apple-darwin)
         run: cargo build --release --target aarch64-apple-darwin
+
+      # Upload macOS (aarch64) binary as artifact
+      - name: Upload macOS (aarch64) binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-aarch64-binary
+          path: target/aarch64-apple-darwin/release/*
