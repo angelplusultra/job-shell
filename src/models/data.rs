@@ -19,6 +19,7 @@ use super::scraper::Job;
 pub struct Company {
     pub connections: Vec<Connection>,
     pub jobs: Vec<Job>,
+    pub is_following: bool,
 }
 
 impl Company {
@@ -26,6 +27,7 @@ impl Company {
         Company {
             jobs: Vec::new(),
             connections: Vec::new(),
+            is_following: false,
         }
     }
 }
@@ -339,6 +341,14 @@ impl Data {
         {
             self.save();
         }
+    }
+
+    pub fn toggle_company_follow(&mut self, company_key: &'static str) {
+        let c = self.data.get_mut(company_key).unwrap();
+
+        c.is_following = !c.is_following;
+
+        self.save();
     }
 
     pub fn toggle_job_bookmark(&mut self, id: &uuid::Uuid) {

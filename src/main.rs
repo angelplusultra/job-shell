@@ -307,7 +307,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     //INFO: Company Loop
                     loop {
                         clear_console();
-                        let selected_company_option = prompt_user_for_company_option(company);
+                        let is_following = data.data[company].is_following;
+                        let selected_company_option = prompt_user_for_company_option(company, is_following);
 
                         match selected_company_option {
                             CompanyOption::Back => break,
@@ -473,6 +474,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                     data.save();
                                 }
+                            }
+                            CompanyOption::FollowCompany => {
+                                data.toggle_company_follow(company);
+                                
                             }
                         }
                     }

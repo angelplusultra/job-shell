@@ -99,17 +99,27 @@ pub enum CompanyOption {
     AddAConnection,
     #[strum(to_string = "View or Edit Connections")]
     ViewOrEditConnections,
+    #[strum(to_string = "Follow Company [ ]")]
+    FollowCompany,
     #[strum(to_string = "Back")]
     Back,
 }
 
-pub fn prompt_user_for_company_option(company: &'static str) -> CompanyOption {
+pub fn prompt_user_for_company_option(company_name: &'static str, is_following: bool) -> CompanyOption {
     let dialoguer_styles = ColorfulTheme::default();
 
-    let options = CompanyOption::display_strings();
+    let mut options = CompanyOption::display_strings();
+
+        if is_following {
+        let idx = CompanyOption::iter()
+            .position(|o| matches!(o, CompanyOption::FollowCompany))
+            .unwrap();
+        options[idx] = format!("Follow Company [x]")
+    }
+
 
     let selection = Select::with_theme(&dialoguer_styles)
-        .with_prompt(&format!("Select an option for {}", company))
+        .with_prompt(&format!("Select an option for {}", company_name))
         .items(&options)
         .interact()
         .unwrap();
@@ -274,7 +284,11 @@ pub fn handle_reach_out_to_a_connection(
     Ok(())
 }
 
-pub fn prompt_user_for_job_selection(jobs: Vec<Job>, new_jobs: Option<Vec<Job>>, company_name: &'static str) -> Option<Job> {
+pub fn prompt_user_for_job_selection(
+    jobs: Vec<Job>,
+    new_jobs: Option<Vec<Job>>,
+    company_name: &'static str,
+) -> Option<Job> {
     struct FormattedJob<'a> {
         display_string: String,
         original_job: &'a Job,
