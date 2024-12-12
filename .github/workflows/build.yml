@@ -22,7 +22,7 @@ jobs:
 
       # Install `cross` using cargo
       - name: Install cross
-        run: cargo install cross
+        run: cargo install cross --git https://github.com/cross-rs/cross
 
       # Build for macOS
       - name: Build for macOS (x86_64-apple-darwin)
