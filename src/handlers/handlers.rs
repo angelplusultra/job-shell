@@ -21,7 +21,7 @@ use crate::{
     },
     reports::{create_report, ReportMode},
     scrape_jobs,
-    utils::clear_console,
+    utils::{clear_console, stall_and_present_countdown},
     COMPANYKEYS,
 };
 
@@ -105,18 +105,20 @@ pub enum CompanyOption {
     Back,
 }
 
-pub fn prompt_user_for_company_option(company_name: &'static str, is_following: bool) -> CompanyOption {
+pub fn prompt_user_for_company_option(
+    company_name: &'static str,
+    is_following: bool,
+) -> CompanyOption {
     let dialoguer_styles = ColorfulTheme::default();
 
     let mut options = CompanyOption::display_strings();
 
-        if is_following {
+    if is_following {
         let idx = CompanyOption::iter()
             .position(|o| matches!(o, CompanyOption::FollowCompany))
             .unwrap();
         options[idx] = format!("Follow Company [x]")
     }
-
 
     let selection = Select::with_theme(&dialoguer_styles)
         .with_prompt(&format!("Select an option for {}", company_name))
@@ -264,21 +266,26 @@ pub fn handle_reach_out_to_a_connection(
     selected_job: &Job,
 ) -> Result<(), Box<dyn Error>> {
     clear_console();
-    let selected_connection = prompt_user_for_connection_selection(connections);
+    if connections.is_empty() {
+        stall_and_present_countdown(3, Some("You currently have no connections at this company"));
+    } else {
+        let selected_connection = prompt_user_for_connection_selection(connections);
 
-    let reach_out_to_a_connection_option = prompt_user_for_connection_option(selected_connection);
+        let reach_out_to_a_connection_option =
+            prompt_user_for_connection_option(selected_connection);
 
-    match reach_out_to_a_connection_option {
-        ConnectionOption::OpenLinkedIn => {
-            let linkedin_url = selected_connection.linkedin.as_ref().unwrap();
+        match reach_out_to_a_connection_option {
+            ConnectionOption::OpenLinkedIn => {
+                let linkedin_url = selected_connection.linkedin.as_ref().unwrap();
 
-            webbrowser::open(linkedin_url)?;
+                webbrowser::open(linkedin_url)?;
+            }
+            ConnectionOption::CraftAMessage => {
+                handle_craft_a_message(selected_job, &selected_connection);
+            }
+
+            ConnectionOption::Back => {}
         }
-        ConnectionOption::CraftAMessage => {
-            handle_craft_a_message(selected_job, &selected_connection);
-        }
-
-        ConnectionOption::Back => {}
     }
 
     Ok(())
@@ -450,7 +457,6 @@ pub async fn handle_scan_new_jobs_across_network(
 
     if new_jobs.is_empty() {
         clear_console();
-        sleep(Duration::from_secs(3));
         return Err("No new jobs have been detcted :(".into());
     }
 

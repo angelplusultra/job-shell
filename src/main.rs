@@ -58,7 +58,7 @@ use tabled::{settings::Style, Table};
 
 use tokio::time::Instant;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
-use utils::clear_console;
+use utils::{clear_console, stall_and_present_countdown, stall_program};
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
@@ -308,13 +308,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     loop {
                         clear_console();
                         let is_following = data.data[company].is_following;
-                        let selected_company_option = prompt_user_for_company_option(company, is_following);
+                        let selected_company_option =
+                            prompt_user_for_company_option(company, is_following);
 
                         match selected_company_option {
                             CompanyOption::Back => break,
                             CompanyOption::ViewJobs => {
                                 if data.data[company].jobs.is_empty() {
-                                    eprintln!("Error: No jobs");
+                                    clear_console();
+                                    stall_and_present_countdown(3, Some("No jobs, try scraping"));
+
                                     continue;
                                 }
                                 loop {
@@ -346,7 +349,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 let connects: Vec<Connection> = company_data.connections.clone();
 
                                 if connects.is_empty() {
-                                    println!("You do not have any connections in this company");
+                                    clear_console();
+                                    stall_and_present_countdown(3, Some("You do not have any connections in this company"));
                                     continue;
                                 }
 
@@ -477,7 +481,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                             CompanyOption::FollowCompany => {
                                 data.toggle_company_follow(company);
-                                
                             }
                         }
                     }
@@ -511,7 +514,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
                         handle_job_option(&selected_job.job, &mut data, &selected_job.company)
                             .await?;
                     },
-                    Err(e) => eprintln!("{}", e),
+                    Err(e) => {
+                        eprintln!("{e}");
+                        stall_and_present_countdown(3, None);
+                    }
                 }
             }
             MainMenuOption::ViewNewJobsReports => handle_view_new_jobs_reports()?,
