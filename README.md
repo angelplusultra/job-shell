@@ -90,7 +90,7 @@ Before running JobShell, ensure you have the following:
    ```
    mv ./target/release/jobshell /usr/bin/jobshell 
    ```
-### 📥 Install from Release (macOS Only for now)
+### 📥 Install from Release (macOS only for now)
 1. **Download a Binary from Releases:**  
    Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
 
