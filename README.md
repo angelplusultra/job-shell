@@ -190,6 +190,10 @@ jobshell --discord "https://discordapp.com/api/webhooks/1234/abcd" 6
 ```
 This will post new job updates every 6 hours until you cancel the process (e.g., `Ctrl + C`).
 
+<img src="https://github.com/user-attachments/assets/944cfb88-196f-4496-b104-5f52e1700d94" width="500" />
+
+
+
 ---
 <!---->
 <!-- --- -->
