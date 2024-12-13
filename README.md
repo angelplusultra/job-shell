@@ -1,6 +1,12 @@
-# JobShell
+# JobShell: Because Job Hunting is Hell Enough
 
-**JobShell** is a command-line tool designed to streamline your software engineering job hunt by scraping job postings from a curated list of top tech companies. It provides two primary modes of operation—an interactive CLI mode and a Discord integration mode—offering flexibility to suit your workflow. With JobShell, you can manage your network connections, discover new job postings, discover new job postings from the companies YOU care about, and even use AI to do some cool shit here and there.
+Are you a software engineer desperately seeking employment but fucking done with LinkedIn’s circus of virtue-signaling posts and irrelevant job alerts? Tired of getting emails that scream “Exciting opportunities in your network!” only to find out John liked Dave’s post about on-site synergy?
+
+Wish you could manage your job search from the comfort of your terminal cave, where corporate nonsense can’t reach you? Well, my friend, welcome to JobShell—the no-bullshit solution to staying updated on opportunities at companies you actually care about.
+
+Say goodbye to distractions and hello to streamlined job hunting. 
+
+<!--**JobShell** is a command-line tool designed to streamline your software engineering job hunt by scraping job postings from a curated list of top tech companies. It provides two primary modes of operation—an interactive CLI mode and a Discord integration mode—offering flexibility to suit your workflow. With JobShell, you can manage your network connections, discover new job postings, discover new job postings from the companies YOU care about, and even use AI to do some cool shit here and there.-->
 
 ---
 
@@ -8,7 +14,7 @@
 
 1. **CLI Mode**  
    - **Interactive Navigation:** Run `jobshell` for a terminal-based menu. Scrape jobs from individual companies, view new postings, and manage your professional network from a single interface.
-   - **Network-Based Discovery:** Scan for new roles exclusively at companies where you have existing connections.
+   - **Network-Based Discovery:** Scan for new roles exclusively at companies where you have existing connections or have "followed".
    - **Bookmarks & Draft Messages:** Bookmark interesting jobs for later review and draft personalized opening messages to your connections.
    - **AI Integration (Experimental):** Optional integration with Gemini AI for generating tailored outreach messages.
 
@@ -171,28 +177,35 @@ Once you discover a job that interests you and have a connection at the company,
 
 ### 🤖 Discord Mode
 
-**Command Format:**  
-```bash
-jobshell --discord <WEBHOOK_URL> <HOURS>
 ```
-
-**Parameters:**
-- `WEBHOOK_URL`: The Discord channel webhook URL where new job postings will be posted.
-- `HOURS`: The interval (1–12) at which JobShell will scrape all supported companies and post updates.
-
-**What Happens in Discord Mode:**
-- JobShell runs indefinitely, scraping at the specified interval.
-- Each time new jobs are detected, they’ll be sent to the specified Discord channel.
-
-**Example:**
-```bash
-jobshell --discord "https://discordapp.com/api/webhooks/1234/abcd" 6
+jobshell --discord
 ```
-This will post new job updates every 6 hours until you cancel the process (e.g., `Ctrl + C`).
+When `jobshell --discord` is executed, a wizard will guide you through the setup process. This wizard collects the necessary information to configure the job-scraping process and ensures Discord notifications are set up correctly.
 
-<img src="https://github.com/user-attachments/assets/944cfb88-196f-4496-b104-5f52e1700d94" width="500" />
+#### Wizard Steps
 
+1. **Enter Discord Channel Webhook URL**
+   - You’ll be prompted to provide the webhook URL for the Discord channel where job notifications will be posted.
+   - Example: https://discord.com/api/webhooks/someid/someid
+        - **How to Get a Discord Webhook URL**
+           1. Open your Discord server
+           2. Navigate to the desired channel and click the gear icon to open the channel settings.
+           3. Go to the Integrations tab.
+           4. Select Webhooks and click Create Webhook.
+           5. Customize the webhook settings, copy the Webhook URL, and paste it into the prompt.
+2. **Set Hourly Interval**
+   - Enter the scraping interval in hours. This value must be an integer between 1 and 12.
+   - Example Input: `6`
+3. **Choose Scraping Scope**
+   - Specify whether you want to scrape all supported companies or restrict scraping to:
+        - Companies you have at least one connection with.
+        - Companies you’ve chosen to “follow” via CLI mode.
+   - Prompt Example:
 
+     ```
+     Would you like to scrape all supported companies? (yes/no)
+     ```
+Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
 ---
 <!---->
