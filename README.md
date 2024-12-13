@@ -19,7 +19,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
    - **AI Integration (Experimental):** Optional integration with Gemini AI for generating tailored outreach messages.
 
 2. **Discord Integration Mode**  
-   - **Automated Updates via Webhook:** Use `jobshell --discord <WEBHOOK_URL> <HOURS>` to run a continuous background scrape for all supported companies. It will periodically post new job updates to a specified Discord channel.
+   - **Automated Updates via Webhook:** Use `jobshell --discord`to run a continuous background scrape for all supported companies. It will periodically post new job updates to a specified Discord channel.
    - **Scheduled Execution:** Configure the scraper to run at regular intervals (every 1–12 hours) to stay informed with the latest openings.
 
 ---
