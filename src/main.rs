@@ -142,13 +142,9 @@ use clap::Parser;
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
-    /// Run in cron mode
-    #[arg(long, value_name = "HOURS")]
-    cron: Option<u64>,
-
-    /// Discord cron mode
-    #[arg(long, value_names = &["WEBHOOK_URL", "HOURS"])]
-    discord: Option<Vec<String>>,
+    /// Enable Discord mode
+    #[arg(long)]
+    discord: bool,
 }
 
 #[tokio::main]
@@ -157,31 +153,38 @@ async fn main() -> Result<(), Box<dyn Error>> {
     dotenv().ok();
     let args = Args::parse();
 
-    // Check if running in cron mode
-    if let Some(interval) = args.cron {
-        println!("Running in Cron mode!");
-        initialize_cron().await?;
-        return Ok(());
-    }
+    if args.discord {
+        let dialoguer_styles = ColorfulTheme::default();
 
-    if let Some(discord_args) = args.discord {
-        if discord_args.len() != 2 {
-            eprintln!("Discord integration requires both webhook URL and interval hours");
-            std::process::exit(1);
-        }
+        let webhook_url = Input::<String>::with_theme(&dialoguer_styles)
+            .with_prompt("Enter Discord webhook URL")
+            .validate_with(|input: &String| -> Result<(), &str> {
+                if input.starts_with("https://discord.com/api/webhooks/") {
+                    Ok(())
+                } else {
+                    Err("Webhook URL must be a valid Discord webhook URL")
+                }
+            })
+            .interact()?;
 
-        let webhook_url = discord_args[0].clone();
-        let interval: u64 = discord_args[1]
-            .as_str()
-            .parse()
-            .expect("Invalid interval value provide, must be an integer");
+        let interval = Input::<u64>::with_theme(&dialoguer_styles)
+            .with_prompt("Enter scan interval (hours)")
+            .validate_with(|input: &u64| -> Result<(), &str> {
+                if *input >= 1 && *input <= 12 {
+                    Ok(())
+                } else {
+                    Err("Interval must be between 1 and 12 hours")
+                }
+            })
+            .default(4)
+            .interact()?;
 
-        println!("Running in Discord mode!");
+        let scan_all_companies = Confirm::with_theme(&dialoguer_styles)
+            .with_prompt("Scan all companies? (otherwise only followed companies)")
+            .default(false)
+            .interact()?;
 
-        println!("Webhook URL: {webhook_url}");
-        println!("Interval: Every {interval} hours");
-
-        initialize_discord_mode(webhook_url, interval).await?;
+        initialize_discord_mode(webhook_url, interval, scan_all_companies).await?;
 
         return Ok(());
     }
