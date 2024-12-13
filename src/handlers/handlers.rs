@@ -195,8 +195,13 @@ pub fn handle_craft_a_message(job: &Job, connection: &Connection) {
     let mut clipboard: ClipboardContext = ClipboardProvider::new().unwrap();
     clipboard.set_contents(message.clone()).unwrap();
 
-    println!("Your message has been copied to your clipboard.");
+    clear_console();
+    stall_and_present_countdown(
+        3,
+        Some("Your message has been copied to your clipboard along with the link to the job!"),
+    );
 
+    clear_console();
     if connection.linkedin.is_some() {
         let open_linked_in = Confirm::with_theme(&dialoguer_styles)
             .with_prompt("Open LinkedIn?")
