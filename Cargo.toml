@@ -2,6 +2,18 @@
 name = "jobshell"
 version = "1.0.2"
 edition = "2021"
+authors = ["Mac fitton <macfittondev@gmail.com>"]
+description = "A CLI tool for job searching and scraping job boards"
+license = "MIT"
+repository = "https://github.com/angelplusultra/job-shell"
+readme = "README.md"
+keywords = ["cli", "job-search", "automation"]
+categories = ["command-line-utilities"]
+default-run = "jobshell"
+
+[[bin]]
+name = "jobshell"
+path = "src/main.rs"
 
 [dependencies]
 chrono = "0.4.38"
