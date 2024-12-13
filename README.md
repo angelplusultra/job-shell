@@ -70,7 +70,36 @@ Before running JobShell, ensure you have the following:
    If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
 
 ---
-## 📦 Installation
+## 💻 Installation
+### 📦 Install via Cargo
+
+```bash
+cargo install jobshell
+```
+
+### 📥 Install from Release (macOS and Windows only for now)
+1. **Download a Binary from Releases:**  
+   Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
+
+2. **Place the Binary in Your `$PATH`:**  
+   Move the binary to a directory that's included in your system’s `$PATH`. On most UNIX-like systems, this could be:  
+   ```bash
+   mv jobshell /usr/local/bin/
+   ```
+
+3. **Set Executable Permissions:**  
+   Ensure the binary is executable:  
+   ```bash
+   chmod +x /usr/local/bin/jobshell
+   ```
+
+4. **Bypass Apple Gatekeeper on macOS (If Necessary):**  
+   On macOS, you might need to bypass Gatekeeper’s security checks if the binary isn’t signed:  
+   ```bash
+   sudo xattr -r -d com.apple.quarantine /usr/local/bin/jobshell
+   ```
+   If prompted by Gatekeeper, you can also open `System Preferences > Security & Privacy` and choose to "Open Anyway" for the jobshell binary.
+   
 ### 🛠️ Build from Source
 
 1. **Install Rust:**  
@@ -96,29 +125,6 @@ Before running JobShell, ensure you have the following:
    ```
    mv ./target/release/jobshell /usr/bin/jobshell 
    ```
-### 📥 Install from Release (macOS and Windows only for now)
-1. **Download a Binary from Releases:**  
-   Head to the [Releases](https://github.com/angelplusultra/job-shell/releases) page and download the latest binary that matches your operating system.
-
-2. **Place the Binary in Your `$PATH`:**  
-   Move the binary to a directory that's included in your system’s `$PATH`. On most UNIX-like systems, this could be:  
-   ```bash
-   mv jobshell /usr/local/bin/
-   ```
-
-3. **Set Executable Permissions:**  
-   Ensure the binary is executable:  
-   ```bash
-   chmod +x /usr/local/bin/jobshell
-   ```
-
-4. **Bypass Apple Gatekeeper on macOS (If Necessary):**  
-   On macOS, you might need to bypass Gatekeeper’s security checks if the binary isn’t signed:  
-   ```bash
-   sudo xattr -r -d com.apple.quarantine /usr/local/bin/jobshell
-   ```
-   If prompted by Gatekeeper, you can also open `System Preferences > Security & Privacy` and choose to "Open Anyway" for the jobshell binary.
-
 ---
 
 ## ✨ Setting Up AI Integration (Optional)
