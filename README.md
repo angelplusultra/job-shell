@@ -16,7 +16,7 @@
 ![GitHub Forks](https://img.shields.io/github/forks/angelplusultra/job-shell?style=social)
 ![GitHub Watchers](https://img.shields.io/github/watchers/angelplusultra/job-shell?style=social)-->
 
-Are you a software engineer desperately seeking employment but fucking done with LinkedIn’s circus of virtue-signaling posts and irrelevant job alerts? Tired of getting emails that scream “Exciting opportunities in your network!” only to find out John liked Dave’s post about on-site synergy?
+Are you a software engineer desperately seeking employment but done with LinkedIn’s circus of virtue-signaling posts and irrelevant job alerts? Tired of getting emails that scream “Exciting opportunities in your network!” only to find out John liked Dave’s post about on-site synergy?
 
 Wish you could manage your job search from the comfort of your **terminal cave**, where corporate nonsense can’t reach you? Well, my friend, welcome to JobShell—the no-bullshit solution to staying updated on opportunities at companies you actually care about.
 
