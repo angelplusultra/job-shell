@@ -71,7 +71,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-binary
-          path: target/x86_64-pc-windows-gnu/release/*
+          path: target/x86_64-pc-windows-gnu/release/jobshell.exe
 
   build-macos:
     runs-on: macos-latest # macOS runner for macOS builds
@@ -104,7 +104,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-x86_64-binary
-          path: target/x86_64-apple-darwin/release/*
+          path: target/x86_64-apple-darwin/release/jobshell
 
       # Build for macOS (aarch64)
       - name: Build for macOS (aarch64-apple-darwin)
@@ -115,4 +115,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-aarch64-binary
-          path: target/aarch64-apple-darwin/release/*
+          path: target/aarch64-apple-darwin/release/jobshell
