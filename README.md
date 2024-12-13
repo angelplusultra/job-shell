@@ -1,4 +1,20 @@
+
+
 # JobShell: Because Job Hunting is Hell Enough
+![GitHub Release](https://img.shields.io/github/v/release/angelplusultra/job-shell?style=flat)
+![Downloads](https://img.shields.io/github/downloads/angelplusultra/job-shell/total?style=flat)
+![Issues](https://img.shields.io/github/issues/angelplusultra/job-shell?style=flat)
+![Pull Requests](https://img.shields.io/github/issues-pr/angelplusultra/job-shell?style=flat)
+![Crates.io Total Downloads](https://img.shields.io/crates/d/jobshell?label=crates.io%20downloads)
+![Crates.io Size](https://img.shields.io/crates/size/jobshell)
+
+
+
+
+
+<!--![GitHub Stars](https://img.shields.io/github/stars/angelplusultra/job-shell?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/angelplusultra/job-shell?style=social)
+![GitHub Watchers](https://img.shields.io/github/watchers/angelplusultra/job-shell?style=social)-->
 
 Are you a software engineer desperately seeking employment but fucking done with LinkedIn’s circus of virtue-signaling posts and irrelevant job alerts? Tired of getting emails that scream “Exciting opportunities in your network!” only to find out John liked Dave’s post about on-site synergy?
 
