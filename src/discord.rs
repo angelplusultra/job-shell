@@ -36,18 +36,19 @@ struct Field {
 pub async fn initialize_discord_mode(
     webhook_url: String,
     cron_interval: u64,
+    scan_all_companies: bool,
 ) -> Result<(), Box<dyn Error>> {
     // Create a new scheduler
     let scheduler = JobScheduler::new().await?;
 
     let every_interval_by_hours = format!("0 0 */{} * * *", cron_interval);
-    let _every_interval_by_minutes = format!("0 */{} * * * *", cron_interval);
+    let every_interval_by_minutes = format!("0 */{} * * * *", cron_interval);
     // Create a job that runs every 5 minutes
     let job1 = CronJob::new_async(every_interval_by_hours, move |uuid, mut lock| {
         let webhook_url = webhook_url.clone();
         Box::pin(async move {
             println!("Discord cron starting!");
-            let total_new_jobs = scan_for_new_jobs().await;
+            let total_new_jobs = scan_for_new_jobs(scan_all_companies).await;
 
             clear_console();
 
@@ -84,9 +85,13 @@ pub async fn initialize_discord_mode(
     Ok(())
 }
 
-async fn scan_for_new_jobs() -> Vec<FormattedJob> {
+async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
     let mut data = Data::get_data();
-    let company_keys: Vec<String> = data.data.keys().cloned().collect();
+    let mut company_keys: Vec<String> = data.data.keys().cloned().collect();
+
+    if !scan_all_companies {
+        company_keys.retain(|k| data.data[k].is_following || !data.data[k].connections.is_empty());
+    }
 
     let mut total_new_jobs: Vec<FormattedJob> = Vec::new();
     for key in &company_keys {
