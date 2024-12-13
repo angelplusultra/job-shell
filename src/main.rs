@@ -180,7 +180,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .interact()?;
 
         let scan_all_companies = Confirm::with_theme(&dialoguer_styles)
-            .with_prompt("Scan all companies? (otherwise only followed companies)")
+            .with_prompt("Scan all companies? (otherwise only followed companies or companies where you have at least 1 connection)")
             .default(false)
             .interact()?;
 
