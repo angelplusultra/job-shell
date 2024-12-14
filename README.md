@@ -48,9 +48,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 
 ---
 
-## Supported Companies (22)
-
-JobShell currently supports scraping the following companies:
+## Supported Companies
 
 - 1Password
 - Anduril
