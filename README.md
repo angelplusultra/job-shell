@@ -237,6 +237,20 @@ When `jobshell --discord` is executed, a wizard will guide you through the setup
 Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
 ---
+
+## 🌊 Suggested Workflow
+
+To get the most out of JobShell, follow this workflow:
+	
+1.	Set Up Your Preferences in CLI Mode
+   - Start by running JobShell in CLI mode. Configure your connections and specify the companies you want to track for job opportunities.
+2.	Deploy JobShell in Discord Mode
+   - Once set up, switch to Discord mode to receive real-time job notifications directly in your designated Discord channel.
+3.	Run JobShell on a VPS (Optional)
+   - If you don’t have a machine to keep JobShell running continuously, consider using a Virtual Private Server (VPS) from providers like DigitalOcean, Linode, or Vultr.
+---
+
+That’s it! You’re all set to simplify your job search with JobShell.
 <!---->
 <!-- --- -->
 <!---->
