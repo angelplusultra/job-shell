@@ -1,7 +1,7 @@
 name: Cross Build
 
 on:
-  workflow_dispatch: # Enables manual triggering
+  # workflow_dispatch: # Enables manual triggering
   push:
     tags:
       - "v*" # Matches tags like v1.0.0, v2.3.4, etc.
