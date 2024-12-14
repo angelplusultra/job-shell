@@ -24,7 +24,14 @@ Wish you could manage your job search from the comfort of your **terminal cave**
 Say goodbye to distractions and hello to streamlined job hunting. 
 
 <!--**JobShell** is a command-line tool designed to streamline your software engineering job hunt by scraping job postings from a curated list of top tech companies. It provides two primary modes of operation—an interactive CLI mode and a Discord integration mode—offering flexibility to suit your workflow. With JobShell, you can manage your network connections, discover new job postings, discover new job postings from the companies YOU care about, and even use AI to do some cool shit here and there.-->
-
+## Table of Contents
+- [Key Features](#key-features)
+- [Supported Companies](#supported-companies)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Setting Up AI Integration (Optional)](#setting-up-ai-integration-(optional))
+- [Usage](#usage)
+- [Suggested Workflow](#suggested-workflow)
 ---
 
 ## 🗝️ Key Features 
