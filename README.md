@@ -2,12 +2,15 @@
 
 # JobShell: Because Job Hunting is Hell Enough
 ![GitHub Release](https://img.shields.io/github/v/release/angelplusultra/job-shell?style=flat)
+![GitHub Repo stars](https://img.shields.io/github/stars/angelplusultra/job-shell)
 ![Downloads](https://img.shields.io/github/downloads/angelplusultra/job-shell/total?style=flat)
 ![Issues](https://img.shields.io/github/issues/angelplusultra/job-shell?style=flat)
 ![Pull Requests](https://img.shields.io/github/issues-pr/angelplusultra/job-shell?style=flat)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/jobshell?label=crates.io%20downloads)
 [![Homebrew](https://img.shields.io/badge/homebrew-v1.0.4-blue)](https://github.com/angelplusultra/homebrew-jobshell)
 [![crates.io](https://img.shields.io/crates/v/jobshell)](https://crates.io/crates/jobshell)
+
+
 
 
 
