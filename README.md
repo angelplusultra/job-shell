@@ -243,11 +243,11 @@ Once all prompts all completed, JobShell begins scraping job postings at the spe
 To get the most out of JobShell, follow this workflow:
 	
 1.	Set Up Your Preferences in CLI Mode
-   - Start by running JobShell in CLI mode. Configure your connections and specify the companies you want to track for job opportunities.
+   	- Start by running JobShell in CLI mode. Configure your connections and specify the companies you want to track for job opportunities.
 2.	Deploy JobShell in Discord Mode
-   - Once set up, switch to Discord mode to receive real-time job notifications directly in your designated Discord channel.
+   	- Once set up, switch to Discord mode to receive real-time job notifications directly in your designated Discord channel.
 3.	Run JobShell on a VPS (Optional)
-   - If you don’t have a machine to keep JobShell running continuously, consider using a Virtual Private Server (VPS) from providers like DigitalOcean, Linode, or Vultr.
+	- If you don’t have a machine to keep JobShell running continuously, consider using a Virtual Private Server (VPS) from providers like DigitalOcean, Linode, or Vultr.
 ---
 
 That’s it! You’re all set to simplify your job search with JobShell.
