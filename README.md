@@ -91,7 +91,7 @@ Before running JobShell, ensure you have the following:
 ### 🏠 Install via Homebrew
 
 ```bash
-brew tap angelplusultra/tap
+brew tap angelplusultra/jobshell
 brew install jobshell
 ```
 ### 📦 Install via Cargo
