@@ -2,12 +2,15 @@
 
 # JobShell: Because Job Hunting is Hell Enough
 ![GitHub Release](https://img.shields.io/github/v/release/angelplusultra/job-shell?style=flat)
+![GitHub Repo stars](https://img.shields.io/github/stars/angelplusultra/job-shell)
 ![Downloads](https://img.shields.io/github/downloads/angelplusultra/job-shell/total?style=flat)
 ![Issues](https://img.shields.io/github/issues/angelplusultra/job-shell?style=flat)
 ![Pull Requests](https://img.shields.io/github/issues-pr/angelplusultra/job-shell?style=flat)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/jobshell?label=crates.io%20downloads)
 [![Homebrew](https://img.shields.io/badge/homebrew-v1.0.4-blue)](https://github.com/angelplusultra/homebrew-jobshell)
 [![crates.io](https://img.shields.io/crates/v/jobshell)](https://crates.io/crates/jobshell)
+
+
 
 
 
@@ -24,10 +27,17 @@ Wish you could manage your job search from the comfort of your **terminal cave**
 Say goodbye to distractions and hello to streamlined job hunting. 
 
 <!--**JobShell** is a command-line tool designed to streamline your software engineering job hunt by scraping job postings from a curated list of top tech companies. It provides two primary modes of operation—an interactive CLI mode and a Discord integration mode—offering flexibility to suit your workflow. With JobShell, you can manage your network connections, discover new job postings, discover new job postings from the companies YOU care about, and even use AI to do some cool shit here and there.-->
-
+## Table of Contents
+- [Key Features](#key-features)
+- [Supported Companies](#supported-companies)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional)
+- [Usage](#usage)
+- [Suggested Workflow](#suggested-workflow)
 ---
 
-## 🗝️ Key Features 
+## Key Features 
 
 1. **CLI Mode**  
    - **Interactive Navigation:** Run `jobshell` for a terminal-based menu. Scrape jobs from individual companies, view new postings, and manage your professional network from a single interface.
@@ -41,9 +51,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 
 ---
 
-## 🏢 Supported Companies (22)
-
-JobShell currently supports scraping the following companies:
+## Supported Companies
 
 - 1Password
 - Anduril
@@ -70,7 +78,7 @@ JobShell currently supports scraping the following companies:
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before running JobShell, ensure you have the following:
 
@@ -87,7 +95,7 @@ Before running JobShell, ensure you have the following:
    If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
 
 ---
-## 💻 Installation
+## Installation
 ### 🏠 Install via Homebrew
 
 ```bash
@@ -150,7 +158,7 @@ cargo install jobshell
    ```
 ---
 
-## ✨ Setting Up AI Integration (Optional)
+## Setting Up AI Integration (Optional)
 
 If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
 
@@ -167,9 +175,9 @@ After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load 
 
 ---
 
-## 🚀 Usage
+## Usage
 
-### ⌨️ CLI Mode
+### ⌨ CLI Mode
 
 **Basic Command:**  
 Run JobShell in interactive CLI mode:
@@ -238,7 +246,7 @@ Once all prompts all completed, JobShell begins scraping job postings at the spe
 
 ---
 
-## 🌊 Suggested Workflow
+## Suggested Workflow
 
 To get the most out of JobShell, follow this workflow:
 	
