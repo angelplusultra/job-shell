@@ -6,7 +6,8 @@
 ![Issues](https://img.shields.io/github/issues/angelplusultra/job-shell?style=flat)
 ![Pull Requests](https://img.shields.io/github/issues-pr/angelplusultra/job-shell?style=flat)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/jobshell?label=crates.io%20downloads)
-![Crates.io Size](https://img.shields.io/crates/size/jobshell)
+[![Homebrew](https://img.shields.io/badge/homebrew-v1.0.4-blue)](https://github.com/angelplusultra/homebrew-jobshell)
+[![crates.io](https://img.shields.io/crates/v/jobshell)](https://crates.io/crates/jobshell)
 
 
 
@@ -87,6 +88,12 @@ Before running JobShell, ensure you have the following:
 
 ---
 ## 💻 Installation
+### 🏠 Install via Homebrew
+
+```bash
+brew tap angelplusultra/tap
+brew install jobshell
+```
 ### 📦 Install via Cargo
 
 ```bash
