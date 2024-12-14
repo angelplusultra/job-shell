@@ -60,7 +60,8 @@ use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
 use utils::{clear_console, stall_and_present_countdown, stall_program};
 use webbrowser;
 
-// TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name
+// TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
+// straight up just an enum
 const COMPANYKEYS: [&str; 22] = [
     "Anduril",
     "Blizzard",
@@ -561,6 +562,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+// TODO: move somewhere
 pub async fn scrape_jobs(
     data: &mut Data,
     company_key: &str,
@@ -610,7 +612,6 @@ fn prompt_user_did_apply() -> bool {
     return apply;
 }
 
-// TODO: Use 1 FormattedJob struct
 
 async fn handle_job_option(
     selected_job: &Job,
@@ -662,6 +663,7 @@ async fn handle_job_option(
     Ok(())
 }
 
+// TODO: Refactor this to be a metod on an instance of data or Data
 pub fn get_new_jobs_report_files() -> Result<Vec<String>, Box<dyn Error>> {
     let reports_dir = Data::get_data_dir().join("reports");
     let paths = fs::read_dir(reports_dir)?;
@@ -685,6 +687,7 @@ pub fn get_new_jobs_report_files() -> Result<Vec<String>, Box<dyn Error>> {
     Ok(files)
 }
 
+// TODO:  Move this to handlers
 pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
     let v = get_new_jobs_report_files();
     let data_path = Data::get_data_dir();
