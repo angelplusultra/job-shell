@@ -1,45 +1,10 @@
-# name: Cross Build
-#
-# on:
-#   workflow_dispatch: # Enables manual triggering
-#
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest # Uses an Ubuntu runner
-#
-#     steps:
-#       # Checkout the code
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-#
-#       # Install Rust (if not already available on the runner)
-#       - name: Install Rust
-#         uses: actions-rs/toolchain@v1
-#         with:
-#           profile: minimal
-#           override: true # Set as the default Rust version
-#           toolchain: stable
-#
-#       # Install `cross` using cargo
-#       - name: Install cross
-#         run: cargo install cross --git https://github.com/cross-rs/cross
-#
-#       # Build for macOS
-#       - name: Build for macOS (x86_64-apple-darwin)
-#         run: cross build --release --target x86_64-apple-darwin
-#
-#       # Build for Windows
-#       - name: Build for Windows (x86_64-pc-windows-gnu)
-#         run: cross build --release --target x86_64-pc-windows-gnu
-#
-#       # Build for Linux
-#       - name: Build for Linux (x86_64-unknown-linux-gnu)
-#         run: cross build --release --target x86_64-unknown-linux-gnu
-
 name: Cross Build
 
 on:
   workflow_dispatch: # Enables manual triggering
+  push:
+    tags:
+      - "v*" # Matches tags like v1.0.0, v2.3.4, etc.
 
 jobs:
   build-windows:
@@ -103,7 +68,7 @@ jobs:
       - name: Upload macOS (x86_64) binary
         uses: actions/upload-artifact@v3
         with:
-          name: macos-x86_64-binary
+          name: jobshell-macos-x86_64-binary
           path: target/x86_64-apple-darwin/release/jobshell
 
       # Build for macOS (aarch64)
@@ -114,5 +79,6 @@ jobs:
       - name: Upload macOS (aarch64) binary
         uses: actions/upload-artifact@v3
         with:
-          name: macos-aarch64-binary
+          name: jobshell-macos-aarch64-binary
           path: target/aarch64-apple-darwin/release/jobshell
+
