@@ -296,15 +296,50 @@ pub fn handle_reach_out_to_a_connection(
     Ok(())
 }
 
-pub fn prompt_user_for_job_selection(
+pub fn handle_job_selection(
     jobs: Vec<Job>,
     new_jobs: Option<Vec<Job>>,
     company_name: &'static str,
 ) -> Option<Job> {
+    #[derive(Clone)]
     struct FormattedJob<'a> {
         display_string: String,
         original_job: &'a Job,
     }
+
+    fn prompt_user_for_job_selection(
+        formatted_options: Vec<FormattedJob>,
+        company_name: &str,
+    ) -> Option<Job> {
+        let mut display_options = formatted_options
+            .iter()
+            .map(|j| j.display_string.as_str())
+            .collect::<Vec<&str>>();
+
+        let prompt = format!(
+            "Select a job @ {} ({}, 👀: Unseen, ❗: New Listing)",
+            company_name,
+            display_options.len()
+        );
+        // Pushing Exit option
+        display_options.push("Back");
+
+        // Prompt user for job selection
+        let selected_job = FuzzySelect::new()
+            .with_prompt(&prompt)
+            .items(&display_options)
+            .interact()
+            .unwrap();
+
+        if display_options[selected_job] == "Back" {
+            return None;
+        }
+
+        let job = formatted_options[selected_job].original_job;
+
+        Some(job.clone())
+    }
+
     let mut formatted_options = jobs
         .iter()
         .map(|j| {
@@ -330,7 +365,7 @@ pub fn prompt_user_for_job_selection(
 
     // INFO: Filter jobs down by locations if data set too large
     if jobs.len() > 199 {
-        let locations = jobs
+        let mut locations = jobs
             .iter()
             .fold(HashSet::new(), |mut hash, job| {
                 hash.insert(&job.location);
@@ -338,47 +373,41 @@ pub fn prompt_user_for_job_selection(
                 return hash;
             })
             .into_iter()
-            .collect::<Vec<&String>>();
+            .cloned()
+            .collect::<Vec<String>>();
+
+        locations.push("Back".to_string());
 
         let dialoguer_styles = ColorfulTheme::default();
-        let selection = Select::with_theme(&dialoguer_styles)
-            .with_prompt("Select location")
-            .items(&locations)
-            .interact()
-            .unwrap();
 
-        let selected_location = locations[selection];
+        loop {
+            let selection = FuzzySelect::with_theme(&dialoguer_styles)
+                .with_prompt("Select location")
+                .items(&locations)
+                .interact()
+                .unwrap();
 
-        formatted_options.retain(|j| &j.original_job.location == selected_location);
+            let selected_location = &locations[selection];
+
+            if selected_location == "Back" {
+                return None;
+            }
+
+            formatted_options.retain(|j| j.original_job.location == *selected_location);
+
+            if let Some(j) = prompt_user_for_job_selection(formatted_options.clone(), company_name)
+            {
+                return Some(j);
+            } else {
+                continue;
+            }
+        }
     }
-
-    let mut display_options = formatted_options
-        .iter()
-        .map(|j| j.display_string.as_str())
-        .collect::<Vec<&str>>();
-
-    let prompt = format!(
-        "Select a job @ {} ({}, 👀: Unseen, ❗: New Listing)",
-        company_name,
-        display_options.len()
-    );
-    // Pushing Exit option
-    display_options.push("Exit");
-
-    // Prompt user for job selection
-    let selected_job = FuzzySelect::new()
-        .with_prompt(&prompt)
-        .items(&display_options)
-        .interact()
-        .unwrap();
-
-    if display_options[selected_job] == "Exit" {
+    if let Some(j) = prompt_user_for_job_selection(formatted_options, company_name) {
+        return Some(j);
+    } else {
         return None;
     }
-
-    let job = formatted_options[selected_job].original_job;
-
-    Some(job.clone())
 }
 
 pub struct FormattedJob {

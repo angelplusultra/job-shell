@@ -8,13 +8,12 @@ use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
 use discord::initialize_discord_mode;
 use dotenv::dotenv;
 use handlers::handlers::{
-    default_scrape_jobs_handler, handle_craft_a_message, handle_manage_connection,
-    handle_open_job_in_browser, handle_reach_out_to_a_connection,
+    default_scrape_jobs_handler, handle_craft_a_message, handle_job_selection,
+    handle_manage_connection, handle_open_job_in_browser, handle_reach_out_to_a_connection,
     handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
     prompt_user_for_company_selection, prompt_user_for_connection_option,
     prompt_user_for_connection_selection, prompt_user_for_job_option,
-    prompt_user_for_job_selection, prompt_user_for_main_menu_selection, CompanyOption,
-    FormattedJob, JobOption, MainMenuOption,
+    prompt_user_for_main_menu_selection, CompanyOption, FormattedJob, JobOption, MainMenuOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -327,8 +326,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     clear_console();
                                     let jobs = data.data.get(company).unwrap().jobs.clone();
 
-                                    match prompt_user_for_job_selection(jobs, None, company) {
+                                    match handle_job_selection(jobs, None, company) {
                                         Some(selected_job) => {
+                                            clear_console();
                                             data.mark_job_seen(&selected_job.id);
 
                                             match handle_job_option(
@@ -432,7 +432,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 // INFO: Job Selection Loop
                                 loop {
                                     clear_console();
-                                    match prompt_user_for_job_selection(
+                                    match handle_job_selection(
                                         all_jobs.clone(),
                                         Some(new_jobs.clone()),
                                         company,
