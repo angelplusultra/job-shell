@@ -34,7 +34,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Suggested Workflow](#suggested-workflow)
 ---
 
-## 🗝️ Key Features 
+## Key Features 
 
 1. **CLI Mode**  
    - **Interactive Navigation:** Run `jobshell` for a terminal-based menu. Scrape jobs from individual companies, view new postings, and manage your professional network from a single interface.
@@ -48,7 +48,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 
 ---
 
-## 🏢 Supported Companies (22)
+## Supported Companies (22)
 
 JobShell currently supports scraping the following companies:
 
@@ -77,7 +77,7 @@ JobShell currently supports scraping the following companies:
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before running JobShell, ensure you have the following:
 
@@ -94,7 +94,7 @@ Before running JobShell, ensure you have the following:
    If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
 
 ---
-## 💻 Installation
+## Installation
 ### 🏠 Install via Homebrew
 
 ```bash
@@ -157,7 +157,7 @@ cargo install jobshell
    ```
 ---
 
-## ✨ Setting Up AI Integration (Optional)
+## Setting Up AI Integration (Optional)
 
 If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
 
@@ -174,9 +174,9 @@ After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load 
 
 ---
 
-## 🚀 Usage
+## Usage
 
-### ⌨️ CLI Mode
+### ⌨ CLI Mode
 
 **Basic Command:**  
 Run JobShell in interactive CLI mode:
@@ -245,7 +245,7 @@ Once all prompts all completed, JobShell begins scraping job postings at the spe
 
 ---
 
-## 🌊 Suggested Workflow
+## Suggested Workflow
 
 To get the most out of JobShell, follow this workflow:
 	
