@@ -416,8 +416,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 } = match scrape_jobs(&mut data, company).await {
                                     Ok(jp) => jp,
                                     Err(e) => {
-                                        let error_string = format!("Error: {}", e).red();
-                                        eprintln!("{error_string}");
+                                        let message = e.to_string();
+                                        stall_and_present_countdown(3, Some(message));
                                         continue;
                                     }
                                 };
@@ -521,8 +521,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             .await?;
                     },
                     Err(e) => {
-                        eprintln!("{e}");
-                        stall_and_present_countdown(3, None);
+                        stall_and_present_countdown(3, Some(e.to_string()));
                     }
                 }
             }
