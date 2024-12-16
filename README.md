@@ -156,6 +156,11 @@ cargo install jobshell
    ```
    mv ./target/release/jobshell /usr/bin/jobshell 
    ```
+
+## Verify Installation
+```
+jobshell --version
+```
 ---
 
 ## Setting Up AI Integration (Optional)
