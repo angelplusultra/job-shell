@@ -43,7 +43,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
    - **Interactive Navigation:** Run `jobshell` for a terminal-based menu. Scrape jobs from individual companies, view new postings, and manage your professional network from a single interface.
    - **Network-Based Discovery:** Scan for new roles exclusively at companies where you have existing connections or have "followed".
    - **Bookmarks & Draft Messages:** Bookmark interesting jobs for later review and draft personalized opening messages to your connections.
-   - **AI Integration (Experimental):** Optional integration with Gemini AI for generating tailored outreach messages.
 
 2. **Discord Integration Mode**  
    - **Automated Updates via Webhook:** Use `jobshell --discord` to run a continuous background scrape for all supported companies. It will periodically post new job updates to a specified Discord channel.
