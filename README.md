@@ -244,7 +244,7 @@ When `jobshell --discord` is executed, a wizard will guide you through the setup
    - Prompt Example:
 
      ```
-     Would you like to scrape all supported companies? (yes/no)
+     Scan all companies? (otherwise only followed companies or companies where you have at least 1 connection) (yes/no)
      ```
 Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
