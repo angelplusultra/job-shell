@@ -95,13 +95,13 @@ Before running JobShell, ensure you have the following:
 
 ---
 ## Installation
-### 🏠 Install via Homebrew
+### 🏠 Install via Homebrew (macOS)
 
 ```bash
 brew tap angelplusultra/jobshell
 brew install jobshell
 ```
-### 📦 Install via Cargo
+### 📦 Install via Cargo (All Platforms)
 
 ```bash
 cargo install jobshell
