@@ -393,9 +393,13 @@ pub fn handle_job_selection(
                 return None;
             }
 
-            formatted_options.retain(|j| j.original_job.location == *selected_location);
+            let filtered_jobs_by_location: Vec<FormattedJob> = formatted_options
+                .iter()
+                .filter(|j| j.original_job.location == *selected_location)
+                .cloned()
+                .collect();
 
-            if let Some(j) = prompt_user_for_job_selection(formatted_options.clone(), company_name)
+            if let Some(j) = prompt_user_for_job_selection(filtered_jobs_by_location, company_name)
             {
                 return Some(j);
             } else {
