@@ -50,3 +50,6 @@ pub mod airbnb {
 pub mod servicenow {
 	pub mod scraper;
 }
+pub mod cloudflare {
+	pub mod scraper;
+}
