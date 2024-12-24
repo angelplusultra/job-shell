@@ -53,6 +53,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 ## Supported Companies
 
 - 1Password
+- AirBnB
 - Anduril
 - Blizzard
 - Chase
@@ -71,6 +72,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - Palantir
 - Reddit
 - Salesforce
+- Stripe
 - Square
 - The Browser Company
 - Weedmaps
