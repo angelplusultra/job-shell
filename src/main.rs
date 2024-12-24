@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use scrapers::cloudflare::scraper::scrape_cloudflare;
 use scrapers::servicenow::scraper::scrape_servicenow;
 use core::panic;
 use cron::initialize_cron;
@@ -65,11 +66,12 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 25] = [
+const COMPANYKEYS: [&str; 26] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
     "Cisco",
+    "Cloudflare",
     "CoStar Group",
     "Experian",
     "1Password",
@@ -577,6 +579,7 @@ pub async fn scrape_jobs(
         "AirBnB" => scrape_airbnb(data).await,
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
         "Chase" => scrape_chase(data).await,
+        "Cloudflare" => scrape_cloudflare(data).await,
         "Cisco" => scrape_cisco(data).await,
         "CoStar Group" => scrape_costar_group(data).await,
         "Blizzard" => scrape_blizzard(data).await,
