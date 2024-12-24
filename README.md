@@ -50,7 +50,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 ---
 
 ## Supported Companies
-
+[See Full List of Companies](https://github.com/angelplusultra/job-shell/wiki/Supported-Companies)
 <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 50px;">
 
 <img width=200 src="https://cdn.brandfetch.io/ids0xxqhX-/w/272/h/52/theme/light/logo.png?c=1dxbfHSJFAPEGdCLU4o5B" />
@@ -77,31 +77,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
 </div>
 
 
-
-- 1Password
-- AirBnB
-- Anduril
-- Blizzard
-- Chase
-- Cisco
-- Coinbase
-- CoStar Group
-- Discord
-- Experian
-- Disney
-- Gen
-- GitHub
-- GitLab
-- IBM
-- Meta
-- Netflix
-- Palantir
-- Reddit
-- Salesforce
-- Stripe
-- Square
-- The Browser Company
-- Weedmaps
 
 ---
 
