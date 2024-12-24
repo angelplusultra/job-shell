@@ -15,7 +15,6 @@
 
 
 
-
 <!--![GitHub Stars](https://img.shields.io/github/stars/angelplusultra/job-shell?style=social)
 ![GitHub Forks](https://img.shields.io/github/forks/angelplusultra/job-shell?style=social)
 ![GitHub Watchers](https://img.shields.io/github/watchers/angelplusultra/job-shell?style=social)-->
@@ -51,6 +50,33 @@ Say goodbye to distractions and hello to streamlined job hunting.
 ---
 
 ## Supported Companies
+
+<div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 50px;">
+
+<img width=200 src="https://cdn.brandfetch.io/ids0xxqhX-/w/272/h/52/theme/light/logo.png?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idkuvXnjOH/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idlgUl599B/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" alt="Logo" />
+<img width=200 src="https://cdn.brandfetch.io/idEyJgSpdD/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idM8Hlme1a/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idRdK0bkoQ/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idxASqzkm_/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idZAyF9rlg/w/1000/h/410/theme/light/logo.png?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idw382nG0m/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idWvz5T3V7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/ideQwN5lBE/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/id4EZOUw_e/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idkKwm0IT0/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+<img width=200 src="https://cdn.brandfetch.io/idyxZCX73R/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" />
+
+</div>
+
+
 
 - 1Password
 - AirBnB
