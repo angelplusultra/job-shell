@@ -41,3 +41,6 @@ pub mod experian {
 pub mod salesforce {
 	pub mod scraper;
 }
+pub mod stripe {
+	pub mod scraper;
+}
