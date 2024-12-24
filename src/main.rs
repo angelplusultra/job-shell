@@ -1,7 +1,6 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::stripe::scraper::scrape_stripe;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -28,6 +27,7 @@ use models::data::{AnalyzeData, Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use reqwest::Client;
+use scrapers::airbnb::scraper::scrape_airbnb;
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::chase::scraper::scrape_chase;
 use scrapers::cisco::scraper::scrape_cisco;
@@ -42,6 +42,7 @@ use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
 use scrapers::salesforce::scraper::scrape_salesforce;
 use scrapers::square::scraper::scrape_square;
+use scrapers::stripe::scraper::scrape_stripe;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -63,7 +64,8 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 23] = [
+const COMPANYKEYS: [&str; 24] = [
+    "AirBnB",
     "Anduril",
     "Blizzard",
     "Cisco",
@@ -570,6 +572,7 @@ pub async fn scrape_jobs(
     company_key: &str,
 ) -> Result<JobsPayload, Box<dyn Error>> {
     let jobs_payload = match company_key {
+        "AirBnB" => scrape_airbnb(data).await,
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
         "Chase" => scrape_chase(data).await,
         "Cisco" => scrape_cisco(data).await,
@@ -614,7 +617,6 @@ fn prompt_user_did_apply() -> bool {
 
     return apply;
 }
-
 
 async fn handle_job_option(
     selected_job: &Job,

@@ -44,3 +44,6 @@ pub mod salesforce {
 pub mod stripe {
 	pub mod scraper;
 }
+pub mod airbnb {
+	pub mod scraper;
+}
