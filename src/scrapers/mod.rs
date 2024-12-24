@@ -47,3 +47,6 @@ pub mod stripe {
 pub mod airbnb {
 	pub mod scraper;
 }
+pub mod servicenow {
+	pub mod scraper;
+}

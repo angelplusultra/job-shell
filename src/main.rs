@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use scrapers::servicenow::scraper::scrape_servicenow;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -64,7 +65,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 24] = [
+const COMPANYKEYS: [&str; 25] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
@@ -86,6 +87,7 @@ const COMPANYKEYS: [&str; 24] = [
     "Netflix",
     "Meta",
     "Chase",
+    "ServiceNow",
     "Square",
     "Stripe",
     "Salesforce",
@@ -593,7 +595,7 @@ pub async fn scrape_jobs(
         "Square" => scrape_square(data).await,
         "Stripe" => scrape_stripe(data).await,
         "Salesforce" => scrape_salesforce(data).await,
-
+        "ServiceNow" => scrape_servicenow(data).await,
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
         "The Browser Company" => {
