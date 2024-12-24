@@ -55,18 +55,16 @@ Say goodbye to distractions and hello to streamlined job hunting.
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idkuvXnjOH/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idEyJgSpdD/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+    <td><img width=150 height=150 src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
   </tr>
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idJ3Cg8ymG/idASSo3XVu.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-  </tr>
-  <tr>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idM8Hlme1a/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idRdK0bkoQ/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
   </tr>
   <tr>
+    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idxASqzkm_/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idw382nG0m/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idWvz5T3V7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
@@ -75,15 +73,12 @@ Say goodbye to distractions and hello to streamlined job hunting.
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/ideQwN5lBE/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/id4EZOUw_e/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idkKwm0IT0/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
   </tr>
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idgONjBNKe/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-  </tr>
-  <tr>
     <td><img width=150 height=150 src="https://cdn.brandfetch.io/idyxZCX73R/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-
   </tr>
 </table>
 
