@@ -46,46 +46,257 @@ Say goodbye to distractions and hello to streamlined job hunting.
 2. **Discord Integration Mode**  
    - **Automated Updates via Webhook:** Use `jobshell --discord` to run a continuous background scrape for all supported companies. It will periodically post new job updates to a specified Discord channel.
    - **Scheduled Execution:** Configure the scraper to run at regular intervals (every 1–12 hours) to stay informed with the latest openings.
+<svg fill="#FFFFFF" xmlns="http://www.w3.org/2000/svg" height="200" width="200" viewBox="-72.03675 -32.46875 624.3185 194.8125">
+<path d="M92.497 55.588H52.141a1.887 1.887 0 00-1.886 1.887v19.73c0 1.042.845 1.888 1.886 1.888h15.743v24.515s-3.535 1.204-13.308 1.204c-11.53 0-27.636-4.212-27.636-39.63 0-35.426 16.772-40.087 32.517-40.087 13.63 0 19.502 2.4 23.238 3.556 1.174.358 2.26-.81 2.26-1.851l4.502-19.064c0-.488-.165-1.075-.72-1.473C87.22 5.18 77.963 0 54.576 0 27.636 0 0 11.463 0 66.563c0 55.101 31.64 63.312 58.303 63.312 22.076 0 35.468-9.434 35.468-9.434.552-.304.612-1.076.612-1.429V57.475a1.886 1.886 0 00-1.886-1.887M300.475 6.602a1.88 1.88 0 00-1.873-1.897h-22.723a1.889 1.889 0 00-1.881 1.897l.005 43.914h-35.418V6.602c0-1.05-.836-1.897-1.876-1.897h-22.722a1.888 1.888 0 00-1.876 1.897v118.904c0 1.048.843 1.902 1.876 1.902h22.722c1.04 0 1.876-.854 1.876-1.902v-50.86h35.418l-.061 50.86c0 1.048.841 1.902 1.883 1.902H298.6c1.04 0 1.872-.854 1.874-1.902zM135.376 22.205c0-8.181-6.56-14.793-14.653-14.793-8.085 0-14.65 6.612-14.65 14.793 0 8.174 6.565 14.804 14.65 14.804 8.093 0 14.653-6.63 14.653-14.804m-1.625 78.219V45.537c0-1.041-.84-1.893-1.88-1.893h-22.65c-1.04 0-1.97 1.07-1.97 2.113v78.636c0 2.31 1.44 2.998 3.304 2.998h20.408c2.239 0 2.788-1.1 2.788-3.035zm253.081-56.602h-22.548c-1.035 0-1.876.852-1.876 1.902v58.301s-5.73 4.192-13.86 4.192c-8.13 0-10.288-3.69-10.288-11.65V45.723c0-1.05-.84-1.902-1.875-1.902H313.5c-1.032 0-1.879.852-1.879 1.902v54.692c0 23.646 13.179 29.432 31.308 29.432 14.875 0 26.867-8.218 26.867-8.218s.57 4.331.83 4.844c.257.512.93 1.03 1.658 1.03l14.559-.064c1.032 0 1.878-.854 1.878-1.899l-.008-79.817c0-1.05-.842-1.902-1.881-1.902m52.736 64.324c-7.822-.239-13.127-3.787-13.127-3.787V66.703s5.233-3.208 11.655-3.781c8.12-.727 15.944 1.725 15.944 21.096 0 20.425-3.53 24.457-14.472 24.127m8.893-66.994c-12.807 0-21.517 5.715-21.517 5.715V6.602c0-1.05-.84-1.897-1.875-1.897h-22.788a1.887 1.887 0 00-1.877 1.897v118.904c0 1.05.841 1.903 1.88 1.903h15.81c.712 0 1.251-.368 1.65-1.011.393-.639.96-5.481.96-5.481s9.317 8.829 26.956 8.829c20.71 0 32.585-10.504 32.585-47.155 0-36.65-18.968-41.44-31.784-41.44m-249.403 2.482h-17.045l-.026-22.519c0-.852-.438-1.278-1.425-1.278h-23.227c-.902 0-1.388.398-1.388 1.266v23.27s-11.64 2.809-12.426 3.037a1.886 1.886 0 00-1.362 1.812v14.623c0 1.05.84 1.9 1.879 1.9h11.91v35.178c0 26.128 18.327 28.695 30.694 28.695 5.652 0 12.412-1.815 13.528-2.227.675-.248 1.068-.946 1.068-1.704l.019-16.086c0-1.05-.887-1.9-1.884-1.9-.994 0-3.535.405-6.151.405-8.372 0-11.21-3.892-11.21-8.93V65.743h17.046a1.89 1.89 0 001.881-1.9V45.528c0-1.05-.842-1.895-1.881-1.895" fill="#FFFFFF"/>
+</svg>
+
 
 ---
 
 ## Supported Companies
+  
 <table>
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idkuvXnjOH/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idEyJgSpdD/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+<!-- 1) AirBnB -->
+    <td>
+      <img 
+        alt="AirBnB" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idkuvXnjOH/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 2) Blizzard -->
+<td>
+      <img 
+        alt="Blizzard" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idEyJgSpdD/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 3) Chase -->
+<td>
+      <img 
+        alt="Chase" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 4) Cisco -->
+<td>
+      <img 
+        alt="Cisco" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
   </tr>
+
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idJ3Cg8ymG/idASSo3XVu.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idwDWo4ONQ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idM8Hlme1a/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+<!-- 5) Cloudflare -->
+    <td>
+      <img 
+        alt="Cloudflare" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idJ3Cg8ymG/idASSo3XVu.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 6) Coinbase -->
+<td>
+      <img 
+        alt="Coinbase" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idwDWo4ONQ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 7) CoStar -->
+<td>
+      <img 
+        alt="CoStar" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 8) Discord -->
+<td>
+      <img 
+        alt="Discord" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idM8Hlme1a/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
   </tr>
+
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idRdK0bkoQ/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idxASqzkm_/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idw382nG0m/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    
+<!-- 9) Disney -->
+    <td>
+      <img 
+        alt="Disney" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idxASqzkm_/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 10) Experian -->
+<td>
+      <img 
+        alt="Experian" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idRdK0bkoQ/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 11) GitHub -->
+<td>
+      <img 
+        alt="GitHub" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idZAyF9rlg/theme/light/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 12) GitLab -->
+ <td>
+      <img 
+        alt="GitLab" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idw382nG0m/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
   </tr>
+
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idWvz5T3V7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/ideQwN5lBE/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/id4EZOUw_e/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idkKwm0IT0/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+<!-- 13) IBM -->
+    <td>
+      <img 
+        alt="IBM" 
+        width="150" 
+        height="150" 
+        src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" 
+      />
+    </td>
+
+<!-- 14) Meta -->
+<td>
+      <img 
+        alt="Meta" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idWvz5T3V7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 15) Netflix -->
+<td>
+      <img 
+        alt="Netflix" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/ideQwN5lBE/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 16) Norton -->
+<td>
+      <img 
+        alt="Norton" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
   </tr>
+
   <tr>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idgONjBNKe/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
-    <td><img width=150 height=150 src="https://cdn.brandfetch.io/idyxZCX73R/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" /></td>
+<!-- 17) Palantir -->
+    <td>
+      <img 
+        alt="Palantir" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/id4EZOUw_e/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 18) Reddit -->
+<td>
+      <img 
+        alt="Reddit" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idkKwm0IT0/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 19) Salesforce -->
+ <td>
+      <img 
+        alt="Salesforce" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 20) ServiceNow -->
+<td>
+      <img 
+        alt="ServiceNow" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idgONjBNKe/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+  </tr>
+
+  <tr>
+<!-- 21) Square -->
+    <td>
+      <img 
+        alt="Square" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idyxZCX73R/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- 22) Stripe -->
+<td>
+      <img 
+        alt="Stripe" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+
+<!-- Empty cells (optional) -->
 
   </tr>
 </table>
 
-[See Full List of Companies](https://github.com/angelplusultra/job-shell/wiki/Supported-Companies)
+
+ **[See Full List of Companies](https://github.com/angelplusultra/job-shell/wiki/Supported-Companies)**
+
+### Want a company added to JobShell?  
+**[Submit a Company Request](https://github.com/angelplusultra/job-shell/issues/new?assignees=&labels=&projects=&template=company-request.md&title=Company+Request%3A+%7BCOMPANY_NAME%7D)** by opening a GitHub issue.
 
 
 ---
