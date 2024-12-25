@@ -57,8 +57,18 @@ Say goodbye to distractions and hello to streamlined job hunting.
   
 <table>
   <tr>
-<!-- 1) AirBnB -->
-    <td>
+<!-- 1) 1Password -->
+<td>
+      <img 
+        alt="1Password" 
+        width="150" 
+        height="150" 
+        src="https://upload.wikimedia.org/wikipedia/commons/0/02/1Password_wordmark_blue_2023.svg" 
+      />
+    </td>
+
+<!-- 2) AirBnB -->
+<td>
       <img 
         alt="AirBnB" 
         width="150" 
@@ -67,7 +77,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 2) Blizzard -->
+<!-- 3) Blizzard -->
 <td>
       <img 
         alt="Blizzard" 
@@ -77,7 +87,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 3) Chase -->
+<!-- 4) Chase -->
 <td>
       <img 
         alt="Chase" 
@@ -86,8 +96,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-
-<!-- 4) Cisco -->
+  </tr>
+  
+  <tr>
+<!-- 5) Cisco -->
 <td>
       <img 
         alt="Cisco" 
@@ -96,11 +108,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/ida_xaMYlM/id7nCQRNp4.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
 
-  <tr>
-<!-- 5) Cloudflare -->
-    <td>
+<!-- 6) Cloudflare -->
+<td>
       <img 
         alt="Cloudflare" 
         width="150" 
@@ -109,7 +119,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 6) Coinbase -->
+<!-- 7) Coinbase -->
 <td>
       <img 
         alt="Coinbase" 
@@ -119,7 +129,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 7) CoStar -->
+<!-- 8) CoStar -->
 <td>
       <img 
         alt="CoStar" 
@@ -128,8 +138,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
 
-<!-- 8) Discord -->
+  <tr>
+<!-- 9) Discord -->
 <td>
       <img 
         alt="Discord" 
@@ -138,11 +150,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idM8Hlme1a/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
 
-  <tr>
-<!-- 9) Disney -->
-    <td>
+<!-- 10) Disney -->
+<td>
       <img 
         alt="Disney" 
         width="150" 
@@ -151,7 +161,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 10) Experian -->
+<!-- 11) Experian -->
 <td>
       <img 
         alt="Experian" 
@@ -161,7 +171,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 11) GitHub -->
+<!-- 12) GitHub -->
 <td>
       <img 
         alt="GitHub" 
@@ -170,8 +180,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idZAyF9rlg/theme/light/symbol.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
 
-<!-- 12) GitLab -->
+  <tr>
+<!-- 13) GitLab -->
  <td>
       <img 
         alt="GitLab" 
@@ -180,11 +192,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idw382nG0m/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
 
-  <tr>
-<!-- 13) IBM -->
-    <td>
+<!-- 14) IBM -->
+<td>
       <img 
         alt="IBM" 
         width="150" 
@@ -193,7 +203,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 14) Meta -->
+<!-- 15) Meta -->
 <td>
       <img 
         alt="Meta" 
@@ -203,7 +213,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 15) Netflix -->
+<!-- 16) Netflix -->
 <td>
       <img 
         alt="Netflix" 
@@ -212,8 +222,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/ideQwN5lBE/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
 
-<!-- 16) Norton -->
+  <tr>
+<!-- 17) Norton -->
 <td>
       <img 
         alt="Norton" 
@@ -222,11 +234,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
 
-  <tr>
-<!-- 17) Palantir -->
-    <td>
+<!-- 18) Palantir -->
+<td>
       <img 
         alt="Palantir" 
         width="150" 
@@ -235,7 +245,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 18) Reddit -->
+<!-- 19) Reddit -->
 <td>
       <img 
         alt="Reddit" 
@@ -245,8 +255,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 19) Salesforce -->
- <td>
+<!-- 20) Salesforce -->
+<td>
       <img 
         alt="Salesforce" 
         width="150" 
@@ -254,8 +264,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
 
-<!-- 20) ServiceNow -->
+  <tr>
+<!-- 21) ServiceNow -->
 <td>
       <img 
         alt="ServiceNow" 
@@ -264,11 +276,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idgONjBNKe/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
 
-  <tr>
-<!-- 21) Square -->
-    <td>
+<!-- 22) Square -->
+<td>
       <img 
         alt="Square" 
         width="150" 
@@ -277,7 +287,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
       />
     </td>
 
-<!-- 22) Stripe -->
+<!-- 23) Stripe -->
 <td>
       <img 
         alt="Stripe" 
@@ -288,9 +298,9 @@ Say goodbye to distractions and hello to streamlined job hunting.
     </td>
 
 <!-- Empty cells (optional) -->
-
   </tr>
 </table>
+
 
 
  **[See Full List of Companies](https://github.com/angelplusultra/job-shell/wiki/Supported-Companies)**
