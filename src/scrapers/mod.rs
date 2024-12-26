@@ -53,3 +53,6 @@ pub mod servicenow {
 pub mod cloudflare {
 	pub mod scraper;
 }
+pub mod robinhood {
+	pub mod scraper;
+}

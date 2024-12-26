@@ -1,8 +1,6 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::cloudflare::scraper::scrape_cloudflare;
-use scrapers::servicenow::scraper::scrape_servicenow;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -33,6 +31,7 @@ use scrapers::airbnb::scraper::scrape_airbnb;
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::chase::scraper::scrape_chase;
 use scrapers::cisco::scraper::scrape_cisco;
+use scrapers::cloudflare::scraper::scrape_cloudflare;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::costar_group::scraper::scrape_costar_group;
 use scrapers::disney::scraper::scrape_disney;
@@ -42,7 +41,9 @@ use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::reddit::scraper::scrape_reddit;
+use scrapers::robinhood::scraper::scrape_robinhood;
 use scrapers::salesforce::scraper::scrape_salesforce;
+use scrapers::servicenow::scraper::scrape_servicenow;
 use scrapers::square::scraper::scrape_square;
 use scrapers::stripe::scraper::scrape_stripe;
 use serde_json::{json, Value};
@@ -66,7 +67,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 26] = [
+const COMPANYKEYS: [&str; 27] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
@@ -89,6 +90,7 @@ const COMPANYKEYS: [&str; 26] = [
     "Netflix",
     "Meta",
     "Chase",
+    "Robinhood",
     "ServiceNow",
     "Square",
     "Stripe",
@@ -590,6 +592,7 @@ pub async fn scrape_jobs(
         "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
         "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
         "Reddit" => scrape_reddit(data).await,
+        "Robinhood" => scrape_robinhood(data).await,
         "Gen" => scrape_gen(data).await,
         "IBM" => scrape_ibm(data).await,
         "Disney" => scrape_disney(data).await,
