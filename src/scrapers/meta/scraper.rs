@@ -81,11 +81,7 @@ pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>>
         })
         .collect();
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Meta"]);
-
-    data.data.get_mut("Meta").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Meta", data);
 
     Ok(jobs_payload)
 }

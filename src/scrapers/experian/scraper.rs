@@ -63,13 +63,8 @@ pub async fn scrape_experian(data: &mut Data) -> Result<JobsPayload, Box<dyn Err
         offset += 100;
     }
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Experian"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("Experian").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Experian", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
 }
-

@@ -63,7 +63,8 @@ JSON.stringify(jobs)
         let remote_object = tab.evaluate(js, false)?;
 
         if let Some(value) = remote_object.value {
-            let scraped_jobs_subset: Vec<ScrapedJob> = serde_json::from_str(value.as_str().unwrap())?;
+            let scraped_jobs_subset: Vec<ScrapedJob> =
+                serde_json::from_str(value.as_str().unwrap())?;
             scraped_jobs.extend(scraped_jobs_subset);
         } else {
             break;
@@ -72,9 +73,7 @@ JSON.stringify(jobs)
         results += 10;
     }
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Blizzard"]);
-    data.data.get_mut("Blizzard").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Blizzard", data);
 
     Ok(jobs_payload)
 }

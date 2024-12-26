@@ -65,13 +65,8 @@ JSON.stringify(scrapedJobs);
     // Acquire Vector of ScrapedJob
 
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["AirBnB"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("AirBnB").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "AirBnB", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
 }
-

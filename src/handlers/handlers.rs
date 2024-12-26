@@ -61,12 +61,7 @@ pub async fn default_scrape_jobs_handler(
     let scraped_jobs: Vec<ScrapedJob> =
         serde_json::from_str(engineering_jobs.value.unwrap().as_str().unwrap()).unwrap();
 
-    let jobs_payload =
-        JobsPayload::from_scraped_jobs(scraped_jobs, &data.data[options.company_key]);
-
-    data.data.get_mut(options.company_key).unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, options.company_key, data);
 
     Ok(jobs_payload)
 }

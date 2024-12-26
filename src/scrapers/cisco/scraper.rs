@@ -70,14 +70,7 @@ pub async fn scrape_cisco(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>
     }
 
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Cisco"]);
-
-    // Save the new jobs to the data state
-    data.data.get_mut("Cisco").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    if cfg!(test) == false {
-        data.save();
-    }
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Cisco", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
@@ -92,6 +85,5 @@ mod test {
         let mut data = Data::default();
 
         let v = scrape_cisco(&mut data).await.unwrap();
-
     }
 }

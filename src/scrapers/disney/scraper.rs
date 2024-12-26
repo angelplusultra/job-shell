@@ -163,11 +163,7 @@ return ({
         tab.evaluate(r#"document.querySelector("a.next").click()"#, false)?;
     }
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(total_scraped_jobs, &data.data["Disney"]);
-
-    data.data.get_mut("Disney").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(total_scraped_jobs, "Disney", data);
 
     Ok(jobs_payload)
 }

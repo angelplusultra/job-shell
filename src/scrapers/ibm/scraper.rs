@@ -89,13 +89,8 @@ pub async fn scrape_ibm(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> 
     }
 
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["IBM"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("IBM").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "IBM", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
 }
-

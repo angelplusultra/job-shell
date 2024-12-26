@@ -65,11 +65,7 @@ JSON.stringify(jobCards);
     }
 
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["ServiceNow"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("ServiceNow").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "ServiceNow", data);
 
     // Return JobsPayload
     Ok(jobs_payload)

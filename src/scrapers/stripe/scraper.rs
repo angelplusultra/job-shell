@@ -87,11 +87,7 @@ JSON.stringify(jobs);
 
     // Acquire Vector of ScrapedJob
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Stripe"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("Stripe").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Stripe", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
