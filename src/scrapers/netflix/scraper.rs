@@ -38,11 +38,7 @@ pub async fn scrape_netflix(data: &mut Data) -> Result<JobsPayload, Box<dyn Erro
 
         i += 10;
     }
-    let jobs_payload = JobsPayload::from_scraped_jobs(positions, &data.data["Netflix"]);
-
-    data.data.get_mut("Netflix").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(positions, "Netflix", data);
 
     Ok(jobs_payload)
 }

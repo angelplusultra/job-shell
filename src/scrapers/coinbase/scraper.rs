@@ -13,7 +13,6 @@ pub async fn scrape_coinbase(data: &mut Data) -> Result<JobsPayload, Box<dyn Err
         window_size: Some((1920, 1080)),
         enable_logging: false,
 
-
         ..LaunchOptions::default()
     };
     let browser = Browser::new(launch_options)?;
@@ -61,12 +60,7 @@ JSON.stringify(jobs);
     let scraped_jobs: Vec<ScrapedJob> =
         serde_json::from_str(scraped_jobs.value.unwrap().as_str().unwrap()).unwrap();
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Coinbase"]);
-
-    data.data.get_mut("Coinbase").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Coinbase", data);
 
     Ok(jobs_payload)
 }
-

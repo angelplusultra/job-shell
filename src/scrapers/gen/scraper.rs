@@ -27,7 +27,6 @@ pub async fn scrape_gen(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> 
 
     let mut total_scraped_jobs: Vec<ScrapedJob> = Vec::new();
     while next_button_result.is_ok() {
-
         tab.wait_for_element("section[data-automation-id='jobResults']")?;
         // scrape jobs
 
@@ -55,15 +54,14 @@ JSON.stringify([...document.querySelectorAll("li.css-1q2dra3")].map(el => {
 
         if let Ok(next_button) = next_button_result {
             next_button.click()?;
-            next_button_result = tab.wait_for_element_with_custom_timeout("button[aria-label='next']", Duration::from_secs(3));
+            next_button_result = tab.wait_for_element_with_custom_timeout(
+                "button[aria-label='next']",
+                Duration::from_secs(3),
+            );
         }
     }
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(total_scraped_jobs, &data.data["Gen"]);
-
-    data.data.get_mut("Gen").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(total_scraped_jobs, "Gen", data);
 
     Ok(jobs_payload)
 }

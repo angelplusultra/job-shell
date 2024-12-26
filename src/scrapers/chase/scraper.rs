@@ -34,13 +34,8 @@ pub async fn scrape_chase(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>
         offset += 200;
     }
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Chase"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("Chase").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Chase", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
 }
-

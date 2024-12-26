@@ -51,12 +51,7 @@ JSON.stringify(jobsPayload);
     let scraped_jobs: Vec<ScrapedJob> =
         serde_json::from_str(scraped_jobs.value.unwrap().as_str().unwrap()).unwrap();
 
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Reddit"]);
-
-    data.data.get_mut("Reddit").unwrap().jobs = jobs_payload.all_jobs.clone();
-
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "Reddit", data);
 
     Ok(jobs_payload)
 }
-

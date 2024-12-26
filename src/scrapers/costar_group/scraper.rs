@@ -47,13 +47,8 @@ pub async fn scrape_costar_group(data: &mut Data) -> Result<JobsPayload, Box<dyn
     }
 
     // Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["CoStar Group"]);
-
-    // REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("CoStar Group").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "CoStar Group", data);
 
     // Return JobsPayload
     Ok(jobs_payload)
 }
-
