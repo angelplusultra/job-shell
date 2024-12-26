@@ -57,26 +57,29 @@ pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>>
 
     let json = response.json::<Value>().await?;
 
-    let scraped_jobs: Vec<ScrapedJob> = json["data"]["job_search"]
+ let scraped_jobs: Vec<ScrapedJob> = json["data"]["job_search"]
         .as_array()
         .unwrap()
         .iter()
-        .map(|v| ScrapedJob {
-            title: v["title"].as_str().unwrap().trim().to_string(),
-            // TODO: Fix this so it will create a ScrapedJob per location not joining the locations
-            // into a string
-            location: v["locations"]
+        .flat_map(|v| {
+            let title = v["title"].as_str().unwrap().trim().to_string();
+            let link = format!(
+                "https://www.metacareers.com/jobs/{}",
+                v["id"].as_str().unwrap().trim()
+            );
+
+            // Create a ScrapedJob for each location
+            v["locations"]
                 .as_array()
                 .unwrap()
                 .iter()
-                .map(|l| l.as_str().unwrap().trim().to_string())
-                .collect::<Vec<String>>()
-                .join(" | "),
-            link: format!(
-                "https://www.metacareers.com/jobs/{}",
-                v["id"].as_str().unwrap().trim()
-            ),
-        }).collect();
+                .map(move |l| ScrapedJob {
+                    title: title.clone(),
+                    location: l.as_str().unwrap().trim().to_string(),
+                    link: link.clone(),
+                })
+        })
+        .collect();
 
     let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["Meta"]);
 
