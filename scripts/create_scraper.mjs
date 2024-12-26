@@ -70,11 +70,7 @@ pub async fn scrape_${name.toLowerCase()}(data: &mut Data) -> Result<JobsPayload
         serde_json::from_str(remote_object.value.unwrap().as_str().unwrap()).unwrap();
 
 		// Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["${dataKey}"]);
-
-		// REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("${dataKey}").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "${dataKey}", data);
 
 	// Return JobsPayload
     Ok(jobs_payload)
@@ -137,11 +133,7 @@ JSON.stringify(jobs);
         serde_json::from_str(remote_object.value.unwrap().as_str().unwrap()).unwrap();
 
 		// Convert Vector of ScrapedJob into a JobsPayload
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, &data.data["${dataKey}"]);
-
-		// REMEBER TO SAVE THE NEW JOBS TO THE DATA STATE
-    data.data.get_mut("${dataKey}").unwrap().jobs = jobs_payload.all_jobs.clone();
-    data.save();
+    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, "${dataKey}", data);
 
 	// Return JobsPayload
     Ok(jobs_payload)
