@@ -150,10 +150,15 @@ impl JobsPayload {
         }
     }
 
-    pub fn from_scraped_jobs(scraped_jobs: Vec<ScrapedJob>, company: &Company) -> Self {
+    pub fn from_scraped_jobs(
+        scraped_jobs: Vec<ScrapedJob>,
+        company_key: &str,
+        data: &mut Data,
+    ) -> Self {
         let mut all_jobs: Vec<Job> = Vec::new();
         let mut new_jobs: Vec<Job> = Vec::new();
 
+        let company = data.data.get_mut(company_key).unwrap();
         // Check for first scrape
         if company.jobs.is_empty() {
             all_jobs = scraped_jobs
@@ -200,6 +205,9 @@ impl JobsPayload {
                 }
             }
         }
+
+        company.jobs = all_jobs.clone();
+        data.save();
 
         return JobsPayload {
             are_new_jobs: new_jobs.len() > 0,
