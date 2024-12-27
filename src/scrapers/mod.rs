@@ -56,3 +56,7 @@ pub mod cloudflare {
 pub mod robinhood {
 	pub mod scraper;
 }
+
+pub mod nike {
+	pub mod scraper;
+}
