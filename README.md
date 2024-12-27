@@ -66,10 +66,10 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://upload.wikimedia.org/wikipedia/commons/0/02/1Password_wordmark_blue_2023.svg" 
       />
     </td>
-    <!-- AirBnB -->
+    <!-- Airbnb -->
     <td>
       <img 
-        alt="AirBnB" 
+        alt="Airbnb" 
         width="150" 
         height="150" 
         src="https://cdn.brandfetch.io/idkuvXnjOH/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
@@ -209,6 +209,15 @@ Say goodbye to distractions and hello to streamlined job hunting.
     </td>
   </tr>
   <tr>
+    <!-- Nike -->
+    <td>
+      <img 
+        alt="Nike" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/id_0dwKPKT/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
     <!-- Norton -->
     <td>
       <img 
@@ -236,6 +245,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idkKwm0IT0/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <!-- Robinhood -->
     <td>
       <img 
@@ -245,8 +256,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/id3WzK3p17/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <!-- Salesforce -->
     <td>
       <img 
@@ -274,6 +283,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idyxZCX73R/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <!-- Stripe -->
     <td>
       <img 
@@ -285,7 +296,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
     </td>
   </tr>
 </table>
-
 
 
 
