@@ -136,6 +136,7 @@ jobs:
   #         asset_path: release-binaries/macos-artifacts/jobshell-aarch64
   #         asset_name: jobshell-macos-aarch64
   #         asset_content_type: application/octet-stream
+
   publish-to-cargo:
     needs: [release]
     runs-on: macos-latest
