@@ -137,33 +137,33 @@ jobs:
   #         asset_name: jobshell-macos-aarch64
   #         asset_content_type: application/octet-stream
 
-  publish-to-cargo:
-    needs: [release]
-    runs-on: macos-latest
-    steps:
-      # Step 1: Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Step 2: Install Rust
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
-      # Step 3: Validate the package
-      - name: Validate Cargo Package
-        run: cargo package --allow-dirty
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-      # Step 4: Publish to Crates.io
-      - name: Publish to crates.io
-        run: cargo publish --allow-dirty
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  # publish-to-cargo:
+  #   # needs: [release]
+  #   runs-on: macos-latest
+  #   steps:
+  #     # Step 1: Checkout the repository
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #
+  #     # Step 2: Install Rust
+  #     - name: Set up Rust
+  #       uses: actions-rs/toolchain@v1
+  #       with:
+  #         toolchain: stable
+  #
+  #     # Step 3: Validate the package
+  #     - name: Validate Cargo Package
+  #       run: cargo package --allow-dirty
+  #       env:
+  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  #
+  #     # Step 4: Publish to Crates.io
+  #     - name: Publish to crates.io
+  #       run: cargo publish --allow-dirty
+  #       env:
+  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
   update-homebrew-tap:
-    needs: [release]
+    # needs: [release]
     runs-on: macos-latest
 
     steps:
