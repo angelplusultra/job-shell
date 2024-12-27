@@ -10,6 +10,23 @@ permissions:
   contents: write
 
 jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          override: true
+          toolchain: stable
+
+      - name: Build for Linux
+        run: cargo build --release
+
+  
   # build-windows:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -162,28 +179,28 @@ jobs:
   #       run: cargo publish --allow-dirty
   #       env:
   #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-  update-homebrew-tap:
-    # needs: [release]
-    runs-on: macos-latest
-
-    steps:
-      # Step 1: Parse the version from the tag
-      - name: Extract version
-        id: extract_version
-        run: |
-          TAG_NAME=${GITHUB_REF##*/}
-          VERSION=${TAG_NAME#v}
-          echo "Extracted version: $VERSION"
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      # Step 2: Clone the homebrew-jobshell repository
-      - name: Clone homebrew-jobshell repository
-        run: |
-          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/angelplusultra/homebrew-jobshell.git
-          cd homebrew-jobshell
-
-      # Step 3: Run the update script in the cloned repository
-      # - name: Run Homebrew update script
-      #   working-directory: homebrew-jobshell
-      #   run: ./script.sh $VERSION
-
+  # update-homebrew-tap:
+  #   # needs: [release]
+  #   runs-on: macos-latest
+  #
+  #   steps:
+  #     # Step 1: Parse the version from the tag
+  #     - name: Extract version
+  #       id: extract_version
+  #       run: |
+  #         TAG_NAME=${GITHUB_REF##*/}
+  #         VERSION=${TAG_NAME#v}
+  #         echo "Extracted version: $VERSION"
+  #         echo "VERSION=${VERSION}" >> $GITHUB_ENV
+  #
+  #     # Step 2: Clone the homebrew-jobshell repository
+  #     - name: Clone homebrew-jobshell repository
+  #       run: |
+  #         git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/angelplusultra/homebrew-jobshell.git
+  #         cd homebrew-jobshell
+  #
+  #     # Step 3: Run the update script in the cloned repository
+  #     - name: Run Homebrew update script
+  #       working-directory: homebrew-jobshell
+  #       run: ./script.sh $VERSION
+  #
