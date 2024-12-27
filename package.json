@@ -1,5 +1,0 @@
-{
-	"scripts": {
-		"create_scraper": "node scripts/create_scraper.mjs"
-	}
-}
