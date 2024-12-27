@@ -23,6 +23,8 @@ jobs:
           override: true
           toolchain: stable
 
+      - name: Create artificats directory
+        run: mkdir artifacts
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -35,6 +37,14 @@ jobs:
       - name: Build for Linux
         run: cargo build --release
 
+      - name: Copy binary to artifacts
+        run: cp target/release/jobshell artifacts/
+
+      - name: Upload Linux binary
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-artifacts
+          path: artifacts/
   
   # build-windows:
   #   runs-on: ubuntu-latest
