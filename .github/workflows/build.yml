@@ -245,3 +245,14 @@ jobs:
         working-directory: homebrew-jobshell
         run: ./script.sh $VERSION
 
+      - name: Commit Changes and Push
+        working-directory: homebrew-jobshell
+        run: |
+          git add ./Formula/jobshell.rb
+          git status
+          git commit -m "Bumped version to v$VERSION"
+          git push
+          
+
+
+
