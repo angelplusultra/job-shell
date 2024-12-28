@@ -294,6 +294,24 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+<!-- Toast -->
+   <td>
+      <img 
+        alt="Toast" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idJCbAfjvP/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+ <!-- Uber -->
+   <td>
+      <img 
+        alt="Uber" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/ididNbiiOd/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
   </tr>
 </table>
 
