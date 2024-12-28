@@ -1,6 +1,7 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
+use scrapers::doordash::scraper::scrape_doordash;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -70,13 +71,14 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 30] = [
+const COMPANYKEYS: [&str; 31] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
     "Cisco",
     "Cloudflare",
     "CoStar Group",
+    "DoorDash",
     "Experian",
     "1Password",
     "Weedmaps",
@@ -592,6 +594,7 @@ pub async fn scrape_jobs(
         "CoStar Group" => scrape_costar_group(data).await,
         "Blizzard" => scrape_blizzard(data).await,
         "Coinbase" => scrape_coinbase(data).await,
+        "DoorDash" => scrape_doordash(data).await,
         "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
         "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
         "Experian" => scrape_experian(data).await,
