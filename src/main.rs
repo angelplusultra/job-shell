@@ -48,6 +48,7 @@ use scrapers::servicenow::scraper::scrape_servicenow;
 use scrapers::square::scraper::scrape_square;
 use scrapers::stripe::scraper::scrape_stripe;
 use scrapers::toast::scraper::scrape_toast;
+use scrapers::uber::scraper::scrape_uber;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -69,7 +70,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 29] = [
+const COMPANYKEYS: [&str; 30] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
@@ -98,7 +99,8 @@ const COMPANYKEYS: [&str; 29] = [
     "Square",
     "Stripe",
     "Salesforce",
-    "Toast"
+    "Toast",
+    "Uber",
 ];
 
 mod cron;
@@ -610,6 +612,7 @@ pub async fn scrape_jobs(
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
         "Toast" => scrape_toast(data).await,
+        "Uber" => scrape_uber(data).await,
         "The Browser Company" => {
             default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS).await
         }
