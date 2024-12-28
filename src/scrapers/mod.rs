@@ -64,3 +64,7 @@ pub mod nike {
 pub mod toast {
 	pub mod scraper;
 }
+
+pub mod uber {
+	pub mod scraper;
+}
