@@ -68,3 +68,7 @@ pub mod toast {
 pub mod uber {
 	pub mod scraper;
 }
+
+pub mod doordash {
+	pub mod scraper;
+}
