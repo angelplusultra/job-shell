@@ -1,7 +1,6 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::nike::scraper::scrape_nike;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -41,12 +40,14 @@ use scrapers::gen::scraper::scrape_gen;
 use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
+use scrapers::nike::scraper::scrape_nike;
 use scrapers::reddit::scraper::scrape_reddit;
 use scrapers::robinhood::scraper::scrape_robinhood;
 use scrapers::salesforce::scraper::scrape_salesforce;
 use scrapers::servicenow::scraper::scrape_servicenow;
 use scrapers::square::scraper::scrape_square;
 use scrapers::stripe::scraper::scrape_stripe;
+use scrapers::toast::scraper::scrape_toast;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -68,7 +69,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 28] = [
+const COMPANYKEYS: [&str; 29] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
@@ -97,6 +98,7 @@ const COMPANYKEYS: [&str; 28] = [
     "Square",
     "Stripe",
     "Salesforce",
+    "Toast"
 ];
 
 mod cron;
@@ -607,10 +609,10 @@ pub async fn scrape_jobs(
         "ServiceNow" => scrape_servicenow(data).await,
         "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
         "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
+        "Toast" => scrape_toast(data).await,
         "The Browser Company" => {
             default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS).await
         }
-        "Toast" => default_scrape_jobs_handler(data, TOAST_DEFAULT_SCRAPE_OPTIONS).await,
 
         _ => return Err(format!("Scraper yet to be implemented for {}", company_key).into()),
     }?;

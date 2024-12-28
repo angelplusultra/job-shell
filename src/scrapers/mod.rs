@@ -60,3 +60,7 @@ pub mod robinhood {
 pub mod nike {
 	pub mod scraper;
 }
+
+pub mod toast {
+	pub mod scraper;
+}
