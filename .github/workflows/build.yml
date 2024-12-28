@@ -185,7 +185,6 @@ jobs:
   #
 
   publish-to-cargo:
-    environment: CI/CD  
 
     runs-on: macos-latest
     steps:
@@ -214,9 +213,8 @@ jobs:
     needs: [release]
     runs-on: macos-latest
     permissions:
-      contents: write    # important for pushing changes
+      contents: write
     steps:
-      # Step 1: Extract version from the tag
       - name: Extract version
         id: extract_version
         run: |
@@ -224,27 +222,24 @@ jobs:
           VERSION=${TAG_NAME#v}
           echo "Extracted version: $VERSION"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      # Step 2: Check out the homebrew-jobshell repository
+          
       - name: Checkout homebrew-jobshell
         uses: actions/checkout@v3
         with:
           repository: angelplusultra/homebrew-jobshell
           path: homebrew-jobshell
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      # Step 3: Configure Git user.name / user.email
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Changed this line
+          
       - name: Configure Git
         run: |
           cd homebrew-jobshell
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-      # Step 4: Run your script
+          
       - name: Run Homebrew update script
         working-directory: homebrew-jobshell
         run: ./script.sh $VERSION
-
+        
       - name: Commit Changes and Push
         working-directory: homebrew-jobshell
         run: |
@@ -252,7 +247,5 @@ jobs:
           git status
           git commit -m "Bumped version to v$VERSION"
           git push
-          
-
 
 
