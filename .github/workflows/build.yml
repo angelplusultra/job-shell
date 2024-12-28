@@ -186,6 +186,8 @@ jobs:
 
   publish-to-cargo:
     # needs: [release]
+    environment: CI/CD  
+
     runs-on: macos-latest
     steps:
       # Step 1: Checkout the repository
