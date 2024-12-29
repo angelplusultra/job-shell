@@ -1066,7 +1066,7 @@ checksum = "8eaf4bc02d17cbdd7ff4c7438cafcdf7fb9a4613313ad11b4f8fefe7d3fa0130"
 
 [[package]]
 name = "jobshell"
-version = "1.0.10"
+version = "1.0.11"
 dependencies = [
  "chrono",
  "clap",
