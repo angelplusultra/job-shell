@@ -72,3 +72,7 @@ pub mod uber {
 pub mod doordash {
 	pub mod scraper;
 }
+
+pub mod paypal {
+	pub mod scraper;
+}

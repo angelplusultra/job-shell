@@ -2,6 +2,7 @@ use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
 use scrapers::doordash::scraper::scrape_doordash;
+use scrapers::paypal::scraper::scrape_paypal;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -71,7 +72,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 31] = [
+const COMPANYKEYS: [&str; 32] = [
     "AirBnB",
     "Anduril",
     "Blizzard",
@@ -95,6 +96,7 @@ const COMPANYKEYS: [&str; 31] = [
     "Netflix",
     "Nike",
     "Meta",
+    "PayPal",
     "Chase",
     "Robinhood",
     "ServiceNow",
@@ -600,6 +602,7 @@ pub async fn scrape_jobs(
         "Experian" => scrape_experian(data).await,
         "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
         "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
+        "PayPal" => scrape_paypal(data).await,
         "Reddit" => scrape_reddit(data).await,
         "Robinhood" => scrape_robinhood(data).await,
         "Gen" => scrape_gen(data).await,
