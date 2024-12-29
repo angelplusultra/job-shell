@@ -1,8 +1,8 @@
 ---
 name: 'Code Refactor '
 about: Suggest a code refactor
-title: 'Code Refactor: {DESCRIBE REFACTOR}'
-labels: ''
+title: "[CODE REFACTOR]: {DESCRIBE REFACTOR}"
+labels: enhancement
 assignees: ''
 
 ---
