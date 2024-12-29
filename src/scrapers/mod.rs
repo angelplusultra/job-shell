@@ -76,3 +76,7 @@ pub mod doordash {
 pub mod paypal {
 	pub mod scraper;
 }
+
+pub mod atlassian {
+	pub mod scraper;
+}

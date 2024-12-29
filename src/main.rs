@@ -1,8 +1,6 @@
 use chrono::Utc;
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use scrapers::doordash::scraper::scrape_doordash;
-use scrapers::paypal::scraper::scrape_paypal;
 use core::panic;
 use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
@@ -30,6 +28,7 @@ use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
 use reqwest::Client;
 use scrapers::airbnb::scraper::scrape_airbnb;
+use scrapers::atlassian::scraper::scrape_atlassian;
 use scrapers::blizzard::scraper::scrape_blizzard;
 use scrapers::chase::scraper::scrape_chase;
 use scrapers::cisco::scraper::scrape_cisco;
@@ -37,12 +36,14 @@ use scrapers::cloudflare::scraper::scrape_cloudflare;
 use scrapers::coinbase::scraper::scrape_coinbase;
 use scrapers::costar_group::scraper::scrape_costar_group;
 use scrapers::disney::scraper::scrape_disney;
+use scrapers::doordash::scraper::scrape_doordash;
 use scrapers::experian::scraper::scrape_experian;
 use scrapers::gen::scraper::scrape_gen;
 use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::nike::scraper::scrape_nike;
+use scrapers::paypal::scraper::scrape_paypal;
 use scrapers::reddit::scraper::scrape_reddit;
 use scrapers::robinhood::scraper::scrape_robinhood;
 use scrapers::salesforce::scraper::scrape_salesforce;
@@ -72,9 +73,10 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 32] = [
+const COMPANYKEYS: [&str; 33] = [
     "AirBnB",
     "Anduril",
+    "Atlassian",
     "Blizzard",
     "Cisco",
     "Cloudflare",
@@ -590,6 +592,7 @@ pub async fn scrape_jobs(
     let jobs_payload = match company_key {
         "AirBnB" => scrape_airbnb(data).await,
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
+        "Atlassian" => scrape_atlassian(data).await,
         "Chase" => scrape_chase(data).await,
         "Cloudflare" => scrape_cloudflare(data).await,
         "Cisco" => scrape_cisco(data).await,
