@@ -75,12 +75,22 @@ Say goodbye to distractions and hello to streamlined job hunting.
     </td>
     <td>
       <img 
+        alt="Atlassian" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idlQIwGMOK/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
+      />
+    </td>
+    <td>
+      <img 
         alt="Blizzard" 
         width="150" 
         height="150" 
         src="https://cdn.brandfetch.io/idEyJgSpdD/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Chase" 
@@ -89,8 +99,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idudVYts5w/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="Cisco" 
@@ -115,6 +123,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idwDWo4ONQ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="CoStar" 
@@ -123,8 +133,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idvP5FAI8W/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="Discord" 
@@ -149,6 +157,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idrVhdDocf/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Experian" 
@@ -157,8 +167,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idRdK0bkoQ/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="GitHub" 
@@ -183,6 +191,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Meta" 
@@ -191,8 +201,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idWvz5T3V7/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="Netflix" 
@@ -217,6 +225,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idPZ21fCdZ/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Palantir" 
@@ -225,8 +235,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/id4EZOUw_e/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="PayPal" 
@@ -251,6 +259,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/id3WzK3p17/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Salesforce" 
@@ -259,8 +269,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idVE84WdIN/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="ServiceNow" 
@@ -285,6 +293,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idxAg10C0L/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+  </tr>
+  <tr>
     <td>
       <img 
         alt="Toast" 
@@ -293,8 +303,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/idJCbAfjvP/theme/dark/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
-  </tr>
-  <tr>
     <td>
       <img 
         alt="Uber" 
