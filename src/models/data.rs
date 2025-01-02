@@ -119,7 +119,7 @@ fn display_option(opt: &Option<String>) -> &str {
 pub struct Data {
     pub companies: HashMap<String, Company>,
     pub smart_criteria: String,
-    pub smart_criteria_enabled: bool
+    pub smart_criteria_enabled: bool,
 }
 
 #[derive(Debug)]
@@ -232,7 +232,7 @@ impl Data {
         Data {
             companies: HashMap::from_iter(companies),
             smart_criteria: "".to_string(),
-            smart_criteria_enabled: false
+            smart_criteria_enabled: false,
         }
     }
     pub fn save(&self) {
@@ -266,19 +266,19 @@ impl Data {
         let mut json_value: Value = serde_json::from_str(&content)?;
 
         // Get mutable reference to the data object
-        let data_obj = json_value
-            .get_mut("data")
-            .ok_or("Missing 'data' field")?
+        let companies_obj = json_value
+            .get_mut("companies")
+            .ok_or("Missing 'companies' field")?
             .as_object_mut()
-            .ok_or("'data' field is not an object")?;
+            .ok_or("'companies' field is not an object")?;
 
         // Track if we made any changes
         let mut made_changes = false;
 
         // Check and add missing company keys
         for key in COMPANYKEYS {
-            if !data_obj.contains_key(key) {
-                data_obj.insert(
+            if !companies_obj.contains_key(key) {
+                companies_obj.insert(
                     key.to_string(),
                     json!({
                         "connections": [],
@@ -373,5 +373,15 @@ impl Data {
         {
             self.save();
         }
+    }
+
+    pub fn set_smart_criteria(&mut self, criteria: String) {
+        self.smart_criteria = criteria;
+        self.save();
+    }
+
+    pub fn toggle_smart_criteria_enabled(&mut self) {
+        self.smart_criteria_enabled = !self.smart_criteria_enabled;
+        self.save();
     }
 }

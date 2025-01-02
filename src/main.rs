@@ -9,11 +9,13 @@ use discord::initialize_discord_mode;
 use dotenv::dotenv;
 use handlers::handlers::{
     default_scrape_jobs_handler, handle_craft_a_message, handle_job_selection,
-    handle_manage_connection, handle_open_job_in_browser, handle_reach_out_to_a_connection,
-    handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
-    prompt_user_for_company_selection, prompt_user_for_connection_option,
-    prompt_user_for_connection_selection, prompt_user_for_job_option,
-    prompt_user_for_main_menu_selection, CompanyOption, FormattedJob, JobOption, MainMenuOption,
+    handle_manage_connection, handle_manage_smart_criteria, handle_open_job_in_browser,
+    handle_reach_out_to_a_connection, handle_scan_new_jobs_across_network_and_followed_companies,
+    prompt_user_for_company_option, prompt_user_for_company_selection,
+    prompt_user_for_connection_option, prompt_user_for_connection_selection,
+    prompt_user_for_job_option, prompt_user_for_main_menu_selection,
+    prompt_user_for_manage_smart_criteria_selection, CompanyOption, FormattedJob, JobOption,
+    MainMenuOption, ManageSmartCriteriaOptions,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
@@ -23,6 +25,7 @@ use handlers::scrape_options::{
 };
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
+use jobshell::utils::clear_console;
 use models::data::{AnalyzeData, Company, Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
@@ -62,14 +65,14 @@ use std::str::FromStr;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, fs};
+use strum::IntoEnumIterator;
 use strum_macros::{Display, EnumIter};
 use tabled::Tabled;
 use tabled::{settings::Style, Table};
 use tokio::task::try_id;
-
 use tokio::time::Instant;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
-use utils::{clear_console, stall_and_present_countdown, stall_program};
+use utils::{stall_and_present_countdown, stall_program};
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
@@ -578,6 +581,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                 continue;
             }
+            MainMenuOption::ManageSmartCriteria => handle_manage_smart_criteria(),
             _ => break,
         }
     }

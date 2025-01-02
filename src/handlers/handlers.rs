@@ -8,7 +8,7 @@ use std::{
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Input, Select};
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
 use strum::IntoEnumIterator;
@@ -516,6 +516,8 @@ pub enum MainMenuOption {
     MyConnections,
     #[strum(to_string = "View New Jobs Reports")]
     ViewNewJobsReports,
+    #[strum(to_string = "Manage Smart Criteria")]
+    ManageSmartCriteria,
     #[strum(to_string = "Exit")]
     Exit,
 }
@@ -596,4 +598,87 @@ pub async fn handle_manage_connection(
     }
 
     Ok(())
+}
+
+#[derive(Display, EnumIter)]
+pub enum ManageSmartCriteriaOptions {
+    #[strum(to_string = "Set Smart Criteria")]
+    SetSmartCriteria,
+
+    #[strum(to_string = "Enable Smart Criteria [ ]")]
+    EnableSmartCriteria,
+
+    #[strum(to_string = "Back")]
+    Back,
+}
+pub fn prompt_user_for_manage_smart_criteria_selection() -> ManageSmartCriteriaOptions {
+    let mut display_strings = ManageSmartCriteriaOptions::display_strings();
+
+    let data = Data::get_data();
+
+    if data.smart_criteria.is_empty() {
+        // filter out the enable option
+        display_strings.retain(|opt| !opt.starts_with("Enable Smart Criteria"));
+    }
+
+    if data.smart_criteria_enabled {
+        let idx = ManageSmartCriteriaOptions::iter()
+            .position(|o| matches!(o, ManageSmartCriteriaOptions::EnableSmartCriteria))
+            .unwrap();
+        display_strings[idx] = format!("Enable Smart Criteria [x]");
+    }
+
+    let dialoguer_styles = ColorfulTheme::default();
+
+    let idx = Select::with_theme(&dialoguer_styles)
+        .with_prompt("Select an option")
+        .items(&display_strings)
+        .interact()
+        .unwrap();
+
+    let selected_option = ManageSmartCriteriaOptions::iter().nth(idx).unwrap();
+
+    return selected_option;
+}
+
+pub fn handle_manage_smart_criteria() {
+    clear_console();
+    loop {
+        let mut data = Data::get_data();
+
+        println!();
+        println!(
+            "Smart Criteria: {}",
+            if data.smart_criteria.is_empty() {
+                "Not smart criteria set".red()
+            } else {
+                data.smart_criteria.green()
+            }
+        );
+        println!();
+        let manage_smart_criteria_selection = prompt_user_for_manage_smart_criteria_selection();
+
+        match manage_smart_criteria_selection {
+            ManageSmartCriteriaOptions::SetSmartCriteria => {
+                clear_console();
+                let dialoguer_styles = ColorfulTheme::default();
+                let smart_criteria = format!(
+                    "I am interested in jobs that {}",
+                    Input::<String>::with_theme(&dialoguer_styles)
+                        .with_prompt("Enter your smart criteria")
+                        .with_initial_text("I am interested in jobs that ")
+                        .interact()
+                        .unwrap()
+                );
+
+                data.set_smart_criteria(smart_criteria);
+            }
+
+            ManageSmartCriteriaOptions::EnableSmartCriteria => {
+                data.toggle_smart_criteria_enabled();
+            }
+
+            _ => break,
+        }
+    }
 }
