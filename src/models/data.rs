@@ -111,13 +111,15 @@ impl Connection {
 fn display_option(opt: &Option<String>) -> &str {
     match opt {
         Some(value) => value.as_str(),
-        None => "N/A", // Customize for missing data
+        None => "N/A", // Customize for missing companies
     }
 }
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct Data {
-    pub data: HashMap<String, Company>,
+    pub companies: HashMap<String, Company>,
+    pub smart_criteria: String,
+    pub smart_criteria_enabled: bool
 }
 
 #[derive(Debug)]
@@ -169,7 +171,7 @@ impl AnalyzeData for Data {
         let mut mid = 0;
         let mut principal = 0;
         let mut unidentified = 0;
-        for (_, c) in self.data.iter() {
+        for (_, c) in self.companies.iter() {
             'job_loop: for j in c.jobs.iter() {
                 let normalized_title = j.title.to_lowercase();
 
@@ -228,12 +230,16 @@ impl Data {
             .map(|&v| (v.to_string(), Company::new()))
             .collect();
         Data {
-            data: HashMap::from_iter(companies),
+            companies: HashMap::from_iter(companies),
+            smart_criteria: "".to_string(),
+            smart_criteria_enabled: false
         }
     }
     pub fn save(&self) {
         let data = json!({
-            "data": self.data
+            "companies": self.companies,
+            "smart_criteria": self.smart_criteria,
+            "smart_criteria_enabled": self.smart_criteria_enabled
         });
 
         let data_file_path = Self::get_data_dir().join("data.json");
@@ -309,7 +315,7 @@ impl Data {
 
     pub fn mark_job_seen(&mut self, id: &uuid::Uuid) {
         if self
-            .data
+            .companies
             .iter_mut()
             .flat_map(|(_, c)| &mut c.jobs)
             .any(|j| {
@@ -327,7 +333,7 @@ impl Data {
 
     pub fn mark_job_applied(&mut self, id: &uuid::Uuid) {
         if self
-            .data
+            .companies
             .iter_mut()
             .flat_map(|(_, c)| &mut c.jobs)
             .any(|j| {
@@ -344,7 +350,7 @@ impl Data {
     }
 
     pub fn toggle_company_follow(&mut self, company_key: &'static str) {
-        let c = self.data.get_mut(company_key).unwrap();
+        let c = self.companies.get_mut(company_key).unwrap();
 
         c.is_following = !c.is_following;
 
@@ -353,7 +359,7 @@ impl Data {
 
     pub fn toggle_job_bookmark(&mut self, id: &uuid::Uuid) {
         if self
-            .data
+            .companies
             .iter_mut()
             .flat_map(|(_, c)| &mut c.jobs)
             .any(|j| {
