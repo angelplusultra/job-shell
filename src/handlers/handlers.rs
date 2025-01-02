@@ -419,7 +419,7 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
 ) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
     clear_console();
     let companies_to_scrape: Vec<String> = data
-        .data
+        .companies
         .iter()
         // Filter out companies where connections.len() > 0 or company.is_following equals true
         .filter(|(_, c)| {
@@ -578,7 +578,7 @@ pub async fn handle_manage_connection(
 
                 if confirm {
                     // Filter out the connection from all companies
-                    if let Some(company) = data.data.get_mut(company_name) {
+                    if let Some(company) = data.companies.get_mut(company_name) {
                         company.connections.retain(|c| {
                             c.first_name != connection.first_name
                                 || c.last_name != connection.last_name

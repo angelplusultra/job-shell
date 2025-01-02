@@ -65,6 +65,7 @@ use std::{env, fs};
 use strum_macros::{Display, EnumIter};
 use tabled::Tabled;
 use tabled::{settings::Style, Table};
+use tokio::task::try_id;
 
 use tokio::time::Instant;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
@@ -247,7 +248,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 loop {
                     clear_console();
                     let (display_jobs, formatted_jobs): (Vec<DisplayJob>, Vec<FormattedJob>) =
-                        data.data.iter().fold(
+                        data.companies.iter().fold(
                             (Vec::new(), Vec::new()),
                             |(mut display_jobs, mut formatted_jobs), (company_name, c)| {
                                 let (company_dbj, company_bj) = c
@@ -332,14 +333,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     //INFO: Company Loop
                     loop {
                         clear_console();
-                        let is_following = data.data[company].is_following;
+                        let is_following = data.companies[company].is_following;
                         let selected_company_option =
                             prompt_user_for_company_option(company, is_following);
 
                         match selected_company_option {
                             CompanyOption::Back => break,
                             CompanyOption::ViewJobs => {
-                                if data.data[company].jobs.is_empty() {
+                                if data.companies[company].jobs.is_empty() {
                                     clear_console();
                                     stall_and_present_countdown(3, Some("No jobs, try scraping"));
 
@@ -347,7 +348,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 }
                                 loop {
                                     clear_console();
-                                    let jobs = data.data.get(company).unwrap().jobs.clone();
+                                    let jobs = data.companies.get(company).unwrap().jobs.clone();
 
                                     match handle_job_selection(jobs, None, company) {
                                         Some(selected_job) => {
@@ -371,7 +372,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             }
                             CompanyOption::ViewOrEditConnections => {
                                 clear_console();
-                                let company_data = data.data.get(company).unwrap();
+                                let company_data = data.companies.get(company).unwrap();
                                 let connects: Vec<Connection> = company_data.connections.clone();
 
                                 if connects.is_empty() {
@@ -485,7 +486,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 let new_connection =
                                     Connection::create_with_form(&dialoguer_styles, company);
 
-                                if let Some(c) = data.data.get_mut(company) {
+                                if let Some(c) = data.companies.get_mut(company) {
                                     let existing_connection = c.connections.iter().find(|&c| {
                                         if c.last_name == new_connection.last_name
                                             && c.first_name == new_connection.first_name
@@ -552,7 +553,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             MainMenuOption::MyConnections => {
                 clear_console();
                 let all_connections: Vec<&Connection> = data
-                    .data
+                    .companies
                     .iter()
                     .map(|(_, c)| &c.connections)
                     .flatten()
@@ -650,7 +651,7 @@ async fn handle_job_option(
 ) -> Result<(), Box<dyn Error>> {
     loop {
         clear_console();
-        let data_job = data.data[company]
+        let data_job = data.companies[company]
             .jobs
             .iter()
             .find(|j| j.id == selected_job.id)
@@ -659,7 +660,10 @@ async fn handle_job_option(
         match answer {
             JobOption::OpenJobInBrowser => handle_open_job_in_browser(&selected_job, data)?,
             JobOption::ReachOut => {
-                handle_reach_out_to_a_connection(&data.data[company].connections, &selected_job)?;
+                handle_reach_out_to_a_connection(
+                    &data.companies[company].connections,
+                    &selected_job,
+                )?;
             }
             JobOption::GenerateJobDetails => {
                 let job_details = match company {

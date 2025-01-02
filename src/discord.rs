@@ -87,10 +87,10 @@ pub async fn initialize_discord_mode(
 
 async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
     let mut data = Data::get_data();
-    let mut company_keys: Vec<String> = data.data.keys().cloned().collect();
+    let mut company_keys: Vec<String> = data.companies.keys().cloned().collect();
 
     if !scan_all_companies {
-        company_keys.retain(|k| data.data[k].is_following || !data.data[k].connections.is_empty());
+        company_keys.retain(|k| data.companies[k].is_following || !data.companies[k].connections.is_empty());
     }
 
     let mut total_new_jobs: Vec<FormattedJob> = Vec::new();

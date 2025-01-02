@@ -158,7 +158,7 @@ impl JobsPayload {
         let mut all_jobs: Vec<Job> = Vec::new();
         let mut new_jobs: Vec<Job> = Vec::new();
 
-        let company = data.data.get_mut(company_key).unwrap();
+        let company = data.companies.get_mut(company_key).unwrap();
         // Check for first scrape
         if company.jobs.is_empty() {
             all_jobs = scraped_jobs
