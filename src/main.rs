@@ -102,8 +102,8 @@ mod reports;
 mod scrapers;
 
 // mod links
-mod utils;
 mod error;
+mod utils;
 mod models {
     pub mod ai;
     pub mod custom_error;
@@ -194,7 +194,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .default(false)
             .interact()?;
 
-        initialize_discord_mode(webhook_url, interval, scan_all_companies).await.unwrap();
+        initialize_discord_mode(webhook_url, interval, scan_all_companies)
+            .await
+            .unwrap_or_else(|e| eprintln!("Error: {}", e));
 
         return Ok(());
     }
@@ -466,7 +468,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 //     // Stop the spinner with success message
                                 //
                                 //     spinner.finish();
-                                //
                                 //     if all_jobs.is_empty() {
                                 //         stall_and_present_countdown(
                                 //             3,
@@ -474,8 +475,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 //         );
                                 //         continue;
                                 //     }
+                                // } else {
+                                //     spinner.finish();
                                 // }
 
+                                spinner.finish();
                                 // INFO: Job Selection Loop
                                 loop {
                                     clear_console();
@@ -610,10 +614,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // TODO: move somewhere
-pub async fn scrape_jobs(
-    data: &mut Data,
-    company_key: &str,
-) -> AppResult<JobsPayload> {
+pub async fn scrape_jobs(data: &mut Data, company_key: &str) -> AppResult<JobsPayload> {
     let jobs_payload = match company_key {
         "AirBnB" => scrape_airbnb(data).await,
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
