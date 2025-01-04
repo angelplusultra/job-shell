@@ -1,35 +1,27 @@
-use chrono::Utc;
-use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use core::panic;
-use cron::initialize_cron;
 use dialoguer::theme::ColorfulTheme;
-use dialoguer::{Confirm, Editor, FuzzySelect, Input, Select};
+use dialoguer::{Confirm, FuzzySelect, Input};
 use discord::initialize_discord_mode;
 use dotenv::dotenv;
 use handlers::handlers::{
-    default_scrape_jobs_handler, handle_craft_a_message, handle_job_selection,
-    handle_manage_connection, handle_manage_smart_criteria, handle_open_job_in_browser,
-    handle_reach_out_to_a_connection, handle_scan_new_jobs_across_network_and_followed_companies,
-    prompt_user_for_company_option, prompt_user_for_company_selection,
-    prompt_user_for_connection_option, prompt_user_for_connection_selection,
-    prompt_user_for_job_option, prompt_user_for_main_menu_selection,
-    prompt_user_for_manage_smart_criteria_selection, CompanyOption, FormattedJob, JobOption,
-    MainMenuOption, ManageSmartCriteriaOptions,
+    default_scrape_jobs_handler, handle_job_selection, handle_manage_connection,
+    handle_manage_smart_criteria, handle_open_job_in_browser, handle_reach_out_to_a_connection,
+    handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
+    prompt_user_for_company_selection, prompt_user_for_job_option,
+    prompt_user_for_main_menu_selection, CompanyOption, FormattedJob, JobOption, MainMenuOption,
 };
 use handlers::scrape_options::{
     ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
     ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
-    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, TOAST_DEFAULT_SCRAPE_OPTIONS,
-    WEEDMAPS_SCRAPE_OPTIONS,
+    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
 };
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
 use jobshell::utils::clear_console;
-use models::data::{AnalyzeData, Company, Connection, Data};
+use models::ai::{AiModel, OpenAIClient};
+use models::data::{Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
-use reqwest::Client;
 use scrapers::airbnb::scraper::scrape_airbnb;
 use scrapers::atlassian::scraper::scrape_atlassian;
 use scrapers::blizzard::scraper::scrape_blizzard;
@@ -55,24 +47,13 @@ use scrapers::square::scraper::scrape_square;
 use scrapers::stripe::scraper::scrape_stripe;
 use scrapers::toast::scraper::scrape_toast;
 use scrapers::uber::scraper::scrape_uber;
-use serde_json::{json, Value};
-use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::fs;
 use std::thread::sleep;
 use std::time::Duration;
-use std::{env, fs};
-use strum::IntoEnumIterator;
-use strum_macros::{Display, EnumIter};
 use tabled::Tabled;
 use tabled::{settings::Style, Table};
-use tokio::task::try_id;
-use tokio::time::Instant;
-use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
-use utils::{stall_and_present_countdown, stall_program};
+use utils::stall_and_present_countdown;
 use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
@@ -122,6 +103,7 @@ mod scrapers;
 // mod links
 mod utils;
 mod models {
+    pub mod ai;
     pub mod custom_error;
     pub mod data;
     pub mod gemini;
@@ -210,7 +192,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .default(false)
             .interact()?;
 
-        initialize_discord_mode(webhook_url, interval, scan_all_companies).await?;
+        initialize_discord_mode(webhook_url, interval, scan_all_companies).await.unwrap();
 
         return Ok(());
     }
@@ -432,12 +414,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 // Start the spinner
                                 spinner.enable_steady_tick(Duration::from_millis(120));
 
-                                // Simulate some work
-                                // sleep(Duration::from_secs(3));
-
-                                // Stop the spinner with success message
                                 let JobsPayload {
-                                    all_jobs,
+                                    mut all_jobs,
                                     new_jobs,
                                     are_new_jobs,
                                 } = match scrape_jobs(&mut data, company).await {
@@ -448,13 +426,53 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         continue;
                                     }
                                 };
-                                spinner.finish_with_message("Done! >:)");
 
                                 // TODO: Use 1 FormattedJob struct
                                 struct FormattedJob<'a> {
                                     display_string: String,
                                     original_job: &'a Job,
                                 }
+
+                                // TODO: Finish
+                                // if data.smart_criteria_enabled {
+                                //     spinner
+                                //         .set_message("Filtering jobs based on smart criteria...");
+                                //
+                                //     // Start the spinner
+                                //     spinner.enable_steady_tick(Duration::from_millis(120));
+                                //
+                                //     //
+                                //
+                                //     let open_ai_client = OpenAIClient::new();
+                                //     if let Ok(filtered_jobs) = open_ai_client
+                                //         .filter_jobs_based_on_smart_criteria(
+                                //             &all_jobs,
+                                //             &data.smart_criteria,
+                                //         )
+                                //         .await
+                                //     {
+                                //         all_jobs = filtered_jobs;
+                                //     } else {
+                                //         println!("Error filtering jobs with smart criteria");
+                                //         stall_and_present_countdown(
+                                //             3,
+                                //             Some("Error filtering jobs with smart criteria"),
+                                //         );
+                                //         continue;
+                                //     }
+                                //
+                                //     // Stop the spinner with success message
+                                //
+                                //     spinner.finish();
+                                //
+                                //     if all_jobs.is_empty() {
+                                //         stall_and_present_countdown(
+                                //             3,
+                                //             Some("No jobs found based on smart criteria"),
+                                //         );
+                                //         continue;
+                                //     }
+                                // }
 
                                 // INFO: Job Selection Loop
                                 loop {
@@ -635,17 +653,6 @@ pub async fn scrape_jobs(
     }?;
 
     Ok(jobs_payload)
-}
-
-fn prompt_user_did_apply() -> bool {
-    let dialoguer_styles = ColorfulTheme::default();
-
-    let apply = Confirm::with_theme(&dialoguer_styles)
-        .with_prompt("Did you apply?")
-        .interact()
-        .unwrap();
-
-    return apply;
 }
 
 async fn handle_job_option(
