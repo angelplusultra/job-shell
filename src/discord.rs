@@ -7,6 +7,7 @@ use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
 use uuid::Uuid;
 
 use crate::{
+    error::AppResult,
     models::{
         ai::{AiModel, OpenAIClient},
         data::Data,
@@ -43,28 +44,28 @@ struct Field {
     value: String,
     inline: bool,
 }
+
 pub async fn initialize_discord_mode(
     webhook_url: String,
     cron_interval: u64,
     scan_all_companies: bool,
-) -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Note the Send + Sync bounds
+) -> AppResult<()> {
     let scheduler = JobScheduler::new().await?;
-    let every_interval_by_hours = format!("0 0 */{} * *", cron_interval);
-    let every_interval_by_minutes = format!("0 */{} * * *", cron_interval);
 
-    // Create a job that runs at the specified interval
-    let job1 = CronJob::new_async(every_interval_by_hours, move |uuid, mut lock| {
+    let cron = format!("every {} hours", cron_interval);
+    println!("Using cron expression: {}", cron);
+
+    let job = CronJob::new_async(cron, move |uuid, mut lock| {
         let webhook_url = webhook_url.clone();
         Box::pin(async move {
             println!("Discord cron starting!");
-            // Convert potential error types to Box<dyn Error + Send + Sync>
-            let total_new_jobs = scan_for_new_jobs(scan_all_companies).await;
 
+            let total_new_jobs = scan_for_new_jobs(scan_all_companies).await;
             clear_console();
+
             if total_new_jobs.is_empty() {
                 println!("No new jobs detected");
-                return; // Return Result instead of early return
+                return; // Return Ok for successful empty check
             }
 
             println!("Finished Scraping");
@@ -75,23 +76,24 @@ pub async fn initialize_discord_mode(
             println!("Process finished!");
 
             if let Ok(Some(ts)) = lock.next_tick_for_job(uuid).await {
-                println!("Next time for the job is {:?}", ts);
+                println!("Next run scheduled for: {:?}", ts);
             } else {
-                println!("Could not get next tick for 7s job");
+                println!("Could not determine next run time");
             }
         })
     })?;
 
     // Add job to the scheduler
-    scheduler.add(job1).await?;
+    scheduler.add(job).await?;
 
     // Start the scheduler
     scheduler.start().await?;
     println!("Job scheduler started! Press Ctrl+C to exit.");
 
-    // Keep the main task running
+    // Wait for shutdown signal
     tokio::signal::ctrl_c().await?;
     println!("Shutting down scheduler...");
+
     Ok(())
 }
 
@@ -108,85 +110,64 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
     let mut total_new_jobs: Vec<FormattedJob> = Vec::new();
     for key in &company_keys {
         println!("Scanning new jobs @ {key}");
+
         let jobs_payload_result = scrape_jobs(&mut data, &key).await;
 
-        if let Ok(jobs_payload) = jobs_payload_result {
-            if jobs_payload.are_new_jobs && data.smart_criteria_enabled {
-                let openai_client = OpenAIClient::new();
-                
-                // BUG: this is the bullshit causing the problem 
-                let filtered_jobs = openai_client
-                    .filter_jobs_based_on_smart_criteria(
-                        &jobs_payload.new_jobs,
-                        &data.smart_criteria,
-                    )
-                    .await;
+        match jobs_payload_result {
+            Ok(jobs_payload) => {
+                if jobs_payload.are_new_jobs {
+                    if data.smart_criteria_enabled {
+                        println!("Filtering jobs based on smart criteria");
+                        let smart_criteria = &data.smart_criteria;
+                        let openai_client = OpenAIClient::new();
+                        let result = openai_client
+                            .filter_jobs_based_on_smart_criteria(
+                                &jobs_payload.new_jobs,
+                                smart_criteria,
+                            )
+                            .await;
+
+                        match result {
+                            Ok(filtered_jobs) => {
+                                let formatted_jobs = filtered_jobs
+                                    .iter()
+                                    .map(|j| FormattedJob {
+                                        title: j.title.clone(),
+                                        link: j.link.clone(),
+                                        location: j.location.clone(),
+                                        company: key.to_owned(),
+                                    })
+                                    .collect::<Vec<FormattedJob>>();
+                                total_new_jobs.extend(formatted_jobs);
+                            }
+                            Err(e) => {
+                                eprintln!("Error filtering jobs for {key}\nError: {e}");
+                            }
+                        }
+                    } else {
+                        let formatted_jobs = jobs_payload
+                            .new_jobs
+                            .iter()
+                            .map(|j| FormattedJob {
+                                title: j.title.clone(),
+                                link: j.link.clone(),
+                                location: j.location.clone(),
+                                company: key.to_owned(),
+                            })
+                            .collect::<Vec<FormattedJob>>();
+                        total_new_jobs.extend(formatted_jobs);
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Error scanning new jobs for {key}\nError: {e}");
             }
         }
-
-        // INFO: This is the original code that was causing the problem
-        //
-        // match jobs_payload_result {
-        //     Ok(jobs_payload) => {
-        //         if jobs_payload.are_new_jobs {
-        //             if data.smart_criteria_enabled {
-        //                 // let smart_criteria = &data.smart_criteria;
-        //                 // let openai_client = OpenAIClient::new();
-        //                 // let filtered_jobs = openai_client.filter_jobs_based_on_smart_criteria(
-        //                 //     &jobs_payload.new_jobs,
-        //                 //     smart_criteria,
-        //                 // )
-        //                 // .await.unwrap();
-        //                 // let formatted_jobs = filtered_jobs
-        //                 //     .iter()
-        //                 //     .map(|j| FormattedJob {
-        //                 //         title: j.title.clone(),
-        //                 //         link: j.link.clone(),
-        //                 //         location: j.location.clone(),
-        //                 //         company: key.to_owned(),
-        //                 //     })
-        //                 //     .collect::<Vec<FormattedJob>>();
-        //                 // total_new_jobs.extend(formatted_jobs);
-        //             } else {
-        //                 let formatted_jobs = jobs_payload
-        //                     .new_jobs
-        //                     .iter()
-        //                     .map(|j| FormattedJob {
-        //                         title: j.title.clone(),
-        //                         link: j.link.clone(),
-        //                         location: j.location.clone(),
-        //                         company: key.to_owned(),
-        //                     })
-        //                     .collect::<Vec<FormattedJob>>();
-        //                 total_new_jobs.extend(formatted_jobs);
-        //             }
-        //         }
-        //     }
-        //     Err(e) => {
-        //         eprintln!("Error scanning new jobs for {key}\nError: {e}");
-        //     }
-        // }
     }
 
     total_new_jobs
 }
 
-async fn filter_jobs_based_on_smart_criteria(
-    total_new_jobs: Vec<Job>,
-    smart_criteria: &str,
-) -> Vec<Job> {
-    let result = OpenAIClient::new()
-        .filter_jobs_based_on_smart_criteria(&total_new_jobs, smart_criteria)
-        .await;
-
-    match result {
-        Ok(filtered_jobs) => filtered_jobs,
-        Err(e) => {
-            eprintln!("Error filtering jobs: {e}");
-            Vec::new()
-        }
-    }
-}
 
 async fn deploy_messages_to_discord(
     total_new_jobs: Vec<FormattedJob>,
