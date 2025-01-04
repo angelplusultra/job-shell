@@ -3,12 +3,12 @@ use std::error::Error;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_square(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_square(data: &mut Data) -> AppResult<JobsPayload> {
     let mut page = 1;
     let mut scraped_jobs: Vec<ScrapedJob> = Vec::new();
 

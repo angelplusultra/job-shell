@@ -4,12 +4,12 @@ use headless_chrome::{Browser, LaunchOptions};
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{Job, JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_netflix(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_netflix(data: &mut Data) -> AppResult<JobsPayload> {
     let mut i = 0;
     let mut positions: Vec<ScrapedJob> = Vec::new();
     loop {

@@ -2,12 +2,15 @@ use std::error::Error;
 
 use headless_chrome::{Browser, LaunchOptions};
 
-use crate::models::{
-    data::Data,
-    scraper::{JobsPayload, ScrapedJob},
+use crate::{
+    error::AppResult,
+    models::{
+        data::Data,
+        scraper::{JobsPayload, ScrapedJob},
+    },
 };
 
-pub async fn scrape_coinbase(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_coinbase(data: &mut Data) -> AppResult<JobsPayload> {
     let launch_options = LaunchOptions {
         headless: false,
         window_size: Some((1920, 1080)),

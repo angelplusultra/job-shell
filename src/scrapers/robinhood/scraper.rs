@@ -2,12 +2,12 @@ use std::error::Error;
 
 use serde_json::Value;
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_robinhood(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_robinhood(data: &mut Data) -> AppResult<JobsPayload> {
     let json: Value = reqwest::get("https://api.greenhouse.io/v1/boards/robinhood/jobs")
         .await?
         .json()

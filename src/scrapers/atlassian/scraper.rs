@@ -3,12 +3,12 @@ use std::error::Error;
 use reqwest::Client;
 use serde_json::Value;
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_atlassian(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_atlassian(data: &mut Data) -> AppResult<JobsPayload> {
     let client = Client::new();
     let json: Value = client
     .get("https://www.atlassian.com/endpoint/careers/listings")
