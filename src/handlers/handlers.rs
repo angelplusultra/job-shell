@@ -15,14 +15,10 @@ use strum::IntoEnumIterator;
 use tabled::Table;
 
 use crate::{
-    models::{
+    error::AppResult, models::{
         data::{Company, Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
-    },
-    reports::{create_report, ReportMode},
-    scrape_jobs,
-    utils::{clear_console, stall_and_present_countdown},
-    COMPANYKEYS,
+    }, reports::{create_report, ReportMode}, scrape_jobs, utils::{clear_console, stall_and_present_countdown}, COMPANYKEYS
 };
 
 use super::scrape_options::DefaultJobScraperOptions;
@@ -40,7 +36,7 @@ impl<T: IntoEnumIterator + Display> EnumVariantsDisplayStrings for T {}
 pub async fn default_scrape_jobs_handler(
     data: &mut Data,
     options: DefaultJobScraperOptions,
-) -> Result<JobsPayload, Box<dyn Error>> {
+) -> AppResult<JobsPayload> {
     let launch_options = LaunchOptions {
         headless: options.headless,
         window_size: Some((1920, 1080)),
