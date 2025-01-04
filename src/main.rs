@@ -3,6 +3,7 @@ use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Input};
 use discord::initialize_discord_mode;
 use dotenv::dotenv;
+use error::AppResult;
 use handlers::handlers::{
     default_scrape_jobs_handler, handle_job_selection, handle_manage_connection,
     handle_manage_smart_criteria, handle_open_job_in_browser, handle_reach_out_to_a_connection,
@@ -102,6 +103,7 @@ mod scrapers;
 
 // mod links
 mod utils;
+mod error;
 mod models {
     pub mod ai;
     pub mod custom_error;
@@ -611,7 +613,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 pub async fn scrape_jobs(
     data: &mut Data,
     company_key: &str,
-) -> Result<JobsPayload, Box<dyn Error>> {
+) -> AppResult<JobsPayload> {
     let jobs_payload = match company_key {
         "AirBnB" => scrape_airbnb(data).await,
         "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
