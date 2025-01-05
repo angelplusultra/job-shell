@@ -31,7 +31,6 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Supported Companies](#supported-companies)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-<!-- - [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional) -->
 - [Usage](#usage)
 - [Smart Criteria](#smart-criteria)
 - [Suggested Workflow](#suggested-workflow)
