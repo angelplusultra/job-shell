@@ -31,7 +31,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Supported Companies](#supported-companies)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional)
+<!-- - [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional) -->
 - [Usage](#usage)
 - [Smart Criteria](#smart-criteria)
 - [Suggested Workflow](#suggested-workflow)
@@ -338,8 +338,8 @@ Before running JobShell, ensure you have the following:
 2. **Desktop Environment (or Virtual Environment):**  
    Headless scraping may still require a display server. If running on a server, use `Xvfb` or similar tools to simulate a desktop environment.
 
-3. **Optional Gemini API Key (For Experimental AI Features):**  
-   If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
+<!-- 3. **Optional Gemini API Key (For Experimental AI Features):**   -->
+   <!-- If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type. -->
 
 ---
 ## Installation
@@ -408,24 +408,24 @@ cargo install jobshell
 ```
 jobshell --version
 ```
----
-
-## Setting Up AI Integration (Optional)
-
-If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
-
-```bash
-export GEMINI_KEY={your-gemini-key}
-export GEMINI_MODEL={model-type} # either "flash" or "pro"
-```
-
-**Note:**  
-- `GEMINI_KEY` is your API key for Gemini’s service.
-- `GEMINI_MODEL` specifies the model type. Choose from "flash" or "pro" depending on your subscription or requirement.
-
-After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load the new environment variables.
-
----
+<!-- --- -->
+<!---->
+<!-- ## Setting Up AI Integration (Optional) -->
+<!---->
+<!-- If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`): -->
+<!---->
+<!-- ```bash -->
+<!-- export GEMINI_KEY={your-gemini-key} -->
+<!-- export GEMINI_MODEL={model-type} # either "flash" or "pro" -->
+<!-- ``` -->
+<!---->
+<!-- **Note:**   -->
+<!-- - `GEMINI_KEY` is your API key for Gemini’s service. -->
+<!-- - `GEMINI_MODEL` specifies the model type. Choose from "flash" or "pro" depending on your subscription or requirement. -->
+<!---->
+<!-- After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load the new environment variables. -->
+<!---->
+<!-- --- -->
 
 ## Usage
 
@@ -536,7 +536,7 @@ Replace `your_api_key_here` with your actual API key.
 To get the most out of JobShell, follow this workflow:
 	
 1.	Set Up Your Preferences in CLI Mode
-   	- Start by running JobShell in CLI mode. Configure your connections and specify the companies you want to track for job opportunities.
+   	- Start by running JobShell in CLI mode. Configure your connections, "follow" companies of interest, and set up your Smart Criteria if you have an Open AI API key.
 2.	Deploy JobShell in Discord Mode
    	- Once set up, switch to Discord mode to receive real-time job notifications directly in your designated Discord channel.
 3.	Run JobShell on a VPS (Optional)
