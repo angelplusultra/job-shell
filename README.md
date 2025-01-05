@@ -497,6 +497,41 @@ Once all prompts all completed, JobShell begins scraping job postings at the spe
 
 ---
 
+## Smart Criteria
+
+**What is Smart Criteria?**
+
+Smart Criteria is an optional feature powered by AI (ChatGPT) that allows you to filter newly detected jobs to match your personal preferences. Without Smart Criteria enabled, the Discord channel you set in Discord mode will receive notifications for every new job detected at a company—regardless of whether the role aligns with your search preferences or interests.
+
+This may work well for community Discord servers where you want visibility into all job postings. However, for personal job searches, it can lead to unnecessary noise. Smart Criteria helps you focus on the jobs that matter to you by filtering out irrelevant roles.
+
+**How Does Smart Criteria Work?**
+
+Smart Criteria is simple to use. You provide plain-text instructions that tell the AI what kind of jobs you’re interested in. The AI then evaluates each job posting against your criteria and notifies you only about jobs that meet your preferences.
+
+**Example Smart Criteria:**
+
+```
+I am interested in Software Engineer jobs based in Southern California or Remote, US.
+```
+
+**How to Enable Smart Criteria**
+1. Set your Open AI API key as an environment variable
+   
+```
+export OPENAI_KEY=your_api_key_here
+```
+Replace `your_api_key_here` with your actual API key.
+
+2. Enable Smart Criteria:
+   - Navigate to the main menu in JobShell and enable the Smart Criteria feature.
+   - Set your criteria directly in the interface.
+3. Enjoy Filtered Job Notifications:
+   - `Scan For New Jobs Across Network and Followed Companies` will now only reveal new jobs that match your smart criteria
+   - JobShell in Discord mode will only deploy notifications when new jobs match your smart criteria
+
+---
+
 ## Suggested Workflow
 
 To get the most out of JobShell, follow this workflow:
@@ -510,6 +545,7 @@ To get the most out of JobShell, follow this workflow:
 ---
 
 That’s it! You’re all set to simplify your job search with JobShell.
+
 <!---->
 <!-- --- -->
 <!---->
