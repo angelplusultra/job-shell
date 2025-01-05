@@ -15,10 +15,16 @@ use strum::IntoEnumIterator;
 use tabled::Table;
 
 use crate::{
-    error::AppResult, models::{
+    error::AppResult,
+    models::{
+        ai::{AiModel, OpenAIClient},
         data::{Company, Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
-    }, reports::{create_report, ReportMode}, scrape_jobs, utils::{clear_console, stall_and_present_countdown}, COMPANYKEYS
+    },
+    reports::{create_report, ReportMode},
+    scrape_jobs,
+    utils::{clear_console, stall_and_present_countdown},
+    COMPANYKEYS,
 };
 
 use super::scrape_options::DefaultJobScraperOptions;
@@ -412,7 +418,7 @@ pub struct FormattedJob {
 }
 pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     data: &mut Data,
-) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
+) -> AppResult<Vec<FormattedJob>> {
     clear_console();
     let companies_to_scrape: Vec<String> = data
         .companies
@@ -473,12 +479,32 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
                 new_jobs_count, company_key
             ));
 
-            for j in jobs_payload.new_jobs {
-                new_jobs.push(FormattedJob {
-                    display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
-                    job: j,
-                    company: company_key.clone(),
-                });
+            if data.smart_criteria_enabled {
+                pb.println("🧠 Filtering jobs based on smart criteria");
+                let openai_client = OpenAIClient::new();
+
+                let filtered_jobs = openai_client
+                    .filter_jobs_based_on_smart_criteria(&jobs_payload.new_jobs)
+                    .await?;
+
+                let formatted_jobs = filtered_jobs
+                    .iter()
+                    .map(|j| FormattedJob {
+                        display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                        job: j.clone(),
+                        company: company_key.clone(),
+                    })
+                    .collect::<Vec<FormattedJob>>();
+
+                new_jobs.extend(formatted_jobs);
+            } else {
+                for j in jobs_payload.new_jobs.iter() {
+                    new_jobs.push(FormattedJob {
+                        display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                        job: j.clone(),
+                        company: company_key.clone(),
+                    });
+                }
             }
         }
 

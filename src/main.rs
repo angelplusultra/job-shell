@@ -19,7 +19,6 @@ use handlers::scrape_options::{
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
 use jobshell::utils::clear_console;
-use models::ai::{AiModel, OpenAIClient};
 use models::data::{Connection, Data};
 use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
@@ -419,9 +418,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 spinner.enable_steady_tick(Duration::from_millis(120));
 
                                 let JobsPayload {
-                                    mut all_jobs,
-                                    new_jobs,
-                                    are_new_jobs,
+                                    all_jobs, new_jobs, ..
                                 } = match scrape_jobs(&mut data, company).await {
                                     Ok(jp) => jp,
                                     Err(e) => {
@@ -430,54 +427,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                         continue;
                                     }
                                 };
-
-                                // TODO: Use 1 FormattedJob struct
-                                struct FormattedJob<'a> {
-                                    display_string: String,
-                                    original_job: &'a Job,
-                                }
-
-                                // TODO: Finish
-                                // if data.smart_criteria_enabled {
-                                //     spinner
-                                //         .set_message("Filtering jobs based on smart criteria...");
-                                //
-                                //     // Start the spinner
-                                //     spinner.enable_steady_tick(Duration::from_millis(120));
-                                //
-                                //     //
-                                //
-                                //     let open_ai_client = OpenAIClient::new();
-                                //     if let Ok(filtered_jobs) = open_ai_client
-                                //         .filter_jobs_based_on_smart_criteria(
-                                //             &all_jobs,
-                                //             &data.smart_criteria,
-                                //         )
-                                //         .await
-                                //     {
-                                //         all_jobs = filtered_jobs;
-                                //     } else {
-                                //         println!("Error filtering jobs with smart criteria");
-                                //         stall_and_present_countdown(
-                                //             3,
-                                //             Some("Error filtering jobs with smart criteria"),
-                                //         );
-                                //         continue;
-                                //     }
-                                //
-                                //     // Stop the spinner with success message
-                                //
-                                //     spinner.finish();
-                                //     if all_jobs.is_empty() {
-                                //         stall_and_present_countdown(
-                                //             3,
-                                //             Some("No jobs found based on smart criteria"),
-                                //         );
-                                //         continue;
-                                //     }
-                                // } else {
-                                //     spinner.finish();
-                                // }
 
                                 spinner.finish();
                                 // INFO: Job Selection Loop
