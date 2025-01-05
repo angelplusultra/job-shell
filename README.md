@@ -33,6 +33,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Installation](#installation)
 - [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional)
 - [Usage](#usage)
+- [Smart Criteria](#smart-criteria)
 - [Suggested Workflow](#suggested-workflow)
 ---
 
@@ -495,7 +496,6 @@ When `jobshell --discord` is executed, a wizard will guide you through the setup
      ```
 Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
----
 
 ## Smart Criteria
 
@@ -530,7 +530,6 @@ Replace `your_api_key_here` with your actual API key.
    - `Scan For New Jobs Across Network and Followed Companies` will now only reveal new jobs that match your smart criteria
    - JobShell in Discord mode will only deploy notifications when new jobs match your smart criteria
 
----
 
 ## Suggested Workflow
 
