@@ -118,13 +118,9 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
                 if jobs_payload.are_new_jobs {
                     if data.smart_criteria_enabled {
                         println!("Filtering jobs based on smart criteria");
-                        let smart_criteria = &data.smart_criteria;
                         let openai_client = OpenAIClient::new();
                         let result = openai_client
-                            .filter_jobs_based_on_smart_criteria(
-                                &jobs_payload.new_jobs,
-                                smart_criteria,
-                            )
+                            .filter_jobs_based_on_smart_criteria(&jobs_payload.new_jobs)
                             .await;
 
                         match result {
@@ -167,7 +163,6 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
 
     total_new_jobs
 }
-
 
 async fn deploy_messages_to_discord(
     total_new_jobs: Vec<FormattedJob>,

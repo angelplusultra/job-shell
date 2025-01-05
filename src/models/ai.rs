@@ -5,7 +5,7 @@ use reqwest::Client;
 use serde_json::{json, Value};
 use uuid::Uuid;
 
-use super::scraper::Job;
+use super::{data::Data, scraper::Job};
 
 pub trait AiModel {
     fn new() -> Self;
@@ -73,8 +73,8 @@ impl OpenAIClient {
     pub async fn filter_jobs_based_on_smart_criteria(
         &self,
         jobs: &Vec<Job>,
-        smart_criteria: &str,
     ) -> Result<Vec<Job>, Box<dyn Error + Send + Sync>> {
+        let Data { smart_criteria, .. } = Data::get_data();
         let system_prompt = r#"
         You are a JSON processing assistant. Your job is to read a single string of text instructions—called "criteria"—and use it to filter an array of jobs, returning only those that match the user's criteria. Follow these instructions carefully:
 
@@ -154,13 +154,16 @@ impl OpenAIClient {
         let json_response = self
             .generate_response(system_prompt, &user_prompt.to_string(), response_format)
             .await
-            .map_err(|_| anyhow!("Error generating response")).unwrap();
+            .map_err(|_| anyhow!("Error generating response"))
+            .unwrap();
 
         let serialied_text_response = json_response["choices"][0]["message"]["content"]
             .as_str()
-            .ok_or("Invalid response").unwrap();
+            .ok_or("Invalid response")
+            .unwrap();
 
-        let deserialized_text_response: Value = serde_json::from_str(serialied_text_response).unwrap();
+        let deserialized_text_response: Value =
+            serde_json::from_str(serialied_text_response).unwrap();
 
         let job_ids: Vec<Uuid> = deserialized_text_response["job_ids"]
             .as_array()
