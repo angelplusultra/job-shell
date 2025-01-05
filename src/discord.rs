@@ -61,7 +61,6 @@ pub async fn initialize_discord_mode(
             println!("Discord cron starting!");
 
             let total_new_jobs = scan_for_new_jobs(scan_all_companies).await;
-            clear_console();
 
             if total_new_jobs.is_empty() {
                 println!("No new jobs detected");
