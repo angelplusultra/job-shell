@@ -32,7 +32,7 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Smart Criteria](#smart-criteria)
+- [Smart Criteria](#smart-criteria-ai-feature)
 - [Suggested Workflow](#suggested-workflow)
 ---
 
@@ -496,7 +496,7 @@ When `jobshell --discord` is executed, a wizard will guide you through the setup
 Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
 
-## Smart Criteria
+## Smart Criteria (AI Feature)
 
 **What is Smart Criteria?**
 
