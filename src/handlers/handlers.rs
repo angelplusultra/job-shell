@@ -135,8 +135,8 @@ pub enum JobOption {
     ReachOut,
     #[strum(to_string = "Bookmark Job [ ]")]
     Bookmark,
-    #[strum(to_string = "Generate Job Details with AI (Experimental)")]
-    GenerateJobDetails,
+    // #[strum(to_string = "Generate Job Details with AI (Experimental)")]
+    // GenerateJobDetails,
     #[strum(to_string = "Back")]
     Back,
 }

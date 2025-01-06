@@ -628,31 +628,31 @@ async fn handle_job_option(
                     &selected_job,
                 )?;
             }
-            JobOption::GenerateJobDetails => {
-                let job_details = match company {
-                    // "Weedmaps" => get_weedmaps_jod_details(&selected_job).await?,
-                    "1Password" => default_get_job_details(&selected_job, true, "body").await?,
-                    "Tarro" => {
-                        default_get_job_details(&selected_job, true, "._content_ud4nd_71").await?
-                    }
-                    "Discord" => default_get_job_details(&selected_job, true, "body").await?,
-                    "Palantir" => default_get_job_details(&selected_job, true, ".content").await?,
-                    "Anduril" => default_get_job_details(&selected_job, true, "main").await?,
-                    "Coinbase" => {
-                        default_get_job_details(
-                            &selected_job,
-                            false,
-                            ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU",
-                        )
-                        .await?
-                    }
-                    _ => default_get_job_details(&selected_job, true, "body").await?,
-                };
-
-                // Print details
-                // clear_console();
-                job_details.print_job();
-            }
+            // JobOption::GenerateJobDetails => {
+            //     let job_details = match company {
+            //         // "Weedmaps" => get_weedmaps_jod_details(&selected_job).await?,
+            //         "1Password" => default_get_job_details(&selected_job, true, "body").await?,
+            //         "Tarro" => {
+            //             default_get_job_details(&selected_job, true, "._content_ud4nd_71").await?
+            //         }
+            //         "Discord" => default_get_job_details(&selected_job, true, "body").await?,
+            //         "Palantir" => default_get_job_details(&selected_job, true, ".content").await?,
+            //         "Anduril" => default_get_job_details(&selected_job, true, "main").await?,
+            //         "Coinbase" => {
+            //             default_get_job_details(
+            //                 &selected_job,
+            //                 false,
+            //                 ".Flex-sc-9cfb0d13-0.Listing__Container-sc-bcedfe82-0.fXHNQM.dBburU",
+            //             )
+            //             .await?
+            //         }
+            //         _ => default_get_job_details(&selected_job, true, "body").await?,
+            //     };
+            //
+            //     // Print details
+            //     // clear_console();
+            //     job_details.print_job();
+            // }
             JobOption::Bookmark => data.toggle_job_bookmark(&selected_job.id),
             JobOption::Back => break,
         }
