@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use anyhow::anyhow;
 use reqwest::Client;
 use serde::Serialize;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};

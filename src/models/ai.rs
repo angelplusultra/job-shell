@@ -1,6 +1,5 @@
 use std::{error::Error, str::FromStr};
 
-use anyhow::anyhow;
 use reqwest::Client;
 use serde_json::{json, Value};
 use uuid::Uuid;
@@ -153,9 +152,7 @@ impl OpenAIClient {
 
         let json_response = self
             .generate_response(system_prompt, &user_prompt.to_string(), response_format)
-            .await
-            .map_err(|_| anyhow!("Error generating response"))
-            .unwrap();
+            .await?;
 
         let serialied_text_response = json_response["choices"][0]["message"]["content"]
             .as_str()
