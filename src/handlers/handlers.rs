@@ -446,7 +446,8 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
         .progress_chars("=>-"),
 );
 
-    let mut new_jobs: Vec<FormattedJob> = vec![];
+    let mut new_jobs_based_on_smart_criteria: Vec<FormattedJob> = vec![];
+    let mut all_new_jobs: Vec<FormattedJob> = vec![];
 
     // Enable steady ticks for animation
     pb.enable_steady_tick(Duration::from_millis(100));
@@ -479,6 +480,12 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
                 new_jobs_count, company_key
             ));
 
+            all_new_jobs.extend(jobs_payload.new_jobs.iter().map(|j| FormattedJob {
+                display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                job: j.clone(),
+                company: company_key.clone(),
+            }));
+
             if data.smart_criteria_enabled {
                 pb.println("🧠 Filtering jobs based on smart criteria");
                 let openai_client = OpenAIClient::new();
@@ -496,15 +503,7 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
                     })
                     .collect::<Vec<FormattedJob>>();
 
-                new_jobs.extend(formatted_jobs);
-            } else {
-                for j in jobs_payload.new_jobs.iter() {
-                    new_jobs.push(FormattedJob {
-                        display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
-                        job: j.clone(),
-                        company: company_key.clone(),
-                    });
-                }
+                new_jobs_based_on_smart_criteria.extend(formatted_jobs);
             }
         }
 
@@ -516,14 +515,21 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     // Finish the progress bar
     pb.finish_with_message("Scraping completed!");
 
-    if new_jobs.is_empty() {
-        clear_console();
-        return Err("No new jobs have been detcted :(".into());
+    // If no new jobs found, return an error
+    if all_new_jobs.is_empty() {
+        return Err("No new jobs found across your network and followed companies".into());
     }
 
-    create_report(&new_jobs, ReportMode::HTML)?;
+    // Create a new jobs report based on all new jobs
+    create_report(&all_new_jobs, ReportMode::HTML)?;
 
-    Ok(new_jobs)
+
+    // Return the new jobs based on smart criteria if smart criteria is enabled
+    if data.smart_criteria_enabled {
+        Ok(new_jobs_based_on_smart_criteria)
+    } else {
+        Ok(all_new_jobs)
+    }
 }
 
 #[derive(Display, EnumIter)]
