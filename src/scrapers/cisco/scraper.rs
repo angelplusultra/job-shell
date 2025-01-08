@@ -4,12 +4,12 @@ use std::error::Error;
 use reqwest::Client;
 use scraper::{Html, Selector};
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_cisco(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_cisco(data: &mut Data) -> AppResult<JobsPayload> {
     // Fetch the html
 
     //         let html_string = Client::new().get("https://jobs.cisco.com/jobs/SearchJobs/?21181=%5B187%5D&21181_format=6023&listFilterMode=1&projectOffset=300").send().await?.text().await?;

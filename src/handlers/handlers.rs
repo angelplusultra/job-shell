@@ -8,14 +8,16 @@ use std::{
 
 use clipboard::{ClipboardContext, ClipboardProvider};
 use colored::*;
-use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Select};
+use dialoguer::{theme::ColorfulTheme, Confirm, Editor, FuzzySelect, Input, Select};
 use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
 use strum::IntoEnumIterator;
 use tabled::Table;
 
 use crate::{
+    error::AppResult,
     models::{
+        ai::{AiModel, OpenAIClient},
         data::{Company, Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
     },
@@ -40,7 +42,7 @@ impl<T: IntoEnumIterator + Display> EnumVariantsDisplayStrings for T {}
 pub async fn default_scrape_jobs_handler(
     data: &mut Data,
     options: DefaultJobScraperOptions,
-) -> Result<JobsPayload, Box<dyn Error>> {
+) -> AppResult<JobsPayload> {
     let launch_options = LaunchOptions {
         headless: options.headless,
         window_size: Some((1920, 1080)),
@@ -133,8 +135,8 @@ pub enum JobOption {
     ReachOut,
     #[strum(to_string = "Bookmark Job [ ]")]
     Bookmark,
-    #[strum(to_string = "Generate Job Details with AI (Experimental)")]
-    GenerateJobDetails,
+    // #[strum(to_string = "Generate Job Details with AI (Experimental)")]
+    // GenerateJobDetails,
     #[strum(to_string = "Back")]
     Back,
 }
@@ -416,7 +418,7 @@ pub struct FormattedJob {
 }
 pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     data: &mut Data,
-) -> Result<Vec<FormattedJob>, Box<dyn Error>> {
+) -> AppResult<Vec<FormattedJob>> {
     clear_console();
     let companies_to_scrape: Vec<String> = data
         .companies
@@ -444,7 +446,8 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
         .progress_chars("=>-"),
 );
 
-    let mut new_jobs: Vec<FormattedJob> = vec![];
+    let mut new_jobs_based_on_smart_criteria: Vec<FormattedJob> = vec![];
+    let mut all_new_jobs: Vec<FormattedJob> = vec![];
 
     // Enable steady ticks for animation
     pb.enable_steady_tick(Duration::from_millis(100));
@@ -477,12 +480,30 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
                 new_jobs_count, company_key
             ));
 
-            for j in jobs_payload.new_jobs {
-                new_jobs.push(FormattedJob {
-                    display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
-                    job: j,
-                    company: company_key.clone(),
-                });
+            all_new_jobs.extend(jobs_payload.new_jobs.iter().map(|j| FormattedJob {
+                display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                job: j.clone(),
+                company: company_key.clone(),
+            }));
+
+            if data.smart_criteria_enabled {
+                pb.println("🧠 Filtering jobs based on smart criteria");
+                let openai_client = OpenAIClient::new();
+
+                let filtered_jobs = openai_client
+                    .filter_jobs_based_on_smart_criteria(&jobs_payload.new_jobs)
+                    .await?;
+
+                let formatted_jobs = filtered_jobs
+                    .iter()
+                    .map(|j| FormattedJob {
+                        display_name: format!("{} | {} | ({})", j.title, j.location, company_key),
+                        job: j.clone(),
+                        company: company_key.clone(),
+                    })
+                    .collect::<Vec<FormattedJob>>();
+
+                new_jobs_based_on_smart_criteria.extend(formatted_jobs);
             }
         }
 
@@ -494,14 +515,21 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     // Finish the progress bar
     pb.finish_with_message("Scraping completed!");
 
-    if new_jobs.is_empty() {
-        clear_console();
-        return Err("No new jobs have been detcted :(".into());
+    // If no new jobs found, return an error
+    if all_new_jobs.is_empty() {
+        return Err("No new jobs found across your network and followed companies".into());
     }
 
-    create_report(&new_jobs, ReportMode::HTML)?;
+    // Create a new jobs report based on all new jobs
+    create_report(&all_new_jobs, ReportMode::HTML)?;
 
-    Ok(new_jobs)
+
+    // Return the new jobs based on smart criteria if smart criteria is enabled
+    if data.smart_criteria_enabled {
+        Ok(new_jobs_based_on_smart_criteria)
+    } else {
+        Ok(all_new_jobs)
+    }
 }
 
 #[derive(Display, EnumIter)]
@@ -516,6 +544,8 @@ pub enum MainMenuOption {
     MyConnections,
     #[strum(to_string = "View New Jobs Reports")]
     ViewNewJobsReports,
+    #[strum(to_string = "Manage Smart Criteria")]
+    ManageSmartCriteria,
     #[strum(to_string = "Exit")]
     Exit,
 }
@@ -596,4 +626,87 @@ pub async fn handle_manage_connection(
     }
 
     Ok(())
+}
+
+#[derive(Display, EnumIter)]
+pub enum ManageSmartCriteriaOptions {
+    #[strum(to_string = "Set Smart Criteria")]
+    SetSmartCriteria,
+
+    #[strum(to_string = "Enable Smart Criteria [ ]")]
+    EnableSmartCriteria,
+
+    #[strum(to_string = "Back")]
+    Back,
+}
+pub fn prompt_user_for_manage_smart_criteria_selection() -> ManageSmartCriteriaOptions {
+    let mut display_strings = ManageSmartCriteriaOptions::display_strings();
+
+    let data = Data::get_data();
+
+    if data.smart_criteria.is_empty() {
+        // filter out the enable option
+        display_strings.retain(|opt| !opt.starts_with("Enable Smart Criteria"));
+    }
+
+    if data.smart_criteria_enabled {
+        let idx = ManageSmartCriteriaOptions::iter()
+            .position(|o| matches!(o, ManageSmartCriteriaOptions::EnableSmartCriteria))
+            .unwrap();
+        display_strings[idx] = format!("Enable Smart Criteria [x]");
+    }
+
+    let dialoguer_styles = ColorfulTheme::default();
+
+    let idx = Select::with_theme(&dialoguer_styles)
+        .with_prompt("Select an option")
+        .items(&display_strings)
+        .interact()
+        .unwrap();
+
+    let selected_option = ManageSmartCriteriaOptions::iter().nth(idx).unwrap();
+
+    return selected_option;
+}
+
+pub fn handle_manage_smart_criteria() {
+    clear_console();
+    loop {
+        let mut data = Data::get_data();
+
+        println!();
+        println!(
+            "Smart Criteria: {}",
+            if data.smart_criteria.is_empty() {
+                "Not smart criteria set".red()
+            } else {
+                data.smart_criteria.green()
+            }
+        );
+        println!();
+        let manage_smart_criteria_selection = prompt_user_for_manage_smart_criteria_selection();
+
+        match manage_smart_criteria_selection {
+            ManageSmartCriteriaOptions::SetSmartCriteria => {
+                clear_console();
+                let dialoguer_styles = ColorfulTheme::default();
+                let smart_criteria = format!(
+                    "I am interested in jobs that {}",
+                    Input::<String>::with_theme(&dialoguer_styles)
+                        .with_prompt("Enter your smart criteria")
+                        .with_initial_text("I am interested in jobs that ")
+                        .interact()
+                        .unwrap()
+                );
+
+                data.set_smart_criteria(smart_criteria);
+            }
+
+            ManageSmartCriteriaOptions::EnableSmartCriteria => {
+                data.toggle_smart_criteria_enabled();
+            }
+
+            _ => break,
+        }
+    }
 }

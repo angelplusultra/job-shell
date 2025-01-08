@@ -31,8 +31,8 @@ Say goodbye to distractions and hello to streamlined job hunting.
 - [Supported Companies](#supported-companies)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Setting Up AI Integration (Optional)](#setting-up-ai-integration-optional)
 - [Usage](#usage)
+- [Smart Criteria](#smart-criteria-ai-feature)
 - [Suggested Workflow](#suggested-workflow)
 ---
 
@@ -337,8 +337,8 @@ Before running JobShell, ensure you have the following:
 2. **Desktop Environment (or Virtual Environment):**  
    Headless scraping may still require a display server. If running on a server, use `Xvfb` or similar tools to simulate a desktop environment.
 
-3. **Optional Gemini API Key (For Experimental AI Features):**  
-   If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type.
+<!-- 3. **Optional Gemini API Key (For Experimental AI Features):**   -->
+   <!-- If you plan on using the AI-driven message crafting feature, you’ll need a Gemini API key and a selected model type. -->
 
 ---
 ## Installation
@@ -407,24 +407,24 @@ cargo install jobshell
 ```
 jobshell --version
 ```
----
-
-## Setting Up AI Integration (Optional)
-
-If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`):
-
-```bash
-export GEMINI_KEY={your-gemini-key}
-export GEMINI_MODEL={model-type} # either "flash" or "pro"
-```
-
-**Note:**  
-- `GEMINI_KEY` is your API key for Gemini’s service.
-- `GEMINI_MODEL` specifies the model type. Choose from "flash" or "pro" depending on your subscription or requirement.
-
-After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load the new environment variables.
-
----
+<!-- --- -->
+<!---->
+<!-- ## Setting Up AI Integration (Optional) -->
+<!---->
+<!-- If you would like to leverage the experimental Gemini-based AI features, add the following lines to your shell configuration file (`.zshrc` or `.bashrc`): -->
+<!---->
+<!-- ```bash -->
+<!-- export GEMINI_KEY={your-gemini-key} -->
+<!-- export GEMINI_MODEL={model-type} # either "flash" or "pro" -->
+<!-- ``` -->
+<!---->
+<!-- **Note:**   -->
+<!-- - `GEMINI_KEY` is your API key for Gemini’s service. -->
+<!-- - `GEMINI_MODEL` specifies the model type. Choose from "flash" or "pro" depending on your subscription or requirement. -->
+<!---->
+<!-- After making these changes, run `source ~/.bashrc` or `source ~/.zshrc` to load the new environment variables. -->
+<!---->
+<!-- --- -->
 
 ## Usage
 
@@ -495,14 +495,47 @@ When `jobshell --discord` is executed, a wizard will guide you through the setup
      ```
 Once all prompts all completed, JobShell begins scraping job postings at the specified hourly interval and new job postings will be sent to the provided Discord channel webhook.
 
----
+
+## Smart Criteria (AI Feature)
+
+**What is Smart Criteria?**
+
+Smart Criteria is an optional feature powered by AI (ChatGPT) that allows you to filter newly detected jobs to match your personal preferences. Without Smart Criteria enabled, the Discord channel you set in Discord mode will receive notifications for every new job detected at a company—regardless of whether the role aligns with your search preferences or interests.
+
+This may work well for community Discord servers where you want visibility into all job postings. However, for personal job searches, it can lead to unnecessary noise. Smart Criteria helps you focus on the jobs that matter to you by filtering out irrelevant roles.
+
+**How Does Smart Criteria Work?**
+
+Smart Criteria is simple to use. You provide plain-text instructions that tell the AI what kind of jobs you’re interested in. The AI then evaluates each job posting against your criteria and notifies you only about jobs that meet your preferences.
+
+**Example Smart Criteria:**
+
+```
+I am interested in Software Engineer jobs based in Southern California or Remote, US.
+```
+
+**How to Enable Smart Criteria**
+1. Set your Open AI API key as an environment variable
+   
+```
+export OPENAI_KEY=your_api_key_here
+```
+Replace `your_api_key_here` with your actual API key.
+
+2. Enable Smart Criteria:
+   - Navigate to the main menu in JobShell and enable the Smart Criteria feature.
+   - Set your criteria directly in the interface.
+3. Enjoy Filtered Job Notifications:
+   - `Scan For New Jobs Across Network and Followed Companies` will now only reveal new jobs that match your smart criteria
+   - JobShell in Discord mode will only deploy notifications when new jobs match your smart criteria
+
 
 ## Suggested Workflow
 
 To get the most out of JobShell, follow this workflow:
 	
 1.	Set Up Your Preferences in CLI Mode
-   	- Start by running JobShell in CLI mode. Configure your connections and specify the companies you want to track for job opportunities.
+   	- Start by running JobShell in CLI mode. Configure your connections, "follow" companies of interest, and set up your Smart Criteria if you have an Open AI API key.
 2.	Deploy JobShell in Discord Mode
    	- Once set up, switch to Discord mode to receive real-time job notifications directly in your designated Discord channel.
 3.	Run JobShell on a VPS (Optional)
@@ -510,6 +543,7 @@ To get the most out of JobShell, follow this workflow:
 ---
 
 That’s it! You’re all set to simplify your job search with JobShell.
+
 <!---->
 <!-- --- -->
 <!---->

@@ -7,6 +7,7 @@ use std::{
 
 use chrono::Utc;
 
+use crate::error::AppResult;
 use crate::models::data::Data;
 use crate::{handlers::handlers::FormattedJob, models::scraper::Job};
 
@@ -41,7 +42,7 @@ fn append_jobs_to_html(jobs: &Vec<FormattedJob>, html: String) -> String {
     html
 }
 
-pub fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> Result<(), Box<dyn Error>> {
+pub fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> AppResult<()> {
     let today = Utc::now().naive_utc().date().to_string();
 
     let mut path = Data::get_data_dir();

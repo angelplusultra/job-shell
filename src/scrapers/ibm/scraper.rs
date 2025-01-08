@@ -1,4 +1,3 @@
-use std::error::Error;
 
 use reqwest::{
     header::{HeaderMap, HeaderValue, ACCEPT, ACCEPT_LANGUAGE, CONTENT_TYPE, REFERER},
@@ -6,12 +5,12 @@ use reqwest::{
 };
 use serde_json::{json, Value};
 
-use crate::models::{
+use crate::{error::AppResult, models::{
     data::Data,
     scraper::{JobsPayload, ScrapedJob},
-};
+}};
 
-pub async fn scrape_ibm(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_ibm(data: &mut Data) -> AppResult<JobsPayload> {
     let mut from = 0;
 
     let mut p = 1;

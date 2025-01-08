@@ -1,15 +1,16 @@
-use std::error::Error;
-
 use headless_chrome::{Browser, LaunchOptions};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use serde_json::Value;
 
-use crate::models::{
-    data::Data,
-    scraper::{JobsPayload, ScrapedJob},
+use crate::{
+    error::AppResult,
+    models::{
+        data::Data,
+        scraper::{JobsPayload, ScrapedJob},
+    },
 };
 
-pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>> {
+pub async fn scrape_meta(data: &mut Data) -> AppResult<JobsPayload> {
     let mut headers = HeaderMap::new();
     headers.insert("accept", HeaderValue::from_static("*/*"));
     headers.insert(
@@ -57,7 +58,7 @@ pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>>
 
     let json = response.json::<Value>().await?;
 
- let scraped_jobs: Vec<ScrapedJob> = json["data"]["job_search"]
+    let scraped_jobs: Vec<ScrapedJob> = json["data"]["job_search"]
         .as_array()
         .unwrap()
         .iter()
@@ -85,4 +86,3 @@ pub async fn scrape_meta(data: &mut Data) -> Result<JobsPayload, Box<dyn Error>>
 
     Ok(jobs_payload)
 }
-
