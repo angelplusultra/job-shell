@@ -1,9 +1,6 @@
-use std::error::Error;
-
 use reqwest::Client;
 use serde::Serialize;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
-use uuid::Uuid;
 
 use crate::{
     error::AppResult,
@@ -12,16 +9,17 @@ use crate::{
         data::Data,
         scraper::Job,
     },
+    reports::create_report,
     scrape_jobs,
-    utils::clear_console,
 };
 
-#[derive(Serialize, Debug)]
-struct FormattedJob {
+#[derive(Serialize, Debug, Clone)]
+struct DiscordModeFormattedJob {
     title: String,
     location: String,
     link: String,
     company: String,
+    job: Job,
 }
 
 #[derive(Serialize)]
@@ -58,18 +56,44 @@ pub async fn initialize_discord_mode(
         let webhook_url = webhook_url.clone();
         Box::pin(async move {
             println!("Discord cron starting!");
+            let data = Data::get_data();
 
-            let total_new_jobs = scan_for_new_jobs(scan_all_companies).await;
+            let (new_jobs_based_on_smart_criteria, total_new_jobs) =
+                scan_for_new_jobs(scan_all_companies).await;
 
             if total_new_jobs.is_empty() {
                 println!("No new jobs detected");
                 return; // Return Ok for successful empty check
             }
 
+            // converting discord format into report format
+            let formatted_jobs_for_reports: Vec<crate::handlers::handlers::FormattedJob> =
+                total_new_jobs
+                    .iter()
+                    .map(|j| crate::handlers::handlers::FormattedJob {
+                        display_name: format!("{} @ {}", j.title, j.company),
+                        company: j.company.clone(),
+                        job: j.job.clone(),
+                    })
+                    .collect();
+
+            if let Err(e) = create_report(
+                &formatted_jobs_for_reports,
+                crate::reports::ReportMode::HTML,
+            ) {
+                eprintln!("Error creating report: {e}");
+            }
+
             println!("Finished Scraping");
             println!("Building messages and sending to Discord");
 
-            deploy_messages_to_discord(total_new_jobs, webhook_url, 2).await;
+            let jobs_to_deploy = if data.smart_criteria_enabled {
+                new_jobs_based_on_smart_criteria
+            } else {
+                total_new_jobs
+            };
+
+            deploy_messages_to_discord(jobs_to_deploy, webhook_url, 2).await;
 
             println!("Process finished!");
 
@@ -95,7 +119,9 @@ pub async fn initialize_discord_mode(
     Ok(())
 }
 
-async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
+async fn scan_for_new_jobs(
+    scan_all_companies: bool,
+) -> (Vec<DiscordModeFormattedJob>, Vec<DiscordModeFormattedJob>) {
     let mut data = Data::get_data();
     let mut company_keys: Vec<String> = data.companies.keys().cloned().collect();
 
@@ -105,7 +131,8 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
         });
     }
 
-    let mut total_new_jobs: Vec<FormattedJob> = Vec::new();
+    let mut new_jobs_based_on_smart_criteria: Vec<DiscordModeFormattedJob> = Vec::new();
+    let mut all_new_jobs: Vec<DiscordModeFormattedJob> = Vec::new();
     for key in &company_keys {
         println!("Scanning new jobs @ {key}");
 
@@ -125,32 +152,35 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
                             Ok(filtered_jobs) => {
                                 let formatted_jobs = filtered_jobs
                                     .iter()
-                                    .map(|j| FormattedJob {
+                                    .map(|j| DiscordModeFormattedJob {
                                         title: j.title.clone(),
                                         link: j.link.clone(),
                                         location: j.location.clone(),
                                         company: key.to_owned(),
+                                        job: j.clone(),
                                     })
-                                    .collect::<Vec<FormattedJob>>();
-                                total_new_jobs.extend(formatted_jobs);
+                                    .collect::<Vec<DiscordModeFormattedJob>>();
+                                new_jobs_based_on_smart_criteria.extend(formatted_jobs);
                             }
                             Err(e) => {
                                 eprintln!("Error filtering jobs for {key}\nError: {e}");
                             }
                         }
-                    } else {
-                        let formatted_jobs = jobs_payload
-                            .new_jobs
-                            .iter()
-                            .map(|j| FormattedJob {
-                                title: j.title.clone(),
-                                link: j.link.clone(),
-                                location: j.location.clone(),
-                                company: key.to_owned(),
-                            })
-                            .collect::<Vec<FormattedJob>>();
-                        total_new_jobs.extend(formatted_jobs);
                     }
+
+                    let formatted_jobs = jobs_payload
+                        .new_jobs
+                        .iter()
+                        .map(|j| DiscordModeFormattedJob {
+                            title: j.title.clone(),
+                            link: j.link.clone(),
+                            location: j.location.clone(),
+                            company: key.to_owned(),
+                            job: j.clone(),
+                        })
+                        .collect::<Vec<DiscordModeFormattedJob>>();
+
+                    all_new_jobs.extend(formatted_jobs);
                 }
             }
             Err(e) => {
@@ -159,15 +189,15 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
         }
     }
 
-    total_new_jobs
+    (new_jobs_based_on_smart_criteria, all_new_jobs)
 }
 
 async fn deploy_messages_to_discord(
-    total_new_jobs: Vec<FormattedJob>,
+    total_new_jobs: Vec<DiscordModeFormattedJob>,
     webhook_url: String,
     embeds_per_message: usize,
 ) {
-    let embeds: Vec<&[FormattedJob]> = total_new_jobs.chunks(15).collect();
+    let embeds: Vec<&[DiscordModeFormattedJob]> = total_new_jobs.chunks(15).collect();
 
     let messages = embeds.chunks(embeds_per_message);
 
