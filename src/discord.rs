@@ -1,9 +1,7 @@
-use std::error::Error;
 
 use reqwest::Client;
 use serde::Serialize;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
-use uuid::Uuid;
 
 use crate::{
     error::AppResult,
@@ -12,16 +10,17 @@ use crate::{
         data::Data,
         scraper::Job,
     },
+    reports::create_report,
     scrape_jobs,
-    utils::clear_console,
 };
 
-#[derive(Serialize, Debug)]
-struct FormattedJob {
+#[derive(Serialize, Debug, Clone)]
+struct DiscordModeFormattedJob {
     title: String,
     location: String,
     link: String,
     company: String,
+    job: Job,
 }
 
 #[derive(Serialize)]
@@ -66,6 +65,24 @@ pub async fn initialize_discord_mode(
                 return; // Return Ok for successful empty check
             }
 
+            // converting discord format into report format
+            let formatted_jobs_for_reports: Vec<crate::handlers::handlers::FormattedJob> =
+                total_new_jobs
+                    .iter()
+                    .map(|j| crate::handlers::handlers::FormattedJob {
+                        display_name: format!("{} @ {}", j.title, j.company),
+                        company: j.company.clone(),
+                        job: j.job.clone(),
+                    })
+                    .collect();
+
+            if let Err(e) = create_report(
+                &formatted_jobs_for_reports,
+                crate::reports::ReportMode::HTML,
+            ) {
+                eprintln!("Error creating report: {e}");
+            }
+
             println!("Finished Scraping");
             println!("Building messages and sending to Discord");
 
@@ -95,7 +112,7 @@ pub async fn initialize_discord_mode(
     Ok(())
 }
 
-async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
+async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<DiscordModeFormattedJob> {
     let mut data = Data::get_data();
     let mut company_keys: Vec<String> = data.companies.keys().cloned().collect();
 
@@ -105,7 +122,7 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
         });
     }
 
-    let mut total_new_jobs: Vec<FormattedJob> = Vec::new();
+    let mut total_new_jobs: Vec<DiscordModeFormattedJob> = Vec::new();
     for key in &company_keys {
         println!("Scanning new jobs @ {key}");
 
@@ -125,13 +142,14 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
                             Ok(filtered_jobs) => {
                                 let formatted_jobs = filtered_jobs
                                     .iter()
-                                    .map(|j| FormattedJob {
+                                    .map(|j| DiscordModeFormattedJob {
                                         title: j.title.clone(),
                                         link: j.link.clone(),
                                         location: j.location.clone(),
                                         company: key.to_owned(),
+                                        job: j.clone(),
                                     })
-                                    .collect::<Vec<FormattedJob>>();
+                                    .collect::<Vec<DiscordModeFormattedJob>>();
                                 total_new_jobs.extend(formatted_jobs);
                             }
                             Err(e) => {
@@ -142,13 +160,14 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
                         let formatted_jobs = jobs_payload
                             .new_jobs
                             .iter()
-                            .map(|j| FormattedJob {
+                            .map(|j| DiscordModeFormattedJob {
                                 title: j.title.clone(),
                                 link: j.link.clone(),
                                 location: j.location.clone(),
                                 company: key.to_owned(),
+                                job: j.clone(),
                             })
-                            .collect::<Vec<FormattedJob>>();
+                            .collect::<Vec<DiscordModeFormattedJob>>();
                         total_new_jobs.extend(formatted_jobs);
                     }
                 }
@@ -163,11 +182,11 @@ async fn scan_for_new_jobs(scan_all_companies: bool) -> Vec<FormattedJob> {
 }
 
 async fn deploy_messages_to_discord(
-    total_new_jobs: Vec<FormattedJob>,
+    total_new_jobs: Vec<DiscordModeFormattedJob>,
     webhook_url: String,
     embeds_per_message: usize,
 ) {
-    let embeds: Vec<&[FormattedJob]> = total_new_jobs.chunks(15).collect();
+    let embeds: Vec<&[DiscordModeFormattedJob]> = total_new_jobs.chunks(15).collect();
 
     let messages = embeds.chunks(embeds_per_message);
 
