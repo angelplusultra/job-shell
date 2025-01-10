@@ -686,7 +686,7 @@ pub fn handle_manage_smart_criteria() {
         println!(
             "Smart Criteria: {}",
             if data.smart_criteria.is_empty() {
-                "Not smart criteria set".red()
+                "No smart criteria set".red()
             } else {
                 data.smart_criteria.green()
             }
