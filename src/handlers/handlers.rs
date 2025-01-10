@@ -523,7 +523,6 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     // Create a new jobs report based on all new jobs
     create_report(&all_new_jobs, ReportMode::HTML)?;
 
-
     // Return the new jobs based on smart criteria if smart criteria is enabled
     if data.smart_criteria_enabled {
         Ok(new_jobs_based_on_smart_criteria)
@@ -628,7 +627,7 @@ pub async fn handle_manage_connection(
     Ok(())
 }
 
-#[derive(Display, EnumIter)]
+#[derive(Display, EnumIter, Clone)]
 pub enum ManageSmartCriteriaOptions {
     #[strum(to_string = "Set Smart Criteria")]
     SetSmartCriteria,
@@ -640,23 +639,34 @@ pub enum ManageSmartCriteriaOptions {
     Back,
 }
 pub fn prompt_user_for_manage_smart_criteria_selection() -> ManageSmartCriteriaOptions {
-    let mut display_strings = ManageSmartCriteriaOptions::display_strings();
+    let dialoguer_styles = ColorfulTheme::default();
 
     let data = Data::get_data();
 
-    if data.smart_criteria.is_empty() {
-        // filter out the enable option
-        display_strings.retain(|opt| !opt.starts_with("Enable Smart Criteria"));
-    }
+    // Create vectors to store both the display strings and corresponding enum variants
+    let mut display_strings = Vec::new();
+    let mut variants = Vec::new();
 
-    if data.smart_criteria_enabled {
-        let idx = ManageSmartCriteriaOptions::iter()
-            .position(|o| matches!(o, ManageSmartCriteriaOptions::EnableSmartCriteria))
-            .unwrap();
-        display_strings[idx] = format!("Enable Smart Criteria [x]");
+    // Build the menu options based on state
+    for variant in ManageSmartCriteriaOptions::iter() {
+        match variant {
+            ManageSmartCriteriaOptions::EnableSmartCriteria => {
+                if !data.smart_criteria.is_empty() {
+                    let display = if data.smart_criteria_enabled {
+                        "Enable Smart Criteria [x]"
+                    } else {
+                        "Enable Smart Criteria [ ]"
+                    };
+                    display_strings.push(display.to_string());
+                    variants.push(variant);
+                }
+            }
+            _ => {
+                display_strings.push(variant.to_string());
+                variants.push(variant);
+            }
+        }
     }
-
-    let dialoguer_styles = ColorfulTheme::default();
 
     let idx = Select::with_theme(&dialoguer_styles)
         .with_prompt("Select an option")
@@ -664,21 +674,19 @@ pub fn prompt_user_for_manage_smart_criteria_selection() -> ManageSmartCriteriaO
         .interact()
         .unwrap();
 
-    let selected_option = ManageSmartCriteriaOptions::iter().nth(idx).unwrap();
-
-    return selected_option;
+    variants[idx].clone()
 }
 
 pub fn handle_manage_smart_criteria() {
-    clear_console();
     loop {
+        clear_console();
         let mut data = Data::get_data();
 
         println!();
         println!(
             "Smart Criteria: {}",
             if data.smart_criteria.is_empty() {
-                "Not smart criteria set".red()
+                "No smart criteria set".red()
             } else {
                 data.smart_criteria.green()
             }
@@ -703,10 +711,11 @@ pub fn handle_manage_smart_criteria() {
             }
 
             ManageSmartCriteriaOptions::EnableSmartCriteria => {
+                println!("Smart Criteria Enabled");
                 data.toggle_smart_criteria_enabled();
             }
 
-            _ => break,
+            _ => break
         }
     }
 }
