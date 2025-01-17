@@ -38,6 +38,7 @@ use scrapers::ibm::scraper::scrape_ibm;
 use scrapers::meta::scraper::scrape_meta;
 use scrapers::netflix::scraper::scrape_netflix;
 use scrapers::nike::scraper::scrape_nike;
+use scrapers::panasonic::scraper::scrape_panasonic;
 use scrapers::paypal::scraper::scrape_paypal;
 use scrapers::reddit::scraper::scrape_reddit;
 use scrapers::robinhood::scraper::scrape_robinhood;
@@ -58,7 +59,7 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 33] = [
+const COMPANYKEYS: [&str; 34] = [
     "AirBnB",
     "Anduril",
     "Atlassian",
@@ -84,6 +85,7 @@ const COMPANYKEYS: [&str; 33] = [
     "Nike",
     "Meta",
     "PayPal",
+    "Panasonic",
     "Chase",
     "Robinhood",
     "ServiceNow",
@@ -580,6 +582,7 @@ pub async fn scrape_jobs(data: &mut Data, company_key: &str) -> AppResult<JobsPa
         "Experian" => scrape_experian(data).await,
         "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
         "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
+        "Panasonic" => scrape_panasonic(data).await,
         "PayPal" => scrape_paypal(data).await,
         "Reddit" => scrape_reddit(data).await,
         "Robinhood" => scrape_robinhood(data).await,
