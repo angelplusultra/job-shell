@@ -80,3 +80,7 @@ pub mod paypal {
 pub mod atlassian {
 	pub mod scraper;
 }
+
+pub mod panasonic {
+	pub mod scraper;
+}
