@@ -1,6 +1,13 @@
-use headless_chrome::{ Browser, LaunchOptions};
+use headless_chrome::{Browser, LaunchOptions};
 
-use crate::{error::AppResult, handlers::scrape_options::DefaultJobScraperOptions, models::{data::Data, scraper::{JobsPayload, ScrapedJob}}};
+use crate::{
+    error::AppResult,
+    handlers::scrape_options::DefaultJobScraperOptions,
+    models::{
+        data::Data,
+        scraper::{JobsPayload, ScrapedJob},
+    },
+};
 
 pub async fn default_scrape_jobs_handler(
     data: &mut Data,
@@ -23,8 +30,13 @@ pub async fn default_scrape_jobs_handler(
 
     let engineering_jobs = tab.evaluate(&options.get_jobs_js, false)?;
 
-    let scraped_jobs: Vec<ScrapedJob> =
-        serde_json::from_str(engineering_jobs.value.unwrap().as_str().unwrap()).unwrap();
+    let scraped_jobs: Vec<ScrapedJob> = serde_json::from_str(
+        engineering_jobs
+            .value
+            .ok_or("No value returned from JavaScript evaluation")?
+            .as_str()
+            .ok_or("Value is not a string")?,
+    )?;
 
     let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, options.company_key, data);
 
