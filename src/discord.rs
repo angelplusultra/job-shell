@@ -1,8 +1,10 @@
 use reqwest::Client;
 use serde::Serialize;
+use strum::IntoEnumIterator;
 use tokio_cron_scheduler::{Job as CronJob, JobScheduler};
 
 use crate::{
+    company_options::{CompanyOption, ScrapeJobs},
     error::AppResult,
     models::{
         ai::{AiModel, OpenAIClient},
@@ -10,7 +12,6 @@ use crate::{
         scraper::Job,
     },
     reports::create_report,
-    scrape_jobs,
 };
 
 #[derive(Serialize, Debug, Clone)]
@@ -123,20 +124,23 @@ async fn scan_for_new_jobs(
     scan_all_companies: bool,
 ) -> (Vec<DiscordModeFormattedJob>, Vec<DiscordModeFormattedJob>) {
     let mut data = Data::get_data();
-    let mut company_keys: Vec<String> = data.companies.keys().cloned().collect();
+
+    let mut company_options = CompanyOption::iter().collect::<Vec<CompanyOption>>();
 
     if !scan_all_companies {
-        company_keys.retain(|k| {
-            data.companies[k].is_following || !data.companies[k].connections.is_empty()
+        company_options.retain(|k| {
+            let company_key = k.to_string();
+            data.companies[company_key.as_str()].is_following
+                || !data.companies[company_key.as_str()].connections.is_empty()
         });
     }
 
     let mut new_jobs_based_on_smart_criteria: Vec<DiscordModeFormattedJob> = Vec::new();
     let mut all_new_jobs: Vec<DiscordModeFormattedJob> = Vec::new();
-    for key in &company_keys {
-        println!("Scanning new jobs @ {key}");
+    for company_option in company_options.iter() {
+        println!("Scanning new jobs @ {company_option}");
 
-        let jobs_payload_result = scrape_jobs(&mut data, &key).await;
+        let jobs_payload_result = company_option.scrape_jobs(&mut data).await;
 
         match jobs_payload_result {
             Ok(jobs_payload) => {
@@ -156,14 +160,14 @@ async fn scan_for_new_jobs(
                                         title: j.title.clone(),
                                         link: j.link.clone(),
                                         location: j.location.clone(),
-                                        company: key.to_owned(),
+                                        company: company_option.to_string(),
                                         job: j.clone(),
                                     })
                                     .collect::<Vec<DiscordModeFormattedJob>>();
                                 new_jobs_based_on_smart_criteria.extend(formatted_jobs);
                             }
                             Err(e) => {
-                                eprintln!("Error filtering jobs for {key}\nError: {e}");
+                                eprintln!("Error filtering jobs for {company_option}\nError: {e}");
                             }
                         }
                     }
@@ -175,7 +179,7 @@ async fn scan_for_new_jobs(
                             title: j.title.clone(),
                             link: j.link.clone(),
                             location: j.location.clone(),
-                            company: key.to_owned(),
+                            company: company_option.to_string(),
                             job: j.clone(),
                         })
                         .collect::<Vec<DiscordModeFormattedJob>>();
@@ -184,7 +188,7 @@ async fn scan_for_new_jobs(
                 }
             }
             Err(e) => {
-                eprintln!("Error scanning new jobs for {key}\nError: {e}");
+                eprintln!("Error scanning new jobs for {company_option}\nError: {e}");
             }
         }
     }

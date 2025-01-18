@@ -84,3 +84,4 @@ pub mod atlassian {
 pub mod panasonic {
 	pub mod scraper;
 }
+pub mod default;

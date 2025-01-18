@@ -15,16 +15,15 @@ use strum::IntoEnumIterator;
 use tabled::Table;
 
 use crate::{
+    company_options::{CompanyOption, ScrapeJobs},
     error::AppResult,
     models::{
         ai::{AiModel, OpenAIClient},
-        data::{Company, Connection, Data},
+        data::{Connection, Data},
         scraper::{Job, JobsPayload, ScrapedJob},
     },
     reports::{create_report, ReportMode},
-    scrape_jobs,
     utils::{clear_console, stall_and_present_countdown},
-    COMPANYKEYS,
 };
 
 use super::scrape_options::DefaultJobScraperOptions;
@@ -39,55 +38,46 @@ trait EnumVariantsDisplayStrings: IntoEnumIterator + Display {
 
 impl<T: IntoEnumIterator + Display> EnumVariantsDisplayStrings for T {}
 
-pub async fn default_scrape_jobs_handler(
-    data: &mut Data,
-    options: DefaultJobScraperOptions,
-) -> AppResult<JobsPayload> {
-    let launch_options = LaunchOptions {
-        headless: options.headless,
-        window_size: Some((1920, 1080)),
-        enable_logging: true,
+// pub fn prompt_user_for_company_selection() -> &'static str {
+//     let dialoguer_styles = ColorfulTheme::default();
+//     let mut company_options = COMPANYKEYS.to_vec();
+//
+//     company_options.sort();
+//
+//     company_options.push("Back");
+//
+//     let selection = FuzzySelect::with_theme(&dialoguer_styles)
+//         .with_prompt("What do you choose?")
+//         .items(&company_options)
+//         .interact()
+//         .unwrap();
+//
+//     return company_options[selection];
+// }
 
-        ..LaunchOptions::default()
-    };
-    let browser = Browser::new(launch_options)?;
-
-    let tab = browser.new_tab()?;
-
-    tab.navigate_to(options.url)?;
-    tab.wait_for_element("body")?;
-    tab.wait_for_element(options.content_selector)?;
-
-    let engineering_jobs = tab.evaluate(&options.get_jobs_js, false)?;
-
-    let scraped_jobs: Vec<ScrapedJob> =
-        serde_json::from_str(engineering_jobs.value.unwrap().as_str().unwrap()).unwrap();
-
-    let jobs_payload = JobsPayload::from_scraped_jobs(scraped_jobs, options.company_key, data);
-
-    Ok(jobs_payload)
-}
-
-pub fn prompt_user_for_company_selection() -> &'static str {
+pub fn prompt_user_for_company_selection_v2() -> Option<CompanyOption> {
     let dialoguer_styles = ColorfulTheme::default();
-    let mut company_options = COMPANYKEYS.to_vec();
 
-    company_options.sort();
+    // create company options with back option
 
-    company_options.push("Back");
+    let mut company_options = CompanyOption::display_strings();
+    company_options.push("Back".to_string());
 
     let selection = FuzzySelect::with_theme(&dialoguer_styles)
-        .with_prompt("What do you choose?")
+        .with_prompt("Select a company")
         .items(&company_options)
         .interact()
         .unwrap();
 
-    return company_options[selection];
-}
+    if selection == company_options.len() - 1 {
+        return None;
+    }
 
+    return Some(CompanyOption::iter().nth(selection).unwrap());
+}
 // INFO: Company Options Prompt
 #[derive(Display, EnumIter)]
-pub enum CompanyOption {
+pub enum SelectedCompanyOption {
     #[strum(to_string = "Scrape and Update Jobs")]
     ScrapeAndUpdateJobs,
     #[strum(to_string = "View Jobs")]
@@ -103,16 +93,16 @@ pub enum CompanyOption {
 }
 
 pub fn prompt_user_for_company_option(
-    company_name: &'static str,
+    company_name: &str,
     is_following: bool,
-) -> CompanyOption {
+) -> SelectedCompanyOption {
     let dialoguer_styles = ColorfulTheme::default();
 
-    let mut options = CompanyOption::display_strings();
+    let mut options = SelectedCompanyOption::display_strings();
 
     if is_following {
-        let idx = CompanyOption::iter()
-            .position(|o| matches!(o, CompanyOption::FollowCompany))
+        let idx = SelectedCompanyOption::iter()
+            .position(|o| matches!(o, SelectedCompanyOption::FollowCompany))
             .unwrap();
         options[idx] = format!("Follow Company [x]")
     }
@@ -123,7 +113,7 @@ pub fn prompt_user_for_company_option(
         .interact()
         .unwrap();
 
-    CompanyOption::iter().nth(selection).unwrap()
+    SelectedCompanyOption::iter().nth(selection).unwrap()
 }
 
 // INFO: Job Option Prompt
@@ -296,7 +286,7 @@ pub fn handle_reach_out_to_a_connection(
 pub fn handle_job_selection(
     jobs: Vec<Job>,
     new_jobs: Option<Vec<Job>>,
-    company_name: &'static str,
+    company_name: &str,
 ) -> Option<Job> {
     #[derive(Clone)]
     struct FormattedJob<'a> {
@@ -420,22 +410,20 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     data: &mut Data,
 ) -> AppResult<Vec<FormattedJob>> {
     clear_console();
-    let companies_to_scrape: Vec<String> = data
-        .companies
-        .iter()
-        // Filter out companies where connections.len() > 0 or company.is_following equals true
-        .filter(|(_, c)| {
-            if !c.connections.is_empty() || c.is_following {
+    let companies_to_scrape: Vec<CompanyOption> = CompanyOption::iter()
+        .filter(|c| {
+            let company_key = c.to_string();
+            let company = data.companies.get(&company_key).unwrap();
+            if !company.connections.is_empty() || company.is_following {
                 return true;
             } else {
                 return false;
             }
         })
-        .map(|(k, _)| k.clone())
         .collect();
 
     if companies_to_scrape.is_empty() {
-        return Err("Oops! Looks like you’re not connected with any companies yet or following any. Start building your network by adding connections or following companies you’re interested in!".into());
+        return Err("Looks like you’re not connected with any companies yet or following any. Start building your network by adding connections or following companies you’re interested in!".into());
     }
 
     let pb = ProgressBar::new(companies_to_scrape.len() as u64);
@@ -452,8 +440,10 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
     // Enable steady ticks for animation
     pb.enable_steady_tick(Duration::from_millis(100));
 
-    for company_key in companies_to_scrape {
+    for company_option in companies_to_scrape {
         clear_console();
+
+        let company_key = company_option.to_string();
 
         // Set a message to show current activity
         pb.set_message(format!("Scraping {}", company_key));
@@ -462,7 +452,7 @@ pub async fn handle_scan_new_jobs_across_network_and_followed_companies(
         let start = Instant::now();
 
         // Perform the scraping
-        let jobs_payload = match scrape_jobs(data, &company_key).await {
+        let jobs_payload = match company_option.scrape_jobs(data).await {
             Ok(jb) => jb,
             Err(e) => {
                 eprintln!("{}", format!("Error: {}", e).red());
@@ -715,7 +705,7 @@ pub fn handle_manage_smart_criteria() {
                 data.toggle_smart_criteria_enabled();
             }
 
-            _ => break
+            _ => break,
         }
     }
 }
