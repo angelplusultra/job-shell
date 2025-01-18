@@ -9,9 +9,11 @@ use dialoguer::{theme::ColorfulTheme, Confirm, Input};
 use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use strum::IntoEnumIterator;
 use tabled::Tabled;
 
-use crate::COMPANYKEYS;
+
+use crate::company_options::CompanyOption;
 
 use super::scraper::Job;
 
@@ -225,9 +227,8 @@ impl AnalyzeData for Data {
 
 impl Data {
     pub fn default() -> Self {
-        let companies: Vec<(String, Company)> = COMPANYKEYS
-            .iter()
-            .map(|&v| (v.to_string(), Company::new()))
+        let companies: Vec<(String, Company)> = CompanyOption::iter()
+            .map(|v| (v.to_string(), Company::new()))
             .collect();
         Data {
             companies: HashMap::from_iter(companies),
@@ -276,7 +277,7 @@ impl Data {
         let mut made_changes = false;
 
         // Check and add missing company keys
-        for key in COMPANYKEYS {
+        for key in CompanyOption::keys().iter() {
             if !companies_obj.contains_key(key) {
                 companies_obj.insert(
                     key.to_string(),
@@ -349,7 +350,7 @@ impl Data {
         }
     }
 
-    pub fn toggle_company_follow(&mut self, company_key: &'static str) {
+    pub fn toggle_company_follow(&mut self, company_key: &str) {
         let c = self.companies.get_mut(company_key).unwrap();
 
         c.is_following = !c.is_following;

@@ -1,53 +1,21 @@
 use colored::*;
+use company_options::ScrapeJobs;
 use dialoguer::theme::ColorfulTheme;
 use dialoguer::{Confirm, FuzzySelect, Input};
 use discord::initialize_discord_mode;
 use dotenv::dotenv;
-use error::AppResult;
 use handlers::handlers::{
-    default_scrape_jobs_handler, handle_job_selection, handle_manage_connection,
-    handle_manage_smart_criteria, handle_open_job_in_browser, handle_reach_out_to_a_connection,
+    handle_job_selection, handle_manage_connection, handle_manage_smart_criteria,
+    handle_open_job_in_browser, handle_reach_out_to_a_connection,
     handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
-    prompt_user_for_company_selection, prompt_user_for_job_option,
-    prompt_user_for_main_menu_selection, CompanyOption, FormattedJob, JobOption, MainMenuOption,
+    prompt_user_for_company_selection_v2, prompt_user_for_job_option,
+    prompt_user_for_main_menu_selection, FormattedJob, JobOption, MainMenuOption,
+    SelectedCompanyOption,
 };
-use handlers::scrape_options::{
-    ANDURIL_SCRAPE_OPTIONS, DISCORD_SCRAPE_OPTIONS, GITHUB_SCRAPE_OPTIONS, GITLAB_SCRAPE_OPTIONS,
-    ONEPASSWORD_SCRAPE_OPTIONS, PALANTIR_DEFAULT_SCRAPE_OPTIONS,
-    THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS, WEEDMAPS_SCRAPE_OPTIONS,
-};
-use headless_chrome::{Browser, LaunchOptions};
 use indicatif::{ProgressBar, ProgressStyle};
 use jobshell::utils::clear_console;
 use models::data::{Connection, Data};
-use models::gemini::GeminiJob;
 use models::scraper::{Job, JobsPayload};
-use scrapers::airbnb::scraper::scrape_airbnb;
-use scrapers::atlassian::scraper::scrape_atlassian;
-use scrapers::blizzard::scraper::scrape_blizzard;
-use scrapers::chase::scraper::scrape_chase;
-use scrapers::cisco::scraper::scrape_cisco;
-use scrapers::cloudflare::scraper::scrape_cloudflare;
-use scrapers::coinbase::scraper::scrape_coinbase;
-use scrapers::costar_group::scraper::scrape_costar_group;
-use scrapers::disney::scraper::scrape_disney;
-use scrapers::doordash::scraper::scrape_doordash;
-use scrapers::experian::scraper::scrape_experian;
-use scrapers::gen::scraper::scrape_gen;
-use scrapers::ibm::scraper::scrape_ibm;
-use scrapers::meta::scraper::scrape_meta;
-use scrapers::netflix::scraper::scrape_netflix;
-use scrapers::nike::scraper::scrape_nike;
-use scrapers::panasonic::scraper::scrape_panasonic;
-use scrapers::paypal::scraper::scrape_paypal;
-use scrapers::reddit::scraper::scrape_reddit;
-use scrapers::robinhood::scraper::scrape_robinhood;
-use scrapers::salesforce::scraper::scrape_salesforce;
-use scrapers::servicenow::scraper::scrape_servicenow;
-use scrapers::square::scraper::scrape_square;
-use scrapers::stripe::scraper::scrape_stripe;
-use scrapers::toast::scraper::scrape_toast;
-use scrapers::uber::scraper::scrape_uber;
 use std::error::Error;
 use std::fs;
 use std::thread::sleep;
@@ -59,42 +27,6 @@ use webbrowser;
 
 // TODO: Keys should prob be lowercase, make a tuple where 0 is key and 1 is display name, or
 // straight up just an enum
-const COMPANYKEYS: [&str; 34] = [
-    "AirBnB",
-    "Anduril",
-    "Atlassian",
-    "Blizzard",
-    "Cisco",
-    "Cloudflare",
-    "CoStar Group",
-    "DoorDash",
-    "Experian",
-    "1Password",
-    "Weedmaps",
-    "Discord",
-    "Reddit",
-    "GitHub",
-    "GitLab",
-    "IBM",
-    "The Browser Company",
-    "Palantir",
-    "Coinbase",
-    "Gen",
-    "Disney",
-    "Netflix",
-    "Nike",
-    "Meta",
-    "PayPal",
-    "Panasonic",
-    "Chase",
-    "Robinhood",
-    "ServiceNow",
-    "Square",
-    "Stripe",
-    "Salesforce",
-    "Toast",
-    "Uber",
-];
 
 mod cron;
 mod discord;
@@ -103,47 +35,16 @@ mod reports;
 mod scrapers;
 
 // mod links
+mod company_options;
 mod error;
 mod utils;
+
 mod models {
     pub mod ai;
     pub mod custom_error;
     pub mod data;
     pub mod gemini;
     pub mod scraper;
-}
-
-async fn default_get_job_details(
-    job: &Job,
-    headless: bool,
-    content_selector: &'static str,
-) -> Result<GeminiJob, Box<dyn Error>> {
-    let launch_options: LaunchOptions = LaunchOptions {
-        headless,
-        window_size: Some((1920, 1080)),
-        ..LaunchOptions::default()
-    };
-
-    let browser = Browser::new(launch_options)?;
-
-    let tab = browser.new_tab()?;
-
-    tab.navigate_to(&job.link)?;
-
-    tab.wait_until_navigated()?;
-
-    tab.wait_for_element("body")?;
-    let content = tab.wait_for_element(content_selector)?;
-
-    let html = content.get_content()?;
-
-    match GeminiJob::from_job_html(html).await {
-        Ok(gemini_job) => Ok(gemini_job),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            Err(e)
-        }
-    }
 }
 
 /// Hunt for jobs in the terminal
@@ -312,14 +213,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
             MainMenuOption::SelectACompany => {
                 loop {
                     clear_console();
-                    let company_selection = prompt_user_for_company_selection();
+                    // let company_selection = prompt_user_for_company_selection();
 
-                    if company_selection == "Back" {
+                    let selected_company_opt = prompt_user_for_company_selection_v2();
+
+                    if let None = selected_company_opt {
                         break;
                     }
 
-                    let company = company_selection;
+                    let selected_company = selected_company_opt.unwrap();
 
+                    let company_string = selected_company.to_string();
+
+                    let company = company_string.as_str();
                     //INFO: Company Loop
                     loop {
                         clear_console();
@@ -328,8 +234,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                             prompt_user_for_company_option(company, is_following);
 
                         match selected_company_option {
-                            CompanyOption::Back => break,
-                            CompanyOption::ViewJobs => {
+                            SelectedCompanyOption::Back => break,
+                            SelectedCompanyOption::ViewJobs => {
                                 if data.companies[company].jobs.is_empty() {
                                     clear_console();
                                     stall_and_present_countdown(3, Some("No jobs, try scraping"));
@@ -360,7 +266,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }
                                 }
                             }
-                            CompanyOption::ViewOrEditConnections => {
+                            SelectedCompanyOption::ViewOrEditConnections => {
                                 clear_console();
                                 let company_data = data.companies.get(company).unwrap();
                                 let connects: Vec<Connection> = company_data.connections.clone();
@@ -400,7 +306,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     .await?;
                             }
                             // INFO: Scrape Jobs
-                            CompanyOption::ScrapeAndUpdateJobs => {
+                            SelectedCompanyOption::ScrapeAndUpdateJobs => {
                                 clear_console();
 
                                 let spinner = ProgressBar::new_spinner();
@@ -421,7 +327,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
                                 let JobsPayload {
                                     all_jobs, new_jobs, ..
-                                } = match scrape_jobs(&mut data, company).await {
+                                } = match selected_company.scrape_jobs(&mut data).await {
                                     Ok(jp) => jp,
                                     Err(e) => {
                                         let message = e.to_string().red().to_string();
@@ -457,7 +363,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     }
                                 }
                             }
-                            CompanyOption::AddAConnection => {
+                            SelectedCompanyOption::AddAConnection => {
                                 clear_console();
                                 println!("Create a new connection at {}", company);
 
@@ -487,7 +393,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                     data.save();
                                 }
                             }
-                            CompanyOption::FollowCompany => {
+                            SelectedCompanyOption::FollowCompany => {
                                 data.toggle_company_follow(company);
                             }
                         }
@@ -562,52 +468,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-// TODO: move somewhere
-pub async fn scrape_jobs(data: &mut Data, company_key: &str) -> AppResult<JobsPayload> {
-    let jobs_payload = match company_key {
-        "AirBnB" => scrape_airbnb(data).await,
-        "Anduril" => default_scrape_jobs_handler(data, ANDURIL_SCRAPE_OPTIONS).await,
-        "Atlassian" => scrape_atlassian(data).await,
-        "Chase" => scrape_chase(data).await,
-        "Cloudflare" => scrape_cloudflare(data).await,
-        "Cisco" => scrape_cisco(data).await,
-        "CoStar Group" => scrape_costar_group(data).await,
-        "Blizzard" => scrape_blizzard(data).await,
-        "Coinbase" => scrape_coinbase(data).await,
-        "DoorDash" => scrape_doordash(data).await,
-        "Weedmaps" => default_scrape_jobs_handler(data, WEEDMAPS_SCRAPE_OPTIONS).await,
-        "1Password" => default_scrape_jobs_handler(data, ONEPASSWORD_SCRAPE_OPTIONS).await,
-        "Experian" => scrape_experian(data).await,
-        "Discord" => default_scrape_jobs_handler(data, DISCORD_SCRAPE_OPTIONS).await,
-        "Palantir" => default_scrape_jobs_handler(data, PALANTIR_DEFAULT_SCRAPE_OPTIONS).await,
-        "Panasonic" => scrape_panasonic(data).await,
-        "PayPal" => scrape_paypal(data).await,
-        "Reddit" => scrape_reddit(data).await,
-        "Robinhood" => scrape_robinhood(data).await,
-        "Gen" => scrape_gen(data).await,
-        "IBM" => scrape_ibm(data).await,
-        "Disney" => scrape_disney(data).await,
-        "Meta" => scrape_meta(data).await,
-        "Netflix" => scrape_netflix(data).await,
-        "Nike" => scrape_nike(data).await,
-        "Square" => scrape_square(data).await,
-        "Stripe" => scrape_stripe(data).await,
-        "Salesforce" => scrape_salesforce(data).await,
-        "ServiceNow" => scrape_servicenow(data).await,
-        "GitHub" => default_scrape_jobs_handler(data, GITHUB_SCRAPE_OPTIONS).await,
-        "GitLab" => default_scrape_jobs_handler(data, GITLAB_SCRAPE_OPTIONS).await,
-        "Toast" => scrape_toast(data).await,
-        "Uber" => scrape_uber(data).await,
-        "The Browser Company" => {
-            default_scrape_jobs_handler(data, THE_BROWSER_COMPANY_DEFAULT_SCRAPE_OPTIONS).await
-        }
-
-        _ => return Err(format!("Scraper yet to be implemented for {}", company_key).into()),
-    }?;
-
-    Ok(jobs_payload)
 }
 
 async fn handle_job_option(
