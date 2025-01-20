@@ -61,6 +61,7 @@ pub fn prompt_user_for_company_selection_v2() -> Option<CompanyOption> {
     // create company options with back option
 
     let mut company_options = CompanyOption::display_strings();
+    company_options.sort();
     company_options.push("Back".to_string());
 
     let selection = FuzzySelect::with_theme(&dialoguer_styles)
@@ -256,7 +257,7 @@ pub fn prompt_user_for_connection_option(selected_connection: &Connection) -> Co
 pub fn handle_reach_out_to_a_connection(
     connections: &Vec<Connection>,
     selected_job: &Job,
-) -> AppResult<()>{
+) -> AppResult<()> {
     clear_console();
     if connections.is_empty() {
         stall_and_present_countdown(3, Some("You currently have no connections at this company"));
@@ -745,4 +746,3 @@ pub fn handle_view_new_jobs_reports() -> AppResult<()> {
 
     Ok(())
 }
-
