@@ -7,17 +7,20 @@ use jobshell::utils::{clear_console, stall_and_present_countdown};
 use tabled::{settings::Style, Table, Tabled};
 
 use crate::{
-    company_options::ScrapeJobs, error::AppResult, handle_view_new_jobs_reports, handlers::handlers::{
+    company_options::ScrapeJobs,
+    error::AppResult,
+    handlers::handlers::{
         handle_job_selection, handle_manage_connection, handle_manage_smart_criteria,
         handle_open_job_in_browser, handle_reach_out_to_a_connection,
-        handle_scan_new_jobs_across_network_and_followed_companies, prompt_user_for_company_option,
-        prompt_user_for_company_selection_v2, prompt_user_for_job_option,
-        prompt_user_for_main_menu_selection, FormattedJob, JobOption, MainMenuOption,
-        SelectedCompanyOption,
-    }, models::{
+        handle_scan_new_jobs_across_network_and_followed_companies, handle_view_new_jobs_reports,
+        prompt_user_for_company_option, prompt_user_for_company_selection_v2,
+        prompt_user_for_job_option, prompt_user_for_main_menu_selection, FormattedJob, JobOption,
+        MainMenuOption, SelectedCompanyOption,
+    },
+    models::{
         data::{Connection, Data},
         scraper::{Job, JobsPayload},
-    }
+    },
 };
 
 pub async fn run() -> AppResult<()> {
@@ -388,11 +391,7 @@ pub async fn run() -> AppResult<()> {
     Ok(())
 }
 
-async fn handle_job_option(
-    selected_job: &Job,
-    data: &mut Data,
-    company: &str,
-) -> AppResult<()> {
+async fn handle_job_option(selected_job: &Job, data: &mut Data, company: &str) -> AppResult<()> {
     loop {
         clear_console();
         let data_job = data.companies[company]

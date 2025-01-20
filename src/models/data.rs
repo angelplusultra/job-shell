@@ -12,8 +12,7 @@ use serde_json::{json, Value};
 use strum::IntoEnumIterator;
 use tabled::Tabled;
 
-
-use crate::company_options::CompanyOption;
+use crate::{company_options::CompanyOption, error::AppResult};
 
 use super::scraper::Job;
 
@@ -384,5 +383,28 @@ impl Data {
     pub fn toggle_smart_criteria_enabled(&mut self) {
         self.smart_criteria_enabled = !self.smart_criteria_enabled;
         self.save();
+    }
+
+    pub fn get_new_jobs_report_files() -> AppResult<Vec<String>> {
+        let reports_dir = Self::get_data_dir().join("reports");
+        let paths = fs::read_dir(reports_dir)?;
+
+        let mut files: Vec<String> = paths
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let path = entry.path();
+
+                // Skip directories, only include files
+                if path.is_file() {
+                    path.file_name()?.to_str().map(|s| s.replace(".html", ""))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        files.sort_by(|a, b| b.cmp(a));
+
+        Ok(files)
     }
 }

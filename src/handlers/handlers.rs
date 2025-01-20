@@ -709,3 +709,40 @@ pub fn handle_manage_smart_criteria() {
         }
     }
 }
+
+pub fn handle_view_new_jobs_reports() -> AppResult<()> {
+    let v = Data::get_new_jobs_report_files();
+    let data_path = Data::get_data_dir();
+
+    let reports_path = data_path.join("reports");
+
+    match v {
+        Ok(reports) => loop {
+            clear_console();
+            let mut options = Vec::from_iter(reports.clone());
+            options.push("Back".to_string());
+
+            let idx = FuzzySelect::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select a new jobs report")
+                .items(&options)
+                .interact()
+                .unwrap();
+
+            let selected_report = options[idx].as_str();
+
+            if selected_report == "Back" {
+                break;
+            }
+
+            let report_path = reports_path.join(format!("{}.html", selected_report));
+            // Convert the path to a URL format with file:// protocol
+            let url = format!("file://{}", report_path.display());
+
+            webbrowser::open(&url)?;
+        },
+        Err(e) => eprintln!("Error: {}", e),
+    }
+
+    Ok(())
+}
+
