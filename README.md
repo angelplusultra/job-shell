@@ -311,6 +311,14 @@ Say goodbye to distractions and hello to streamlined job hunting.
         src="https://cdn.brandfetch.io/ididNbiiOd/theme/light/logo.svg?c=1dxbfHSJFAPEGdCLU4o5B" 
       />
     </td>
+<td>
+      <img 
+        alt="Panasonic" 
+        width="150" 
+        height="150" 
+        src="https://cdn.brandfetch.io/idi424ld43/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
+      />
+     </td>
   </tr>
 </table>
 
