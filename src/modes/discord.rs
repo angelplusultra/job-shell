@@ -2,8 +2,8 @@ use std::error::Error;
 
 use dialoguer::{theme::ColorfulTheme, Confirm, Input};
 
-use crate::discord::initialize_discord_mode;
-pub async fn run() -> Result<(), Box<dyn Error>> {
+use crate::{discord::initialize_discord_mode, error::AppResult};
+pub async fn run() -> AppResult<()> {
     let dialoguer_styles = ColorfulTheme::default();
 
     let webhook_url = Input::<String>::with_theme(&dialoguer_styles)
@@ -34,9 +34,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
             .default(false)
             .interact()?;
 
-    initialize_discord_mode(webhook_url, interval, scan_all_companies)
-        .await
-        .unwrap_or_else(|e| eprintln!("Error: {}", e));
+    initialize_discord_mode(webhook_url, interval, scan_all_companies).await?;
 
     return Ok(());
 }

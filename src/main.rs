@@ -17,6 +17,7 @@ mod models {
 use clap::Parser;
 use dialoguer::{theme::ColorfulTheme, FuzzySelect};
 use dotenv::dotenv;
+use error::AppResult;
 use jobshell::utils::clear_console;
 use models::data::Data;
 use std::{error::Error, fs};
@@ -31,7 +32,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> AppResult<()> {
     clear_console();
     dotenv().ok();
     let args = Args::parse();
@@ -46,7 +47,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 }
 
 // TODO: Refactor this to be a metod on an instance of data or Data
-pub fn get_new_jobs_report_files() -> Result<Vec<String>, Box<dyn Error>> {
+pub fn get_new_jobs_report_files() -> AppResult<Vec<String>> {
     let reports_dir = Data::get_data_dir().join("reports");
     let paths = fs::read_dir(reports_dir)?;
 
@@ -70,7 +71,7 @@ pub fn get_new_jobs_report_files() -> Result<Vec<String>, Box<dyn Error>> {
 }
 
 // TODO:  Move this to handlers
-pub fn handle_view_new_jobs_reports() -> Result<(), Box<dyn Error>> {
+pub fn handle_view_new_jobs_reports() -> AppResult<()> {
     let v = get_new_jobs_report_files();
     let data_path = Data::get_data_dir();
 
