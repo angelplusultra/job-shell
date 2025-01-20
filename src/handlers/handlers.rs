@@ -157,7 +157,7 @@ pub fn prompt_user_for_job_option(job: &Job) -> JobOption {
 // pub fn handle_view_edit_connections() {}
 
 // INFO: Open Job in Browser
-pub fn handle_open_job_in_browser(job: &Job, data: &mut Data) -> Result<(), Box<dyn Error>> {
+pub fn handle_open_job_in_browser(job: &Job, data: &mut Data) -> AppResult<()> {
     webbrowser::open(&job.link)?;
 
     let dialoguer_styles = ColorfulTheme::default();
@@ -256,7 +256,7 @@ pub fn prompt_user_for_connection_option(selected_connection: &Connection) -> Co
 pub fn handle_reach_out_to_a_connection(
     connections: &Vec<Connection>,
     selected_job: &Job,
-) -> Result<(), Box<dyn Error>> {
+) -> AppResult<()>{
     clear_console();
     if connections.is_empty() {
         stall_and_present_countdown(3, Some("You currently have no connections at this company"));
@@ -555,7 +555,7 @@ pub async fn handle_manage_connection(
     connection: &Connection,
     data: &mut Data,
     company_name: &str,
-) -> Result<(), Box<dyn Error>> {
+) -> AppResult<()> {
     let dialoguer_styles = ColorfulTheme::default();
     #[derive(EnumIter, Display)]
     enum ManageConnectionOption {
