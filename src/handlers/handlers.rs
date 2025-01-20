@@ -61,6 +61,7 @@ pub fn prompt_user_for_company_selection_v2() -> Option<CompanyOption> {
     // create company options with back option
 
     let mut company_options = CompanyOption::display_strings();
+    company_options.sort();
     company_options.push("Back".to_string());
 
     let selection = FuzzySelect::with_theme(&dialoguer_styles)
