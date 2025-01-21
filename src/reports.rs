@@ -47,7 +47,6 @@ pub fn create_report(new_jobs: &Vec<FormattedJob>, mode: ReportMode) -> AppResul
 
     let mut path = Data::get_data_dir();
 
-    dbg!(&path);
 
     if cfg!(test) {
         path.push("tests");
