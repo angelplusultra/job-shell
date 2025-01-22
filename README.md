@@ -7,7 +7,7 @@
 ![Issues](https://img.shields.io/github/issues/angelplusultra/job-shell?style=flat)
 ![Pull Requests](https://img.shields.io/github/issues-pr/angelplusultra/job-shell?style=flat)
 ![Crates.io Total Downloads](https://img.shields.io/crates/d/jobshell?label=crates.io%20downloads)
-[![Homebrew](https://img.shields.io/badge/homebrew-v2.0.1-blue)](https://github.com/angelplusultra/homebrew-jobshell)
+[![Homebrew](https://img.shields.io/badge/homebrew-v2.0.2-blue)](https://github.com/angelplusultra/homebrew-jobshell)
 [![crates.io](https://img.shields.io/crates/v/jobshell)](https://crates.io/crates/jobshell)
 
 
