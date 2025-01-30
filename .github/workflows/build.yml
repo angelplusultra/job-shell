@@ -41,7 +41,7 @@ jobs:
         run: cp target/release/jobshell artifacts/
 
       - name: Upload Linux binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-artifacts
           path: artifacts/
@@ -73,7 +73,7 @@ jobs:
         run: cp target/x86_64-pc-windows-gnu/release/jobshell.exe artifacts/
 
       - name: Upload Windows binary
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: windows-artifacts
           path: artifacts/
@@ -112,7 +112,7 @@ jobs:
         run: cp target/aarch64-apple-darwin/release/jobshell artifacts/jobshell-aarch64
 
       - name: Upload macOS binaries
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macos-artifacts
           path: artifacts/
