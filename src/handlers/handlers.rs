@@ -58,23 +58,30 @@ impl<T: IntoEnumIterator + Display> EnumVariantsDisplayStrings for T {}
 pub fn prompt_user_for_company_selection_v2() -> Option<CompanyOption> {
     let dialoguer_styles = ColorfulTheme::default();
 
-    // create company options with back option
+    // Create a sorted list of CompanyOption instances
+    let mut company_options: Vec<CompanyOption> = CompanyOption::iter().collect();
+    company_options.sort_by_key(|opt| opt.to_string());
 
-    let mut company_options = CompanyOption::display_strings();
-    company_options.sort();
-    company_options.push("Back".to_string());
+    // Add "Back" option
+    let mut display_options = company_options
+        .iter()
+        .map(|opt| opt.to_string())
+        .collect::<Vec<String>>();
+
+    display_options.push("Back".to_string());
 
     let selection = FuzzySelect::with_theme(&dialoguer_styles)
         .with_prompt("Select a company")
-        .items(&company_options)
+        .items(&display_options)
         .interact()
         .unwrap();
 
-    if selection == company_options.len() - 1 {
+    if selection == display_options.len() - 1 {
         return None;
     }
 
-    return Some(CompanyOption::iter().nth(selection).unwrap());
+    // Return the selected company from the sorted list
+    Some(company_options[selection].clone())
 }
 // INFO: Company Options Prompt
 #[derive(Display, EnumIter)]
