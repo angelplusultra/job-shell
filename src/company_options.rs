@@ -26,7 +26,7 @@ use crate::{
     },
 };
 
-#[derive(EnumIter, Debug, Display)]
+#[derive(EnumIter, Debug, Display, Clone)]
 pub enum CompanyOption {
     #[strum(to_string = "AirBnB")]
     AirBnb,
