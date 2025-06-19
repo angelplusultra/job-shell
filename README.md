@@ -1,6 +1,6 @@
 
 
-# JobShell: Because Job Hunting is Hell Enough
+# JobShell
 ![GitHub Release](https://img.shields.io/github/v/release/angelplusultra/job-shell?style=flat)
 ![GitHub Repo stars](https://img.shields.io/github/stars/angelplusultra/job-shell)
 ![Downloads](https://img.shields.io/github/downloads/angelplusultra/job-shell/total?style=flat)
@@ -19,11 +19,8 @@
 ![GitHub Forks](https://img.shields.io/github/forks/angelplusultra/job-shell?style=social)
 ![GitHub Watchers](https://img.shields.io/github/watchers/angelplusultra/job-shell?style=social)-->
 
-Are you a software engineer desperately seeking employment but **done** with LinkedIn’s circus of virtue-signaling posts and irrelevant job alerts? Tired of getting emails that scream “Exciting opportunities in your network!” only to find out John liked Dave’s post about on-site synergy?
-
-Wish you could manage your job search from the comfort of your **terminal cave**, where corporate nonsense can’t reach you? Well, my friend, welcome to JobShell—the no-BS solution to staying updated on opportunities at companies you actually care about.
-
-Say goodbye to distractions and hello to streamlined job hunting. 
+JobShell offers software engineers a distraction-free, terminal-centric solution for managing their job search. Move beyond the noise of traditional platforms and gain control over your applications directly from your command line.
+Streamline your job hunt and focus on opportunities that matter to you.
 
 <!--**JobShell** is a command-line tool designed to streamline your software engineering job hunt by scraping job postings from a curated list of top tech companies. It provides two primary modes of operation—an interactive CLI mode and a Discord integration mode—offering flexibility to suit your workflow. With JobShell, you can manage your network connections, discover new job postings, discover new job postings from the companies YOU care about, and even use AI to do some cool shit here and there.-->
 ## Table of Contents
